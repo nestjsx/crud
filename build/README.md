@@ -1,8 +1,4 @@
-# Nest CRUD for RESTful APIs (@nestjsx/crud)
-
-## Description
-
-CRUD controllers and services for RESTful APIs built with Nest.
+Nest CRUD controllers and services for RESTful APIs (@nestjsx/crud)
 
 ## Using with TypeORM
 
