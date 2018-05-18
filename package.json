@@ -1,0 +1,38 @@
+{
+  "name": "@nestjsx/crud",
+  "version": "0.1.0",
+  "description": "Nest CRUD for RESTful APIs",
+  "scripts": {
+    "peers": "node_modules/.bin/npm-install-peers",
+    "dep:check": "npm-check",
+    "dep:update": "npm-check -u",
+    "lint": "tslint --project .",
+    "test": "node_modules/.bin/jest --verbose --coverage --config ./jest.json",
+    "test:e2e":
+      "node_modules/.bin/jest --verbose --config ./test/jest-e2e.json",
+    "test:all": "npm run test && npm run test:e2e",
+    "build": "rm -rf build/dist && node_modules/.bin/tsc"
+  },
+  "dependencies": {},
+  "peerDependencies": {
+    "@nestjs/common": "^5.0.0",
+    "@nestjs/core": "^5.0.0",
+    "@nestjs/testing": "^5.0.0",
+    "@nestjs/typeorm": "^3.0.0",
+    "class-transformer": "^0.1.9",
+    "reflect-metadata": "^0.1.12",
+    "rxjs": "^6.0.0",
+    "typeorm": "^0.2.6"
+  },
+  "devDependencies": {
+    "@types/jest": "^22.2.3",
+    "@types/node": "^10.1.1",
+    "@types/supertest": "^2.0.4",
+    "jest": "^22.4.4",
+    "npm-install-peers": "^1.2.1",
+    "supertest": "^3.0.0",
+    "ts-jest": "^22.4.5",
+    "tslint": "^5.10.0",
+    "typescript": "^2.8.3"
+  }
+}

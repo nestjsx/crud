@@ -1,0 +1,8 @@
+{
+  "moduleFileExtensions": ["ts", "js"],
+  "testRegex": ".e2e-spec.ts$",
+  "rootDir": ".",
+  "transform": {
+    "^.+\\.ts$": "ts-jest"
+  }
+}

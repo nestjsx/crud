@@ -1,0 +1,30 @@
+{
+  "name": "@nestjsx/crud",
+  "version": "0.1.0",
+  "description": "Nest CRUD for RESTful APIs",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "keywords": [
+    "typescript",
+    "typeorm",
+    "nest",
+    "rest",
+    "restful",
+    "api",
+    "crud",
+    "factory"
+  ],
+  "author": {
+    "name": "Michael Yali",
+    "email": "mihon4ik@gmail.com"
+  },
+  "license": "MIT",
+  "peerDependencies": {
+    "@nestjs/common": "^5.0.0",
+    "@nestjs/core": "^5.0.0",
+    "@nestjs/typeorm": "^3.0.0",
+    "reflect-metadata": "^0.1.12",
+    "rxjs": "^6.0.0",
+    "typeorm": "^0.2.6"
+  }
+}

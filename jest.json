@@ -1,0 +1,17 @@
+{
+  "moduleFileExtensions": ["ts", "js"],
+  "testRegex": ".spec.ts$",
+  "rootDir": ".",
+  "transform": {
+    "^.+\\.ts$": "ts-jest"
+  },
+  "coverageReporters": ["json", "lcov"],
+  "coverageDirectory": "coverage",
+  "collectCoverageFrom": [
+    "src/**/*.ts",
+    "!src/**/*.interface.ts",
+    "!src/**/*.controller.ts",
+    "!src/**/index.ts",
+    "!**/node_modules/**"
+  ]
+}
