@@ -76,8 +76,6 @@ export class CatsModule {}
 ## Tests
 
 ```bash
-npm i
-npm run peers
 npm run test
 npm run test:e2e
 ```

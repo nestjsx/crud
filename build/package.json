@@ -4,6 +4,13 @@
   "description": "Nest CRUD for RESTful APIs",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zMotivat0r/nest-crud.git"
+  },
+  "bugs": {
+    "url": "https://github.com/zMotivat0r/nest-crud/issues"
+  },
   "keywords": [
     "typescript",
     "typeorm",
