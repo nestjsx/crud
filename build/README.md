@@ -1,14 +1,14 @@
-Nest CRUD controllers and services for RESTful APIs (@nestjsx/crud)
+## Nest CRUD controllers and services for RESTful APIs (@nestjsx/crud)
 
 ## Using with TypeORM
 
-### 1. Install
+#### 1. Install
 
 ```bash
 npm i @nestjsx/crud typeorm @nestjs/typeorm --save
 ```
 
-### 2. Create TypeORM Entity
+#### 2. Create TypeORM Entity
 
 ```typescript
 import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
@@ -21,7 +21,7 @@ export class Cat {
 }
 ```
 
-### 3. Create Service
+#### 3. Create Service
 
 ```typescript
 import { CrudTypeOrmService } from '@nestjsx/crud';
@@ -40,7 +40,7 @@ export class CatsCrudService extends CrudTypeOrmService<Cat> {
 }
 ```
 
-### 4. Create Controller
+#### 4. Create Controller
 
 ```typescript
 import { CrudController } from '@nestjsx/crud';
@@ -56,7 +56,7 @@ export class CatsCrudController extends CrudController<Cat> {
 }
 ```
 
-### 5. Connect everything in your Module
+#### 5. Connect everything in your Module
 
 ```typescript
 import { Module } from '@nestjs/common';
