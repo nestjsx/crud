@@ -25,6 +25,9 @@ let CrudTypeOrmService = class CrudTypeOrmService {
     }
     save(entity) {
         return __awaiter(this, void 0, void 0, function* () {
+            if (!entity || typeof entity !== 'object') {
+                throw new common_1.BadRequestException();
+            }
             try {
                 return yield this.repository.save(entity);
             }
@@ -40,6 +43,9 @@ let CrudTypeOrmService = class CrudTypeOrmService {
     }
     getOne(id) {
         return __awaiter(this, void 0, void 0, function* () {
+            if (isNaN(id) || typeof id !== 'number') {
+                throw new common_1.BadRequestException();
+            }
             const entity = yield this.repository.findOne(id);
             if (!entity) {
                 throw new common_1.NotFoundException();
@@ -54,15 +60,15 @@ let CrudTypeOrmService = class CrudTypeOrmService {
     }
     update(id, entity) {
         return __awaiter(this, void 0, void 0, function* () {
-            if (isNaN(id) || typeof id !== 'number' || !entity) {
-                throw new common_1.BadRequestException();
-            }
             const exists = yield this.getOne(id);
             return yield this.save(entity);
         });
     }
     delete(id) {
         return __awaiter(this, void 0, void 0, function* () {
+            if (isNaN(id) || typeof id !== 'number') {
+                throw new common_1.BadRequestException();
+            }
             try {
                 yield this.repository.delete(id);
             }

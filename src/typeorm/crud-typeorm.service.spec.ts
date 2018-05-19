@@ -1,9 +1,11 @@
 import { Test } from '@nestjs/testing';
 import { NotFoundException, BadRequestException } from '@nestjs/common';
 import { getRepositoryToken } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { MockRepository } from '../../test/mocks-typyorm/mock-repository';
 import { MockEntity } from '../../test/mocks-typyorm/mock-entity';
 import { MockService } from '../../test/mocks-typyorm/mock-service';
+import { CrudTypeOrmService } from './crud-typeorm.service';
 
 describe('CrudTypeOrmService', () => {
   const testEntity = { id: 1, name: 'test' };
@@ -37,6 +39,9 @@ describe('CrudTypeOrmService', () => {
       expect(mockService.create(entity)).rejects.toThrowError(
         BadRequestException,
       );
+      expect(mockService.create(false)).rejects.toThrowError(
+        BadRequestException,
+      );
     });
 
     it('should return entity object with id', async () => {
@@ -47,6 +52,12 @@ describe('CrudTypeOrmService', () => {
   });
 
   describe('getOne', () => {
+    it('should throw BadRequestException', () => {
+      expect(mockService.getOne(false)).rejects.toThrowError(
+        BadRequestException,
+      );
+    });
+
     it('should throw NotFoundException', () => {
       expect(mockService.getOne(343)).rejects.toThrowError(NotFoundException);
     });
@@ -87,9 +98,16 @@ describe('CrudTypeOrmService', () => {
   });
 
   describe('delete', () => {
+    it('should throw BadRequestException', () => {
+      expect(mockService.delete(false)).rejects.toThrowError(
+        BadRequestException,
+      );
+    });
+
     it('should throw NotFoundException', () => {
       expect(mockService.delete(343)).rejects.toThrowError(NotFoundException);
     });
+
     it('should delete entity', async () => {
       expect(await mockService.delete(1)).toBeUndefined();
       expect(await mockService.getAll()).toMatchObject([]);

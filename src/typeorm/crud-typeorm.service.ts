@@ -11,6 +11,10 @@ export class CrudTypeOrmService<T> implements CrudService<T> {
   constructor(private readonly repository: Repository<T>) {}
 
   public async save(entity: T): Promise<T> {
+    if (!entity || typeof entity !== 'object') {
+      throw new BadRequestException();
+    }
+
     try {
       // https://github.com/typeorm/typeorm/issues/1544 is a known bug
       // so need to use `entity as any` for now
@@ -26,7 +30,12 @@ export class CrudTypeOrmService<T> implements CrudService<T> {
   }
 
   public async getOne(id: number): Promise<T> {
+    if (isNaN(id) || typeof id !== 'number') {
+      throw new BadRequestException();
+    }
+
     const entity = await this.repository.findOne(id);
+
     if (!entity) {
       throw new NotFoundException();
     }
@@ -39,16 +48,16 @@ export class CrudTypeOrmService<T> implements CrudService<T> {
   }
 
   public async update(id: number, entity: T): Promise<T> {
-    if (isNaN(id) || typeof id !== 'number' || !entity) {
-      throw new BadRequestException();
-    }
-
     const exists = await this.getOne(id);
 
     return await this.save(entity);
   }
 
   public async delete(id: number): Promise<void> {
+    if (isNaN(id) || typeof id !== 'number') {
+      throw new BadRequestException();
+    }
+
     try {
       await this.repository.delete(id);
     } catch (err) {
