@@ -9,7 +9,7 @@ before_script:
  - npm i -g npm@latest
 
 install:
- - npm ci
+ - npm i
 
 script:
  - npm test
