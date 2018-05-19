@@ -1,9 +1,9 @@
 import { Test } from '@nestjs/testing';
 import { NotFoundException, BadRequestException } from '@nestjs/common';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { MockRepository } from '../test/mocks/mock-repository';
-import { MockEntity } from '../test/mocks/mock-entity';
-import { MockService } from '../test/mocks/mock-service';
+import { MockRepository } from '../../test/mocks-typyorm/mock-repository';
+import { MockEntity } from '../../test/mocks-typyorm/mock-entity';
+import { MockService } from '../../test/mocks-typyorm/mock-service';
 
 describe('CrudTypeOrmService', () => {
   const testEntity = { id: 1, name: 'test' };

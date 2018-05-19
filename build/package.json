@@ -27,11 +27,6 @@
   },
   "license": "MIT",
   "peerDependencies": {
-    "@nestjs/common": "^5.0.0",
-    "@nestjs/core": "^5.0.0",
-    "@nestjs/typeorm": "^3.0.0",
-    "reflect-metadata": "^0.1.12",
-    "rxjs": "^6.0.0",
-    "typeorm": "^0.2.6"
+    "@nestjs/common": "^5.0.0"
   }
 }

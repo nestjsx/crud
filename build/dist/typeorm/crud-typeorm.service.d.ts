@@ -1,5 +1,5 @@
 import { Repository } from 'typeorm';
-import { CrudService } from './crud-service.interface';
+import { CrudService } from '../crud-service.interface';
 export declare class CrudTypeOrmService<T> implements CrudService<T> {
     private readonly repository;
     constructor(repository: Repository<T>);

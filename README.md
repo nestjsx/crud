@@ -24,7 +24,7 @@ export class Cat {
 #### 3. Create Service
 
 ```typescript
-import { CrudTypeOrmService } from '@nestjsx/crud';
+import { CrudTypeOrmService } from '@nestjsx/crud/typeorm';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';

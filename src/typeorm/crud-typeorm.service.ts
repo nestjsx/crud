@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Repository } from 'typeorm';
-import { CrudService } from './crud-service.interface';
+import { CrudService } from '../crud-service.interface';
 
 @Injectable()
 export class CrudTypeOrmService<T> implements CrudService<T> {

@@ -2,10 +2,10 @@ import * as request from 'supertest';
 import { Test } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { MockRepository } from './mocks/mock-repository';
-import { MockEntity } from './mocks/mock-entity';
-import { MockService } from './mocks/mock-service';
-import { MockController } from './mocks/mock-controller';
+import { MockRepository } from './mocks-typyorm/mock-repository';
+import { MockEntity } from './mocks-typyorm/mock-entity';
+import { MockService } from './mocks-typyorm/mock-service';
+import { MockController } from './mocks-typyorm/mock-controller';
 
 describe('CrudController (e2e)', () => {
   const testEntity = { id: 1, name: 'test' };
