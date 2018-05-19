@@ -7,11 +7,11 @@
     "dep:update": "npm-check -u",
     "lint": "tslint --project .",
     "test": "node_modules/.bin/jest --verbose --coverage --config ./jest.json",
-    "test:coverage":
-      "node_modules/.bin/jest --verbose --coverage --config ./jest.json --coverageReporters=text-lcov | coveralls",
     "test:e2e":
       "node_modules/.bin/jest --verbose --config ./test/jest-e2e.json",
     "test:all": "npm run test && npm run test:e2e",
+    "coverage":
+      "node_modules/.bin/jest --verbose --coverage --config ./jest.json --coverageReporters=text-lcov | coveralls",
     "build": "rm -rf build/dist && node_modules/.bin/tsc"
   },
   "dependencies": {

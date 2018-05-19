@@ -1,7 +1,9 @@
 [![Build Status](https://travis-ci.org/zMotivat0r/nest-crud.svg?branch=master)](https://travis-ci.org/zMotivat0r/nest-crud)
 [![Coverage Status](https://coveralls.io/repos/github/zMotivat0r/nest-crud/badge.svg?branch=master)](https://coveralls.io/github/zMotivat0r/nest-crud?branch=master)
 
-## Nest CRUD controllers and services (@nestjsx/crud)
+## Nest CRUD controllers and services
+
+`@nestjsx/crud` has been designed for creating CRUD controllers and services in Nest applications. It can be used with TypeORM repositories for now, but Mongoose and additional functionality will be available soon.
 
 ## Using with TypeORM
 
