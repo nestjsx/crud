@@ -11,33 +11,33 @@ Assume you've created some CRUD controller with the route `@Controller('cats')`.
 
 #### `GET /cats`
 
-_Res Data_: array of entities; an empty array
-<br>_Res Code_: 200
+Res Data: _array of entities; an empty array_
+<br>Res Code: _200_
 
 #### `GET /cats/:id`
 
-_Req Params_: `:id` - entity id
-<br>_Res Data_: entity object
-<br>_Res Code_: 200; 400; 404
+Req Params: `:id` - _entity id_
+<br>Res Data: _entity object_
+<br>Res Code: _200; 400; 404_
 
 #### `POST /cats`
 
-_Req Body_: entity object
-<br>_Res Data_: entity object
-<br>_Res Code_: 201; 400
+Req Body: _entity object_
+<br>Res Data: _entity object_
+<br>Res Code: _201; 400_
 
 #### `PUT /cats/:id`
 
-_Req Params_: `:id` - entity id
-<br>_Req Body_: entity object
-<br>_Res Data_: entity object
-<br>_Res Code_: 201; 400; 404
+Req Params: `:id` - _entity id_
+<br>Req Body: _entity object_
+<br>Res Data: _entity object_
+<br>Res Code: _201; 400; 404_
 
 #### `DELETE /cats/:id`
 
-_Req Params_: `:id` - entity id
-<br>_Res Data_: _empty_
-<br>_Res Code_: 200; 400; 404
+Req Params: `:id` - _entity id_
+<br>Res Data: _empty_
+<br>Res Code: _200; 400; 404_
 
 ## Using with TypeORM
 
