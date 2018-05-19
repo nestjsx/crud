@@ -5,6 +5,40 @@
 
 `@nestjsx/crud` has been designed for creating CRUD controllers and services in Nest applications. It can be used with TypeORM repositories for now, but Mongoose and additional functionality will be available soon.
 
+## API Methods and Endpoints
+
+Assume you've created some CRUD controller with the route `@Controller('cats')`. In that case, Nest will create endpoints as follows:
+
+#### `GET /cats`
+
+_Res Data_: array of entities; an empty array
+<br>_Res Code_: 200
+
+#### `GET /cats/:id`
+
+_Req Params_: `:id` - entity id
+<br>_Res Data_: entity object
+<br>_Res Code_: 200; 400; 404
+
+#### `POST /cats`
+
+_Req Body_: entity object
+<br>_Res Data_: entity object
+<br>_Res Code_: 201; 400
+
+#### `PUT /cats/:id`
+
+_Req Params_: `:id` - entity id
+<br>_Req Body_: entity object
+<br>_Res Data_: entity object
+<br>_Res Code_: 201; 400; 404
+
+#### `DELETE /cats/:id`
+
+_Req Params_: `:id` - entity id
+<br>_Res Data_: _empty_
+<br>_Res Code_: 200; 400; 404
+
 ## Using with TypeORM
 
 #### 1. Install
@@ -89,6 +123,7 @@ npm run test:e2e
 
 * [x] CRUD for TypeORM
 * [ ] CRUD for Mongoose
+* [ ] Expose as Dynamic Module
 * [ ] Swagger integration
 * [ ] Working with relations (extending CRUD)
 
