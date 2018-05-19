@@ -1,6 +1,6 @@
 {
   "name": "@nestjsx/crud",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Nest CRUD for RESTful APIs",
   "scripts": {
     "dep:check": "npm-check",
@@ -14,9 +14,7 @@
       "node_modules/.bin/jest --verbose --coverage --config ./jest.json --coverageReporters=text-lcov | coveralls",
     "clean":
       "cd build && rm -rf `ls | grep -v \"LICENSE\\|package.json\\|README.md\"`",
-    "build": "npm run clean && node_modules/.bin/tsc",
-    "prepublish": "npm run build",
-    "publish": "cd build && npm publish --access public"
+    "build": "npm run clean && node_modules/.bin/tsc"
   },
   "dependencies": {
     "@nestjs/common": "^5.0.0",
