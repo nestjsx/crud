@@ -6,8 +6,12 @@
     "dep:check": "npm-check",
     "dep:update": "npm-check -u",
     "lint": "tslint --project .",
-    "test": "node_modules/.bin/jest --verbose --coverage --config ./jest.json",
-    "test:e2e": "node_modules/.bin/jest --verbose --config ./test/jest-e2e.json",
+    "test":
+      "node_modules/.bin/jest --verbose --coverage --config ./jest.json --coverageReporters=text-lcov | coveralls",
+    "test:coverage":
+      "node_modules/.bin/jest --verbose --coverage --config ./jest.json",
+    "test:e2e":
+      "node_modules/.bin/jest --verbose --config ./test/jest-e2e.json",
     "test:all": "npm run test && npm run test:e2e",
     "build": "rm -rf build/dist && node_modules/.bin/tsc"
   },
@@ -24,6 +28,7 @@
     "@types/jest": "^22.2.3",
     "@types/node": "^10.1.1",
     "@types/supertest": "^2.0.4",
+    "coveralls": "^3.0.1",
     "jest": "^22.4.4",
     "npm-install-peers": "^1.2.1",
     "supertest": "^3.0.0",

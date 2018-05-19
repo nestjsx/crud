@@ -1,4 +1,7 @@
-## Nest CRUD controllers and services for RESTful APIs (@nestjsx/crud)
+[![Build Status](https://travis-ci.org/zMotivat0r/nest-crud.svg?branch=master)](https://travis-ci.org/zMotivat0r/nest-crud)
+[![Coverage Status](https://coveralls.io/repos/github/zMotivat0r/nest-crud/badge.svg?branch=master)](https://coveralls.io/github/zMotivat0r/nest-crud?branch=master)
+
+## Nest CRUD controllers and services (@nestjsx/crud)
 
 ## Using with TypeORM
 
