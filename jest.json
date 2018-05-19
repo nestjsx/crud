@@ -5,6 +5,11 @@
   "transform": {
     "^.+\\.ts$": "ts-jest"
   },
+  "globals": {
+    "ts-jest": {
+      "tsConfigFile": "tsconfig.jest.json"
+    }
+  },
   "coverageReporters": ["json", "lcov"],
   "coverageDirectory": "coverage",
   "collectCoverageFrom": [

@@ -64,4 +64,4 @@ export class CrudTypeOrmService<T> implements CrudService<T> {
       throw new NotFoundException();
     }
   }
-}
+} /* istanbul ignore next */
