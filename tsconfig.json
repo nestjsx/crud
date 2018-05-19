@@ -10,7 +10,7 @@
     "target": "es6",
     "sourceMap": true,
     "allowJs": false,
-    "outDir": "./build/dist",
+    "outDir": "./build",
     "rootDir": "./src",
     "skipLibCheck": true
   },

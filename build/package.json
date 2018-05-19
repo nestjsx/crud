@@ -1,9 +1,9 @@
 {
   "name": "@nestjsx/crud",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Nest CRUD for RESTful APIs",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "index.js",
+  "types": "index.d.ts",
   "repository": {
     "type": "git",
     "url": "https://github.com/zMotivat0r/nest-crud.git"
