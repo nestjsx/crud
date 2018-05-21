@@ -8,9 +8,9 @@ import { CrudService } from '../crud-service.interface';
 
 @Injectable()
 export class CrudTypeOrmService<T> implements CrudService<T> {
-  constructor(private readonly repository: Repository<T>) {}
+  constructor(private readonly repository: Repository<T>) { }
 
-  public async save(entity: T): Promise<T> {
+  protected async save(entity: T): Promise<T> {
     if (!entity || typeof entity !== 'object') {
       throw new BadRequestException();
     }
@@ -25,15 +25,22 @@ export class CrudTypeOrmService<T> implements CrudService<T> {
     }
   }
 
-  public async create(entity: T): Promise<T> {
-    return await this.save(entity);
-  }
+  protected getId(paramId: any): number {
+    const id = parseInt(paramId, 10);
 
-  public async getOne(id: number): Promise<T> {
     if (isNaN(id) || typeof id !== 'number') {
       throw new BadRequestException();
     }
 
+    return id;
+  }
+
+  public async create(entity: T): Promise<T> {
+    return await this.save(entity);
+  }
+
+  public async getOne(paramId: any): Promise<T> {
+    const id = this.getId(paramId);
     const entity = await this.repository.findOne(id);
 
     if (!entity) {
@@ -47,16 +54,14 @@ export class CrudTypeOrmService<T> implements CrudService<T> {
     return await this.repository.find();
   }
 
-  public async update(id: number, entity: T): Promise<T> {
-    const exists = await this.getOne(id);
+  public async update(paramId: any, entity: T): Promise<T> {
+    const exists = await this.getOne(paramId);
 
     return await this.save(entity);
   }
 
-  public async delete(id: number): Promise<void> {
-    if (isNaN(id) || typeof id !== 'number') {
-      throw new BadRequestException();
-    }
+  public async delete(paramId: any): Promise<void> {
+    const id = this.getId(paramId);
 
     try {
       await this.repository.delete(id);

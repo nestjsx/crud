@@ -1,5 +1,6 @@
 [![Build Status](https://travis-ci.org/zMotivat0r/nest-crud.svg?branch=master)](https://travis-ci.org/zMotivat0r/nest-crud)
-[![Coverage Status](https://coveralls.io/repos/github/zMotivat0r/nest-crud/badge.svg?branch=master)](https://coveralls.io/github/zMotivat0r/nest-crud?branch=master)
+[![Coverage Status](https://img.shields.io/coveralls/github/zMotivat0r/nest-crud.svg)](https://coveralls.io/github/zMotivat0r/nest-crud?branch=master&&service=github)
+[![GitHub license](https://img.shields.io/github/license/zMotivat0r/nest-crud.svg)](https://github.com/zMotivat0r/nest-crud/blob/master/LICENSE)
 
 ## Nest CRUD controllers and services
 
