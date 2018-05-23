@@ -32,7 +32,7 @@ class CrudController {
     }
     getOne(id) {
         return __awaiter(this, void 0, void 0, function* () {
-            return yield this.crudService.getOne(parseInt(id, 10));
+            return yield this.crudService.getOne(id);
         });
     }
     getAll() {
@@ -42,12 +42,12 @@ class CrudController {
     }
     update(id, entity) {
         return __awaiter(this, void 0, void 0, function* () {
-            return yield this.crudService.update(parseInt(id, 10), entity);
+            return yield this.crudService.update(id, entity);
         });
     }
     delete(id) {
         return __awaiter(this, void 0, void 0, function* () {
-            return yield this.crudService.delete(parseInt(id, 10));
+            return yield this.crudService.delete(id);
         });
     }
 }

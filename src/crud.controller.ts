@@ -10,7 +10,7 @@ import {
 import { CrudService } from './crud-service.interface';
 
 export class CrudController<T> {
-  constructor(private readonly crudService: CrudService<T>) {}
+  constructor(private readonly crudService: CrudService<T>) { }
 
   @Post()
   public async create(@Body() entity: T): Promise<T> {
@@ -19,7 +19,7 @@ export class CrudController<T> {
 
   @Get(':id')
   public async getOne(@Param('id') id: string): Promise<T> {
-    return await this.crudService.getOne(parseInt(id, 10));
+    return await this.crudService.getOne(id);
   }
 
   @Get()
@@ -29,11 +29,11 @@ export class CrudController<T> {
 
   @Put(':id')
   public async update(@Param('id') id: string, @Body() entity: T): Promise<T> {
-    return await this.crudService.update(parseInt(id, 10), entity);
+    return await this.crudService.update(id, entity);
   }
 
   @Delete(':id')
   public async delete(@Param('id') id: string) {
-    return await this.crudService.delete(parseInt(id, 10));
+    return await this.crudService.delete(id);
   }
 }
