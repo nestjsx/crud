@@ -36,16 +36,21 @@ let CrudTypeOrmService = class CrudTypeOrmService {
             }
         });
     }
+    getId(paramId) {
+        const id = parseInt(paramId, 10);
+        if (isNaN(id) || typeof id !== 'number') {
+            throw new common_1.BadRequestException();
+        }
+        return id;
+    }
     create(entity) {
         return __awaiter(this, void 0, void 0, function* () {
             return yield this.save(entity);
         });
     }
-    getOne(id) {
+    getOne(paramId) {
         return __awaiter(this, void 0, void 0, function* () {
-            if (isNaN(id) || typeof id !== 'number') {
-                throw new common_1.BadRequestException();
-            }
+            const id = this.getId(paramId);
             const entity = yield this.repository.findOne(id);
             if (!entity) {
                 throw new common_1.NotFoundException();
@@ -58,17 +63,15 @@ let CrudTypeOrmService = class CrudTypeOrmService {
             return yield this.repository.find();
         });
     }
-    update(id, entity) {
+    update(paramId, entity) {
         return __awaiter(this, void 0, void 0, function* () {
-            const exists = yield this.getOne(id);
+            const exists = yield this.getOne(paramId);
             return yield this.save(entity);
         });
     }
-    delete(id) {
+    delete(paramId) {
         return __awaiter(this, void 0, void 0, function* () {
-            if (isNaN(id) || typeof id !== 'number') {
-                throw new common_1.BadRequestException();
-            }
+            const id = this.getId(paramId);
             try {
                 yield this.repository.delete(id);
             }
