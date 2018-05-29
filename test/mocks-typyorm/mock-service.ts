@@ -7,8 +7,7 @@ import { MockEntity } from './mock-entity';
 @Injectable()
 export class MockService extends CrudTypeOrmService<MockEntity> {
   constructor(
-    @InjectRepository(MockEntity)
-    private readonly repository: Repository<MockEntity>,
+    @InjectRepository(MockEntity) repository: Repository<MockEntity>,
   ) {
     super(repository);
   }

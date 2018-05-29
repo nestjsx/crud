@@ -8,7 +8,7 @@ import { CrudService } from '../crud-service.interface';
 
 @Injectable()
 export class CrudTypeOrmService<T> implements CrudService<T> {
-  constructor(private readonly repository: Repository<T>) { }
+  constructor(protected readonly repository: Repository<T>) {}
 
   protected async save(entity: T): Promise<T> {
     if (!entity || typeof entity !== 'object') {

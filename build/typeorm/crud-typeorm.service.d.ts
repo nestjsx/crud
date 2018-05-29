@@ -1,7 +1,7 @@
 import { Repository } from 'typeorm';
 import { CrudService } from '../crud-service.interface';
 export declare class CrudTypeOrmService<T> implements CrudService<T> {
-    private readonly repository;
+    protected readonly repository: Repository<T>;
     constructor(repository: Repository<T>);
     protected save(entity: T): Promise<T>;
     protected getId(paramId: any): number;

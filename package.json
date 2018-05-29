@@ -1,6 +1,6 @@
 {
   "name": "@nestjsx/crud",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Nest CRUD for RESTful APIs",
   "scripts": {
     "dep:check": "npm-check",
