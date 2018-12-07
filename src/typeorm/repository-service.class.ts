@@ -11,7 +11,7 @@ import {
 import { ObjectLiteral } from '../interfaces/object-literal.interface';
 
 export class RepositoryService<T = any> extends RestfulService<T> {
-  protected options: RestfulOptions = {};
+  options: RestfulOptions = {};
 
   private alias: string;
   private entityColumns: string[];

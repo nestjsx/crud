@@ -3,7 +3,7 @@ import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { RestfulOptions } from '../interfaces';
 
 export abstract class RestfulService<T> {
-  protected abstract options: RestfulOptions;
+  abstract options: RestfulOptions;
 
   constructor() {}
 
