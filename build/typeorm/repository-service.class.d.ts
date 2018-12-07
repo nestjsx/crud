@@ -1,0 +1,33 @@
+import { Repository, FindOneOptions } from 'typeorm';
+import { RestfulService } from '../classes/restful-service.class';
+import { RestfulOptions, RequestParamsParsed } from '../interfaces';
+export declare class RepositoryService<T = any> extends RestfulService<T> {
+    protected repo: Repository<T>;
+    protected options: RestfulOptions;
+    private alias;
+    private entityColumns;
+    private entityColumnsHash;
+    private entityRelationsHash;
+    constructor(repo: Repository<T>);
+    getMany(query?: RequestParamsParsed, options?: RestfulOptions): Promise<T[]>;
+    getOne(id: number | string, { fields, join, cache }?: RequestParamsParsed, options?: RestfulOptions): Promise<T>;
+    getOneOrFail({ filter, fields, join, cache }?: RequestParamsParsed, options?: RestfulOptions): Promise<T>;
+    findOneOrFail(options: FindOneOptions<T>): Promise<T>;
+    query(query: RequestParamsParsed, options?: RestfulOptions, many?: boolean): Promise<T | T[]>;
+    private onInitMapEntityColumns;
+    private onInitMapRelations;
+    private getJoinType;
+    private hasColumn;
+    private validateHasColumn;
+    private getAllowedColumns;
+    private setJoin;
+    private setAndWhere;
+    private setOrWhere;
+    private getCacheId;
+    private getSelect;
+    private getSkip;
+    private getTake;
+    private getSort;
+    private mapSort;
+    private mapOperatorsToQuery;
+}

@@ -1,1 +1,1 @@
-export * from './crud-typeorm.service';
+export * from './repository-service.class';

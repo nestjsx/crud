@@ -1,7 +1,7 @@
 {
   "name": "@nestjsx/crud",
-  "version": "0.1.6",
-  "description": "Nest CRUD for RESTful APIs",
+  "version": "1.0.0",
+  "description": "NestJs CRUD for RESTful APIs",
   "main": "index.js",
   "types": "index.d.ts",
   "repository": {
@@ -9,17 +9,17 @@
     "url": "https://github.com/zMotivat0r/nest-crud.git"
   },
   "bugs": {
-    "url": "https://github.com/zMotivat0r/nest-crud/issues"
+    "url": "https://github.com/nestjsx/crud/issues"
   },
   "keywords": [
     "typescript",
     "typeorm",
     "nest",
+    "nestjs",
     "rest",
     "restful",
     "api",
-    "crud",
-    "factory"
+    "crud"
   ],
   "author": {
     "name": "Michael Yali",
@@ -27,6 +27,6 @@
   },
   "license": "MIT",
   "peerDependencies": {
-    "@nestjs/common": "^5.0.0"
+    "@nestjs/common": "^5.4.1"
   }
 }
