@@ -139,29 +139,29 @@ Syntax: `filter=`_`$field`_`||`_`$condition`_`||`_`$value`_
 
 Examples:
 
-`?filter=`_`name`_`||`_`eq`_`||`_`batman`_  
-`?filter=`_`isVillain`_`||`_`eq`_`||`_`false`_`&filter=`_`city`_`||`_`eq`_`||`_`Arkham`_ (multiple filters are treated as a combination of `AND` type of conditions)  
-`?filter=`_`shots`_`||`_`in`_`||`_`12,26`_ (some conditions accept multiple values separated by commas)  
-`?filter=`_`power`_`||`_`isnull`_ (some conditions don't accept value)
+`?filter=name||eq||batman`  
+`?filter=isVillain||eq||false&filter=city||eq||Arkham` (multiple filters are treated as a combination of `AND` type of conditions)  
+`?filter=shots||in||12,26` (some conditions accept multiple values separated by commas)  
+`?filter=power||isnull` (some conditions don't accept value)
 
 ### filter conditions
 
 (_condition_ - `operator`):
 
-- _eq_ (`=`, equal)
-- _ne_ (`!=`, not equal)
-- _gt_ (`>`, greater than)
-- _lt_ (`<`, lower that)
-- _gte_ (`>=`, greater than or equal)
-- _lte_ (`<=`, lower than or equal)
-- _starts_ (`LIKE val%`, starts with)
-- _ends_ (`LIKE %val`, ends with)
-- _cont_ (`LIKE %val%`, contains)
-- _excl_ (`NOT LIKE %val%`, not contains)
-- _in_ (`IN`, in range, _accepts multiple values_)
-- _notin_ (`NOT IN`, not in range, _accepts multiple values_)
-- _isnull_ (`IS NULL`, is NULL, _doesn't accept value_)
-- _notnull_ (`IS NOT NULL`, not NULL, _doesn't accept value_)
-- _between_ (`BETWEEN`, between, _accepts two values_)
+- **`eq`** (`=`, equal)
+- **`ne`** (`!=`, not equal)
+- **`gt`** (`>`, greater than)
+- **`lt`** (`<`, lower that)
+- **`gte`** (`>=`, greater than or equal)
+- **`lte`** (`<=`, lower than or equal)
+- **`starts`** (`LIKE val%`, starts with)
+- **`ends`** (`LIKE %val`, ends with)
+- **`cont`** (`LIKE %val%`, contains)
+- **`excl`** (`NOT LIKE %val%`, not contains)
+- **`in`** (`IN`, in range, _accepts multiple values_)
+- **`notin`** (`NOT IN`, not in range, _accepts multiple values_)
+- **`isnull`** (`IS NULL`, is NULL, _doesn't accept value_)
+- **`notnull`** (`IS NOT NULL`, not NULL, _doesn't accept value_)
+- **`between`** (`BETWEEN`, between, _accepts two values_)
 
 Alias: `filter[]`
