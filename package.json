@@ -8,8 +8,9 @@
     "test:e2e": "node_modules/.bin/jest --verbose --config ./test/jest-e2e.json",
     "test:all": "npm run test && npm run test:e2e",
     "coverage": "node_modules/.bin/jest --verbose --coverage --config ./jest.json --coverageReporters=text-lcov | coveralls",
-    "clean": "cd build && rm -rf `ls | grep -v \"LICENSE\\|package.json\\|README.md\"`",
-    "build": "npm run clean && node_modules/.bin/tsc"
+    "clean": "cd dist && rm -rf `ls | grep -v \"LICENSE\\|package.json\\|README.md\"`",
+    "build": "npm run clean && node_modules/.bin/tsc",
+    "serve:typeorm": "nodemon -w ./src -e ts node_modules/.bin/ts-node integration/typeorm/index.ts"
   },
   "dependencies": {
     "@nestjs/common": "^5.4.1",
@@ -28,9 +29,10 @@
     "@types/supertest": "^2.0.7",
     "coveralls": "^3.0.2",
     "jest": "^23.6.0",
-    "npm-install-peers": "^1.2.1",
+    "nodemon": "^1.18.7",
     "supertest": "^3.3.0",
     "ts-jest": "^23.10.5",
+    "ts-node": "^7.0.1",
     "tslint": "^5.11.0",
     "typescript": "^3.2.2"
   }

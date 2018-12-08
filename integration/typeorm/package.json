@@ -1,0 +1,40 @@
+{
+  "name": "nestjsx-crud-typeorm",
+  "version": "1.0.0",
+  "scripts": {
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "db:sync": "ts-node -r tsconfig-paths/register node_modules/.bin/typeorm schema:sync -f=orm",
+    "db:flush": "ts-node -r tsconfig-paths/register node_modules/.bin/typeorm migration:revert -f=orm",
+    "db:seeds": "ts-node -r tsconfig-paths/register node_modules/.bin/typeorm migration:run -f=orm",
+    "preserve": "npm run db:seeds",
+    "serve": "nodemon -w ./src -e ts node_modules/.bin/ts-node -r tsconfig-paths/register src/index.ts"
+  },
+  "dependencies": {
+    "@nestjs/common": "^5.4.1",
+    "@nestjs/core": "^5.4.1",
+    "@nestjs/testing": "^5.4.1",
+    "@nestjs/typeorm": "^5.2.2",
+    "class-transformer": "^0.2.0",
+    "class-validator": "^0.9.1",
+    "js-yaml": "^3.12.0",
+    "pg": "^7.7.1",
+    "redis": "^2.8.0",
+    "reflect-metadata": "^0.1.12",
+    "rxjs": "^6.3.3",
+    "typeorm": "^0.2.9"
+  },
+  "devDependencies": {
+    "@types/jest": "^23.3.10",
+    "@types/node": "^10.12.12",
+    "@types/supertest": "^2.0.7",
+    "jest": "^23.6.0",
+    "nodemon": "^1.18.7",
+    "supertest": "^3.3.0",
+    "ts-jest": "^23.10.5",
+    "ts-node": "^7.0.1",
+    "tsconfig-paths": "^3.7.0",
+    "tslint": "^5.11.0",
+    "typescript": "^3.2.2"
+  }
+}
