@@ -1,137 +1,167 @@
-[![Build Status](https://travis-ci.org/zMotivat0r/nest-crud.svg?branch=master)](https://travis-ci.org/zMotivat0r/nest-crud)
-[![Coverage Status](https://img.shields.io/coveralls/github/zMotivat0r/nest-crud.svg)](https://coveralls.io/github/zMotivat0r/nest-crud?branch=master&&service=github)
-[![GitHub license](https://img.shields.io/github/license/zMotivat0r/nest-crud.svg)](https://github.com/zMotivat0r/nest-crud/blob/master/LICENSE)
+<!-- [![Build Status](https://travis-ci.org/zMotivat0r/nest-crud.svg?branch=master)](https://travis-ci.org/zMotivat0r/nest-crud)
+[![Coverage Status](https://img.shields.io/coveralls/github/zMotivat0r/nest-crud.svg)](https://coveralls.io/github/zMotivat0r/nest-crud?branch=master&&service=github) -->
 
-## Nest CRUD controllers and services
+<p align="center">
+  <a href="https://github.com/nestjsx" target="blank"><img src="https://github.com/nestjsx/nestjsx/raw/master/img/logo.png" width="160" alt="Nestjsx Logo" /></a>
+</p>
+<p align="center">
+  A set of opinionated <a href="https://github.com/nestjs/nest" target="blank">NestJS</a> extensions and modules
+</p>
+<p align="center">
+  <a href="https://github.com/nestjsx/crud/blob/master/LICENSE"><img src="https://img.shields.io/github/license/nestjsx/crud.svg" alt="License" /></a>
+</p>
 
-`@nestjsx/crud` has been designed for creating CRUD controllers and services in Nest applications. It can be used with TypeORM repositories for now, but Mongoose and additional functionality will be available soon.
+# NestJs CRUD for RESTful APIs
 
-## API Methods and Endpoints
+`@nestjsx/crud` has been designed for creating CRUD controllers and services for RESTful applications built with NestJs. It can be used with TypeORM repositories for now, but Mongoose functionality available in the future.
 
-Assume you've created some CRUD controller with the route `@Controller('cats')`. In that case, Nest will create endpoints as follows:
+## Table of Contents
 
-#### `GET /cats`
+- [Install](#install)
+- [Getting started](#getting-started)
+  - [Entity](#entity)
+  - [Repository service](#repository-service)
+  - [CRUD controller](#crud-controller)
+  - [API endpoints](#api-endpoints)
+- [RESTful query parameters](#restful-query-parameters)
+  - [fields](#fields)
+  - [filter](#filter)
+  - [filter conditions](#filter-conditions)
+  - [or](#or)
 
-Res Data: _array of entities; an empty array_
-<br>Res Code: _200_
+---
 
-#### `GET /cats/:id`
-
-Req Params: `:id` - _entity id_
-<br>Res Data: _entity object_
-<br>Res Code: _200; 400; 404_
-
-#### `POST /cats`
-
-Req Body: _entity object_
-<br>Res Data: _entity object_
-<br>Res Code: _201; 400_
-
-#### `PUT /cats/:id`
-
-Req Params: `:id` - _entity id_
-<br>Req Body: _entity object_
-<br>Res Data: _entity object_
-<br>Res Code: _201; 400; 404_
-
-#### `DELETE /cats/:id`
-
-Req Params: `:id` - _entity id_
-<br>Res Data: _empty_
-<br>Res Code: _200; 400; 404_
-
-## Using with TypeORM
-
-#### 1. Install
+## Install
 
 ```bash
 npm i @nestjsx/crud typeorm @nestjs/typeorm --save
 ```
 
-#### 2. Create TypeORM Entity
+---
+
+## Getting started
+
+### Entity
+
+Assume you have some typorm enitity:
 
 ```typescript
 import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
 
 @Entity()
-export class Cat {
+export class Hero {
   @PrimaryGeneratedColumn() id: number;
 
   @Column() name: string;
 }
 ```
 
-#### 3. Create Service
+### Repository Service
+
+Next, let's create a service for it:
 
 ```typescript
-import { CrudTypeOrmService } from '@nestjsx/crud/typeorm';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Cat } from './cat.entity';
+import { RepositoryService } from '@nestjsx/crud/typeorm';
+
+import { Hero } from './hero.entity';
 
 @Injectable()
-export class CatsCrudService extends CrudTypeOrmService<Cat> {
-  constructor(
-    @InjectRepository(Cat) private readonly repository: Repository<Cat>,
-  ) {
-    super(repository);
+export class HeroesService extends RepositoryService<Hero> {
+  constructor(@InjectRepository(Hero) repo) {
+    super(repo);
   }
 }
 ```
 
-#### 4. Create Controller
+Just like that!
+
+### CRUD Controller
+
+Next, let create a CRUD controller that expose some RESTful endpoints for us:
 
 ```typescript
-import { CrudController } from '@nestjsx/crud';
 import { Controller } from '@nestjs/common';
-import { Cat } from './cat.entity';
-import { CatsCrudService } from './cats-crud.service';
+import { CrudController, Inherit } from '@nestjsx/crud';
 
-@Controller('cats')
-export class CatsCrudController extends CrudController<Cat> {
-  constructor(private readonly catsCrudService: CatsCrudService) {
-    super(catsCrudService);
+import { Hero } from './hero.entity';
+import { HeroesService } from './heroes.service';
+
+@Inherit()
+@Controller('heroes')
+export class HeroesController extends CrudController<Hero> {
+  constructor(service: HeroesService) {
+    super(service);
   }
 }
 ```
 
-#### 5. Connect everything in your Module
+And that's it!
+All you have to do is to hook up everything in your module. By doing this simple steps your application will expose these endpoints:
 
-```typescript
-import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { Cat } from './cat.entity';
-import { CatsCrudService } from './cats-crud.service';
-import { CatsCrudController } from './cats-crud.controller';
+### API endpoints
 
-@Module({
-  imports: [TypeOrmModule.forFeature([Cat])],
-  providers: [CatsCrudService],
-  controllers: [CatsCrudController],
-})
-export class CatsModule {}
-```
+- `GET /heroes` - get list of heroes
+- `GET /heroes/:id` - get one hero by id
+- `POST /heroes` - create new hero
+- `POST /heroes/bulk` - create many heroes
+- `PATCH /heroes/:id` - update existing hero
+- `DELETE /heroes/:id` - delete one hero
 
-## Tests
+---
 
-```bash
-npm run test
-npm run test:e2e
-```
+## RESTful query parameters
 
-## Roadmap
+`GET` endpoints that are generated by CRUD controller support some useful query parameters (all of them are _optional_):
 
-* [x] CRUD for TypeORM
-* [ ] CRUD for Mongoose
-* [ ] Expose as Dynamic Module
-* [ ] Swagger integration
-* [ ] Working with relations (extending CRUD)
+- [`fields`](#fields) - get selected fields in GET result
+- [`filter`](#filter) (alias: `filter[]`) - filter GET result by `AND` type of condition
+- [`or`](#or) (alias: `or[]`) - filter GET result by `OR` type of condition
+- `sort` (alias: `sort[]`) - sort GET result by some `field` in `ASC | DESC` order
+- `join` (alias: `join[]`) - receive joined relational entities in GET result (with all or selected fields)
+- `limit` (alias `per_page`) - receive `N` amount of entities
+- `offset` (alias `skip`) - offset `N` amount of entities
+- `page` - receive a portion of `limit` (`per_page`) entities (alternative to `offset`)
+- `cache` - reset cache (if was enabled) and receive entities from the DB
 
-## Thanks
+### fields
 
-This was inspired by [nestjs-generic-crud](https://github.com/xavism/nestjs-generic-crud)
+If you don't need all fields to be presented in `GET` result, you can specify some fields that needed.  
+Syntax: `fields=`_`$field1`_`,`_`$field2`_`,`_`...`_  
+Example:
 
-## License
+`?fields=email,name`
 
-MIT
+### filter
+
+If you need to add condition (multiple conditions) to you request, you can add filter or as much filter as you need.  
+Syntax: `filter=`_`$field`_`||`_`$condition`_`||`_`$value`_  
+Examples:
+
+`?filter=`_`name`_`||`_`eq`_`||`_`batman`_  
+`?filter=`_`isVillain`_`||`_`eq`_`||`_`false`_`&filter=`_`city`_`||`_`eq`_`||`_`Arkham`_ (multiple filters are treated as a combination of `AND` type of conditions)  
+`?filter=`_`shots`_`||`_`in`_`||`_`12,26`_ (some conditions accept multiple values separated by commas)  
+`?filter=`_`power`_`||`_`isnull`_ (some conditions don't accept value)
+
+### filter conditions
+
+(_condition_ - `operator`):
+
+- _eq_ (`=`, equal)
+- _ne_ (`!=`, not equal)
+- _gt_ (`>`, greater than)
+- _lt_ (`<`, lower that)
+- _gte_ (`>=`, greater than or equal)
+- _lte_ (`<=`, lower than or equal)
+- _starts_ (`LIKE val%`, starts with)
+- _ends_ (`LIKE %val`, ends with)
+- _cont_ (`LIKE %val%`, contains)
+- _excl_ (`NOT LIKE %val%`, not contains)
+- _in_ (`IN`, in range, _accepts multiple values_)
+- _notin_ (`NOT IN`, not in range, _accepts multiple values_)
+- _isnull_ (`IS NULL`, is NULL, _doesn't accept value_)
+- _notnull_ (`IS NOT NULL`, not NULL, _doesn't accept value_)
+- _between_ (`BETWEEN`, between, _accepts two values_)
+
+Alias: `filter[]`

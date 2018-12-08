@@ -4,13 +4,12 @@ export interface RequestQueryParams {
   'filter[]'?: string[];
   or?: string[];
   'or[]'?: string[];
-  sort: string[];
-  'sort[]': string[];
-  join: string[];
-  'join[]': string[];
+  sort?: string[];
+  'sort[]'?: string[];
+  join?: string[];
+  'join[]'?: string[];
   limit?: string;
   per_page?: string;
-  take?: string;
   offset?: string;
   skip?: string;
   page?: string;
