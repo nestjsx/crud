@@ -1,4 +1,4 @@
-import { Repository, SelectQueryBuilder, Brackets, WhereExpression, FindOneOptions } from 'typeorm';
+import { Repository, SelectQueryBuilder, Brackets, FindOneOptions } from 'typeorm';
 
 import { RestfulService } from '../classes/restful-service.class';
 import {
@@ -9,6 +9,7 @@ import {
   JoinParamParsed,
 } from '../interfaces';
 import { ObjectLiteral } from '../interfaces/object-literal.interface';
+import { isArrayFull } from '../utils';
 
 export class RepositoryService<T = any> extends RestfulService<T> {
   protected options: RestfulOptions = {};
@@ -96,32 +97,68 @@ export class RepositoryService<T = any> extends RestfulService<T> {
     builder.select(select);
 
     // set mandatory where condition
-    if (Array.isArray(mergedOptions.filter) && mergedOptions.filter.length) {
+    if (isArrayFull(mergedOptions.filter)) {
       for (let i = 0; i < mergedOptions.filter.length; i++) {
         this.setAndWhere(mergedOptions.filter[i], `mergedOptions${i}`, builder);
       }
     }
 
-    // set filter conditions
-    if (Array.isArray(query.filter) && query.filter.length) {
+    const hasFilter = isArrayFull(query.filter);
+    const hasOr = isArrayFull(query.or);
+
+    if (hasFilter && hasOr) {
+      if (query.filter.length === 1 && query.or.length === 1) {
+        // WHERE :filter OR :or
+        this.setOrWhere(query.filter[0], `filter0`, builder);
+        this.setOrWhere(query.or[0], `or0`, builder);
+      } else if (query.filter.length === 1) {
+        this.setAndWhere(query.filter[0], `filter0`, builder);
+        builder.orWhere(
+          new Brackets((qb) => {
+            for (let i = 0; i < query.or.length; i++) {
+              this.setAndWhere(query.or[i], `or${i}`, qb as any);
+            }
+          }),
+        );
+      } else if (query.or.length === 1) {
+        this.setAndWhere(query.or[0], `or0`, builder);
+        builder.orWhere(
+          new Brackets((qb) => {
+            for (let i = 0; i < query.filter.length; i++) {
+              this.setAndWhere(query.filter[i], `filter${i}`, qb as any);
+            }
+          }),
+        );
+      } else {
+        builder.andWhere(
+          new Brackets((qb) => {
+            for (let i = 0; i < query.filter.length; i++) {
+              this.setAndWhere(query.filter[i], `filter${i}`, qb as any);
+            }
+          }),
+        );
+        builder.orWhere(
+          new Brackets((qb) => {
+            for (let i = 0; i < query.or.length; i++) {
+              this.setAndWhere(query.or[i], `or${i}`, qb as any);
+            }
+          }),
+        );
+      }
+    } else if (hasOr) {
+      // WHERE :or OR :or OR ...
+      for (let i = 0; i < query.or.length; i++) {
+        this.setOrWhere(query.or[i], `or${i}`, builder);
+      }
+    } else if (hasFilter) {
+      // WHERE :filter AND :filter AND ...
       for (let i = 0; i < query.filter.length; i++) {
-        this.setAndWhere(query.filter[i], i, builder);
+        this.setAndWhere(query.filter[i], `filter${i}`, builder);
       }
     }
 
-    // set OR conditions
-    if (Array.isArray(query.or) && query.or.length) {
-      builder.andWhere(
-        new Brackets((qb) => {
-          for (let i = 0; i < query.or.length; i++) {
-            this.setOrWhere(query.or[i], i, qb);
-          }
-        }),
-      );
-    }
-
     // set joins
-    if (Array.isArray(query.join) && query.join.length) {
+    if (isArrayFull(query.join)) {
       const joinOptions = {
         ...(this.options.join ? this.options.join : {}),
         ...(options.join ? options.join : {}),
@@ -267,10 +304,10 @@ export class RepositoryService<T = any> extends RestfulService<T> {
     builder.andWhere(str, params);
   }
 
-  private setOrWhere(cond: FilterParamParsed, i: any, qb: WhereExpression) {
+  private setOrWhere(cond: FilterParamParsed, i: any, builder: SelectQueryBuilder<T>) {
     this.validateHasColumn(cond.field);
     const { str, params } = this.mapOperatorsToQuery(cond, `orWhere${i}`);
-    qb.orWhere(str, params);
+    builder.orWhere(str, params);
   }
 
   private getCacheId(query: RequestParamsParsed): string {

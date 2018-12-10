@@ -14,10 +14,10 @@ import { RequestParamsParsed, FilterParamParsed } from '../interfaces';
 import { ObjectLiteral } from '../interfaces/object-literal.interface';
 import { RestfulService } from './restful-service.class';
 
-export class CrudController<T> {
+export class CrudController<S extends RestfulService<T>, T> {
   protected paramsFilter: string[] | ObjectLiteral;
 
-  constructor(protected service: RestfulService<T>) {}
+  constructor(protected service: S) {}
 
   @Route(RequestMethod.GET)
   @ReadAll()

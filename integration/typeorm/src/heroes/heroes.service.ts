@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { RepositoryService } from '../../../../src/typeorm';
+import { RepositoryService } from '@nestjsx/crud/typeorm';
 
 import { Hero } from './hero.entity';
 

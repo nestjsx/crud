@@ -8,13 +8,14 @@
     "db:flush": "ts-node -r tsconfig-paths/register node_modules/.bin/typeorm migration:revert -f=orm",
     "db:seeds": "ts-node -r tsconfig-paths/register node_modules/.bin/typeorm migration:run -f=orm",
     "preserve": "npm run db:seeds",
-    "serve": "nodemon -w ./src -e ts node_modules/.bin/ts-node -r tsconfig-paths/register src/index.ts"
+    "serve": "nodemon -w ./src -e ts node_modules/.bin/ts-node src/index.ts"
   },
   "dependencies": {
-    "@nestjs/common": "^5.4.1",
-    "@nestjs/core": "^5.4.1",
-    "@nestjs/testing": "^5.4.1",
+    "@nestjs/common": "^5.5.0",
+    "@nestjs/core": "^5.5.0",
+    "@nestjs/testing": "^5.5.0",
     "@nestjs/typeorm": "^5.2.2",
+    "@nestjsx/crud": "^1.0.2",
     "class-transformer": "^0.2.0",
     "class-validator": "^0.9.1",
     "js-yaml": "^3.12.0",

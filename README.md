@@ -88,7 +88,7 @@ import { HeroesService } from './heroes.service';
 
 @Inherit()
 @Controller('heroes')
-export class HeroesController extends CrudController<Hero> {
+export class HeroesController extends CrudController<HeroesService, Hero> {
   constructor(service: HeroesService) {
     super(service);
   }

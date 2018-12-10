@@ -10,6 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 const typeorm_1 = require("typeorm");
 const restful_service_class_1 = require("../classes/restful-service.class");
+const utils_1 = require("../utils");
 class RepositoryService extends restful_service_class_1.RestfulService {
     constructor(repo) {
         super();
@@ -63,24 +64,58 @@ class RepositoryService extends restful_service_class_1.RestfulService {
             }
             const builder = this.repo.createQueryBuilder(this.alias);
             builder.select(select);
-            if (Array.isArray(mergedOptions.filter) && mergedOptions.filter.length) {
+            if (utils_1.isArrayFull(mergedOptions.filter)) {
                 for (let i = 0; i < mergedOptions.filter.length; i++) {
                     this.setAndWhere(mergedOptions.filter[i], `mergedOptions${i}`, builder);
                 }
             }
-            if (Array.isArray(query.filter) && query.filter.length) {
-                for (let i = 0; i < query.filter.length; i++) {
-                    this.setAndWhere(query.filter[i], i, builder);
+            const hasFilter = utils_1.isArrayFull(query.filter);
+            const hasOr = utils_1.isArrayFull(query.or);
+            if (hasFilter && hasOr) {
+                if (query.filter.length === 1 && query.or.length === 1) {
+                    this.setOrWhere(query.filter[0], `filter0`, builder);
+                    this.setOrWhere(query.or[0], `or0`, builder);
+                }
+                else if (query.filter.length === 1) {
+                    this.setAndWhere(query.filter[0], `filter0`, builder);
+                    builder.orWhere(new typeorm_1.Brackets((qb) => {
+                        for (let i = 0; i < query.or.length; i++) {
+                            this.setAndWhere(query.or[i], `or${i}`, qb);
+                        }
+                    }));
+                }
+                else if (query.or.length === 1) {
+                    this.setAndWhere(query.or[0], `or0`, builder);
+                    builder.orWhere(new typeorm_1.Brackets((qb) => {
+                        for (let i = 0; i < query.filter.length; i++) {
+                            this.setAndWhere(query.filter[i], `filter${i}`, qb);
+                        }
+                    }));
+                }
+                else {
+                    builder.andWhere(new typeorm_1.Brackets((qb) => {
+                        for (let i = 0; i < query.filter.length; i++) {
+                            this.setAndWhere(query.filter[i], `filter${i}`, qb);
+                        }
+                    }));
+                    builder.orWhere(new typeorm_1.Brackets((qb) => {
+                        for (let i = 0; i < query.or.length; i++) {
+                            this.setAndWhere(query.or[i], `or${i}`, qb);
+                        }
+                    }));
                 }
             }
-            if (Array.isArray(query.or) && query.or.length) {
-                builder.andWhere(new typeorm_1.Brackets((qb) => {
-                    for (let i = 0; i < query.or.length; i++) {
-                        this.setOrWhere(query.or[i], i, qb);
-                    }
-                }));
+            else if (hasOr) {
+                for (let i = 0; i < query.or.length; i++) {
+                    this.setOrWhere(query.or[i], `or${i}`, builder);
+                }
             }
-            if (Array.isArray(query.join) && query.join.length) {
+            else if (hasFilter) {
+                for (let i = 0; i < query.filter.length; i++) {
+                    this.setAndWhere(query.filter[i], `filter${i}`, builder);
+                }
+            }
+            if (utils_1.isArrayFull(query.join)) {
                 const joinOptions = Object.assign({}, (this.options.join ? this.options.join : {}), (options.join ? options.join : {}));
                 if (Object.keys(joinOptions).length) {
                     for (let i = 0; i < query.join.length; i++) {
@@ -183,10 +218,10 @@ class RepositoryService extends restful_service_class_1.RestfulService {
         const { str, params } = this.mapOperatorsToQuery(cond, `andWhere${i}`);
         builder.andWhere(str, params);
     }
-    setOrWhere(cond, i, qb) {
+    setOrWhere(cond, i, builder) {
         this.validateHasColumn(cond.field);
         const { str, params } = this.mapOperatorsToQuery(cond, `orWhere${i}`);
-        qb.orWhere(str, params);
+        builder.orWhere(str, params);
     }
     getCacheId(query) {
         return JSON.stringify(Object.assign({}, query, { cache: undefined }));
