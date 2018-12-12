@@ -1,4 +1,5 @@
-import { PipeTransform, Injectable } from '@nestjs/common';
+import { Injectable, NestInterceptor, ExecutionContext } from '@nestjs/common';
+import { Observable } from 'rxjs';
 
 import {
   RequestParamsParsed,
@@ -10,7 +11,7 @@ import { RequestQueryParams } from '../interfaces/request-query-params.interface
 import { ComparisonOperator } from '../operators.list';
 
 @Injectable()
-export class RestfulQueryPipe implements PipeTransform {
+export class RestfulQueryInterceptor implements NestInterceptor {
   private delim = '||';
   private delimStr = ',';
   private reservedFields = [
@@ -30,7 +31,19 @@ export class RestfulQueryPipe implements PipeTransform {
     'cache',
   ];
 
-  transform(query: RequestQueryParams): RequestParamsParsed {
+  intercept(context: ExecutionContext, call$: Observable<any>) {
+    const req = context.switchToHttp().getRequest();
+
+    req.query = this.transform(req.query);
+
+    return call$;
+  }
+
+  private transform(query: RequestQueryParams): RequestParamsParsed {
+    if (!query) {
+      return {};
+    }
+
     const fields = this.splitString(query.fields);
     const filter = this.parseArray(query.filter || query['filter[]'], this.parseFilter);
     const or = this.parseArray(query.or || query['or[]'], this.parseFilter);

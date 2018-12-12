@@ -11,7 +11,7 @@ import {
 import { ObjectLiteral } from '../interfaces/object-literal.interface';
 import { isArrayFull } from '../utils';
 
-export class RepositoryService<T = any> extends RestfulService<T> {
+export class RepositoryService<T> extends RestfulService<T> {
   protected options: RestfulOptions = {};
 
   private alias: string;
@@ -22,11 +22,8 @@ export class RepositoryService<T = any> extends RestfulService<T> {
   constructor(protected repo: Repository<T>) {
     super();
 
-    // set alias
     this.alias = this.repo.metadata.targetName;
-    // map all entity columns names
     this.onInitMapEntityColumns();
-    // map entity relations
     this.onInitMapRelations();
   }
 

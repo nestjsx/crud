@@ -1,9 +1,13 @@
-import { IsNumber, ValidateNested, IsString, IsOptional } from 'class-validator';
-import { Type } from 'class-transformer';
-
+import { mockValidatorDecorator, mockTransformerDecorator } from '../utils';
 import { FilterParamDto } from './filter-param.dto';
 import { SortParamDto } from './sort-param.dto';
 import { JoinParamDto } from './join-param.dto';
+
+const IsOptional = mockValidatorDecorator('IsOptional');
+const IsString = mockValidatorDecorator('IsString');
+const IsNumber = mockValidatorDecorator('IsNumber');
+const ValidateNested = mockValidatorDecorator('ValidateNested');
+const Type = mockTransformerDecorator('Type');
 
 export class RestfulParamsDto {
   @IsOptional()

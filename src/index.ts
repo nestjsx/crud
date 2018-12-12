@@ -1,6 +1,7 @@
-export * from './classes';
 export * from './decorators';
-export * from './enums';
-export * from './interfaces';
-export * from './pipes';
+export * from './dto';
 export * from './constants';
+export * from './interfaces';
+export * from './crud.module';
+// export * from './classes';
+// export * from './enums';

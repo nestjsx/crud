@@ -1,18 +1,14 @@
-import { Controller, Get } from '@nestjs/common';
-import { CrudController, Inherit } from '@nestjsx/crud';
+import { Controller, Body } from '@nestjs/common';
+import { Crud, CrudController, RestfulOptions } from '@nestjsx/crud';
 
 import { Hero } from './hero.entity';
 import { HeroesService } from './heroes.service';
 
-@Inherit()
+@Crud(Hero)
 @Controller('heroes')
-export class HeroesCrudController extends CrudController<HeroesService, Hero> {
-  constructor(service: HeroesService) {
-    super(service);
-  }
+export class HeroesCrudController implements CrudController<HeroesService, Hero> {
+  paramsFilter = [];
+  options: RestfulOptions = {};
 
-  @Get('test')
-  async test() {
-    return this.service.test();
-  }
+  constructor(public service: HeroesService) {}
 }

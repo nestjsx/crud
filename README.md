@@ -81,22 +81,36 @@ Next, let create a CRUD controller that expose some RESTful endpoints for us:
 
 ```typescript
 import { Controller } from '@nestjs/common';
-import { CrudController, Inherit } from '@nestjsx/crud';
+import { Crud, CrudController } from '@nestjsx/crud';
 
 import { Hero } from './hero.entity';
 import { HeroesService } from './heroes.service';
 
-@Inherit()
+@Crud(Hero)
 @Controller('heroes')
-export class HeroesController extends CrudController<HeroesService, Hero> {
+export class HeroesController implements CrudController<HeroesService, Hero> {
   constructor(service: HeroesService) {
     super(service);
   }
 }
 ```
 
-And that's it!
-All you have to do is to hook up everything in your module. By doing this simple steps your application will expose these endpoints:
+And that's it, no more inheritance and tight coupling. Let's see what happens here:
+
+```typescript
+@Crud(Hero)
+```
+
+We pass our `Hero` entity as a `dto` for validation purpose (you can pass any other Dto class that fits you needs). So, if you use [class-validator](https://github.com/typestack/class-validator) and [class-transformer](https://github.com/typestack/class-transformer) packages and [ValidationPipe](https://docs.nestjs.com/techniques/validation) (or maybe your own implementation of it), in that case you can use validation decorators inside your entity class. Pretty handy, right?  
+If you don't use those, the implementation of request data validation is your own prerogative.
+
+```typescript
+implements CrudController<HeroesService, Hero>
+```
+
+If you are not planning to override generated endpoints and you're pretty much sure that your service extends `RepositoryService`, in that case you can remove interface here.
+
+After that, all you have to do is to hook up everything in your module. By doing this simple steps your application will expose these endpoints:
 
 ### API endpoints
 
@@ -125,28 +139,37 @@ All you have to do is to hook up everything in your module. By doing this simple
 
 Selects fields that should be returned in the reponse body.
 
-Syntax: `fields=$field1,$field2,...`
+_Syntax:_
 
-Example: `?fields=email,name`
+> ?fields=**field1**,**field2**,...
+
+_Example:_
+
+> ?fields=**email**,**name**
 
 ### filter
 
-Adds fields condition (multiple conditions) to you request.
+Adds fields request condition (multiple conditions) to you request.
 
-Syntax: `filter=`_`$field`_`||`_`$condition`_`||`_`$value`_
+_Syntax:_
 
-Examples:
+> ?filter=**field**||**condition**||**value**
 
-`?filter=name||eq||batman`  
-`?filter=isVillain||eq||false&filter=city||eq||Arkham` (multiple filters are treated as a combination of `AND` type of conditions)  
-`?filter=shots||in||12,26` (some conditions accept multiple values separated by commas)  
-`?filter=power||isnull` (some conditions don't accept value)
+_Examples:_
 
-Alias: `filter[]`
+> ?filter=**name**||**eq**||**batman**
+
+> ?filter=**isVillain**||**eq**||**false**&filter=**city**||**eq**||**Arkham** (multiple filters are treated as a combination of `AND` type of conditions)
+
+> ?filter=**shots**||**in**||**12**,**26** (some conditions accept multiple values separated by commas)
+
+> ?filter=**power**||**isnull** (some conditions don't accept value)
+
+_Alias:_ `filter[]`
 
 ### filter conditions
 
-(_condition_ - `operator`):
+(**condition** - `operator`):
 
 - **`eq`** (`=`, equal)
 - **`ne`** (`!=`, not equal)
@@ -158,12 +181,16 @@ Alias: `filter[]`
 - **`ends`** (`LIKE %val`, ends with)
 - **`cont`** (`LIKE %val%`, contains)
 - **`excl`** (`NOT LIKE %val%`, not contains)
-- **`in`** (`IN`, in range, _accepts multiple values_)
-- **`notin`** (`NOT IN`, not in range, _accepts multiple values_)
-- **`isnull`** (`IS NULL`, is NULL, _doesn't accept value_)
-- **`notnull`** (`IS NOT NULL`, not NULL, _doesn't accept value_)
-- **`between`** (`BETWEEN`, between, _accepts two values_)
+- **`in`** (`IN`, in range, **_accepts multiple values_**)
+- **`notin`** (`NOT IN`, not in range, **_accepts multiple values_**)
+- **`isnull`** (`IS NULL`, is NULL, **_doesn't accept value_**)
+- **`notnull`** (`IS NOT NULL`, not NULL, **_doesn't accept value_**)
+- **`between`** (`BETWEEN`, between, **_accepts two values_**)
 
 ### or
 
 Adds `OR` conditions to the request
+
+_Syntax:_
+
+> ?or=**field**||**condition**||**value**

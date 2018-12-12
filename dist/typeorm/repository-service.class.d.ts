@@ -1,7 +1,7 @@
 import { Repository, FindOneOptions } from 'typeorm';
 import { RestfulService } from '../classes/restful-service.class';
 import { RestfulOptions, RequestParamsParsed } from '../interfaces';
-export declare class RepositoryService<T = any> extends RestfulService<T> {
+export declare class RepositoryService<T> extends RestfulService<T> {
     protected repo: Repository<T>;
     protected options: RestfulOptions;
     private alias;

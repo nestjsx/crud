@@ -7,7 +7,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const common_1 = require("@nestjs/common");
-let RestfulQueryPipe = class RestfulQueryPipe {
+let RestfulQueryInterceptor = class RestfulQueryInterceptor {
     constructor() {
         this.delim = '||';
         this.delimStr = ',';
@@ -28,7 +28,15 @@ let RestfulQueryPipe = class RestfulQueryPipe {
             'cache',
         ];
     }
+    intercept(context, call$) {
+        const req = context.switchToHttp().getRequest();
+        req.query = this.transform(req.query);
+        return call$;
+    }
     transform(query) {
+        if (!query) {
+            return {};
+        }
         const fields = this.splitString(query.fields);
         const filter = this.parseArray(query.filter || query['filter[]'], this.parseFilter);
         const or = this.parseArray(query.or || query['or[]'], this.parseFilter);
@@ -126,8 +134,8 @@ let RestfulQueryPipe = class RestfulQueryPipe {
             .map((field) => ({ field, operator: 'eq', value: query[field] }));
     }
 };
-RestfulQueryPipe = __decorate([
+RestfulQueryInterceptor = __decorate([
     common_1.Injectable()
-], RestfulQueryPipe);
-exports.RestfulQueryPipe = RestfulQueryPipe;
-//# sourceMappingURL=restful-query.pipe.js.map
+], RestfulQueryInterceptor);
+exports.RestfulQueryInterceptor = RestfulQueryInterceptor;
+//# sourceMappingURL=restful-query.interceptor.js.map

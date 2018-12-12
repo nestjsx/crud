@@ -18,6 +18,8 @@
     "@nestjsx/crud": "^1.0.2",
     "class-transformer": "^0.2.0",
     "class-validator": "^0.9.1",
+    "fastify": "^1.13.1",
+    "fastify-formbody": "^2.0.3",
     "js-yaml": "^3.12.0",
     "pg": "^7.7.1",
     "redis": "^2.8.0",

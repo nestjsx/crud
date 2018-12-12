@@ -9,17 +9,20 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const class_validator_1 = require("class-validator");
+const utils_1 = require("../utils");
+const IsNotEmpty = utils_1.mockValidatorDecorator('IsNotEmpty');
+const IsString = utils_1.mockValidatorDecorator('IsString');
+const IsOptional = utils_1.mockValidatorDecorator('IsOptional');
 class JoinParamDto {
 }
 __decorate([
-    class_validator_1.IsNotEmpty(),
-    class_validator_1.IsString(),
+    IsNotEmpty(),
+    IsString(),
     __metadata("design:type", String)
 ], JoinParamDto.prototype, "field", void 0);
 __decorate([
-    class_validator_1.IsOptional(),
-    class_validator_1.IsString({ each: true }),
+    IsOptional(),
+    IsString({ each: true }),
     __metadata("design:type", Array)
 ], JoinParamDto.prototype, "select", void 0);
 exports.JoinParamDto = JoinParamDto;

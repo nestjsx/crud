@@ -9,60 +9,64 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const class_validator_1 = require("class-validator");
-const class_transformer_1 = require("class-transformer");
+const utils_1 = require("../utils");
 const filter_param_dto_1 = require("./filter-param.dto");
 const sort_param_dto_1 = require("./sort-param.dto");
 const join_param_dto_1 = require("./join-param.dto");
+const IsOptional = utils_1.mockValidatorDecorator('IsOptional');
+const IsString = utils_1.mockValidatorDecorator('IsString');
+const IsNumber = utils_1.mockValidatorDecorator('IsNumber');
+const ValidateNested = utils_1.mockValidatorDecorator('ValidateNested');
+const Type = utils_1.mockTransformerDecorator('Type');
 class RestfulParamsDto {
 }
 __decorate([
-    class_validator_1.IsOptional(),
-    class_validator_1.IsString({ each: true }),
+    IsOptional(),
+    IsString({ each: true }),
     __metadata("design:type", Array)
 ], RestfulParamsDto.prototype, "fields", void 0);
 __decorate([
-    class_validator_1.IsOptional(),
-    class_validator_1.ValidateNested({ each: true }),
-    class_transformer_1.Type((t) => filter_param_dto_1.FilterParamDto),
+    IsOptional(),
+    ValidateNested({ each: true }),
+    Type((t) => filter_param_dto_1.FilterParamDto),
     __metadata("design:type", Array)
 ], RestfulParamsDto.prototype, "filter", void 0);
 __decorate([
-    class_validator_1.IsOptional(),
-    class_validator_1.ValidateNested({ each: true }),
-    class_transformer_1.Type((t) => filter_param_dto_1.FilterParamDto),
+    IsOptional(),
+    ValidateNested({ each: true }),
+    Type((t) => filter_param_dto_1.FilterParamDto),
     __metadata("design:type", Array)
 ], RestfulParamsDto.prototype, "or", void 0);
 __decorate([
-    class_validator_1.IsOptional(),
-    class_validator_1.ValidateNested({ each: true }),
-    class_transformer_1.Type((t) => join_param_dto_1.JoinParamDto),
+    IsOptional(),
+    ValidateNested({ each: true }),
+    Type((t) => join_param_dto_1.JoinParamDto),
     __metadata("design:type", Array)
 ], RestfulParamsDto.prototype, "join", void 0);
 __decorate([
-    class_validator_1.IsOptional(),
-    class_validator_1.ValidateNested({ each: true }),
-    class_transformer_1.Type((t) => sort_param_dto_1.SortParamDto),
+    IsOptional(),
+    ValidateNested({ each: true }),
+    Type((t) => sort_param_dto_1.SortParamDto),
     __metadata("design:type", Array)
 ], RestfulParamsDto.prototype, "sort", void 0);
 __decorate([
-    class_validator_1.IsOptional(),
-    class_validator_1.IsNumber(),
+    IsOptional(),
+    IsNumber(),
     __metadata("design:type", Number)
 ], RestfulParamsDto.prototype, "limit", void 0);
 __decorate([
-    class_validator_1.IsOptional(),
-    class_validator_1.IsNumber(),
+    IsOptional(),
+    IsNumber(),
     __metadata("design:type", Number)
 ], RestfulParamsDto.prototype, "offset", void 0);
 __decorate([
-    class_validator_1.IsOptional(),
-    class_validator_1.IsNumber(),
+    IsOptional(),
+    IsNumber(),
     __metadata("design:type", Number)
 ], RestfulParamsDto.prototype, "page", void 0);
 __decorate([
-    class_validator_1.IsOptional(),
-    class_validator_1.IsNumber(),
+    IsOptional(),
+    IsNumber(),
     __metadata("design:type", Number)
 ], RestfulParamsDto.prototype, "cache", void 0);
 exports.RestfulParamsDto = RestfulParamsDto;

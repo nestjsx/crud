@@ -9,19 +9,22 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const class_validator_1 = require("class-validator");
+const utils_1 = require("../utils");
 const operators_list_1 = require("../operators.list");
+const IsNotEmpty = utils_1.mockValidatorDecorator('IsNotEmpty');
+const IsString = utils_1.mockValidatorDecorator('IsString');
+const IsIn = utils_1.mockValidatorDecorator('IsIn');
 class SortParamDto {
 }
 __decorate([
-    class_validator_1.IsNotEmpty(),
-    class_validator_1.IsString(),
+    IsNotEmpty(),
+    IsString(),
     __metadata("design:type", String)
 ], SortParamDto.prototype, "field", void 0);
 __decorate([
-    class_validator_1.IsNotEmpty(),
-    class_validator_1.IsString(),
-    class_validator_1.IsIn(operators_list_1.ORDER_BY),
+    IsNotEmpty(),
+    IsString(),
+    IsIn(operators_list_1.ORDER_BY),
     __metadata("design:type", String)
 ], SortParamDto.prototype, "order", void 0);
 exports.SortParamDto = SortParamDto;
