@@ -7,7 +7,7 @@
     "db:sync": "ts-node -r tsconfig-paths/register node_modules/.bin/typeorm schema:sync -f=orm",
     "db:flush": "ts-node -r tsconfig-paths/register node_modules/.bin/typeorm migration:revert -f=orm",
     "db:seeds": "ts-node -r tsconfig-paths/register node_modules/.bin/typeorm migration:run -f=orm",
-    "preserve": "npm run db:seeds",
+    "preserve": "npm run db:sync && npm run db:seeds",
     "serve": "nodemon -w ./src -e ts node_modules/.bin/ts-node src/index.ts"
   },
   "dependencies": {

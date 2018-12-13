@@ -11,7 +11,7 @@ import {
 import { RestfulParamsDto } from '../dto';
 import { CrudActions } from '../enums';
 import { RestfulQueryInterceptor } from '../interceptors';
-import { FilterParamParsed, ObjectLiteral } from '../interfaces';
+import { FilterParamParsed, ObjectLiteral, EntitiesBulk } from '../interfaces';
 import { ACTION_NAME_METADATA, OVERRIDE_METHOD_METADATA } from '../constants';
 import { mockValidatorDecorator, mockTransformerDecorator } from '../utils';
 
@@ -191,7 +191,7 @@ function createManyBase(target: object, name: string, dto?: any) {
   const ValidateNested = mockValidatorDecorator('ValidateNested');
   const Type = mockTransformerDecorator('Type');
 
-  class BulkDto {
+  class BulkDto implements EntitiesBulk<any> {
     @isArray()
     @ValidateNested({ each: true })
     @Type((t) => dto)

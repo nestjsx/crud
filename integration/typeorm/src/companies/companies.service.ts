@@ -3,13 +3,13 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { RepositoryService } from '@nestjsx/crud/typeorm';
 import { RestfulOptions } from '@nestjsx/crud';
 
-import { Hero } from './hero.entity';
+import { Company } from './company.entity';
 
 @Injectable()
-export class HeroesService extends RepositoryService<Hero> {
+export class CompaniesService extends RepositoryService<Company> {
   protected options: RestfulOptions = {};
 
-  constructor(@InjectRepository(Hero) repo) {
+  constructor(@InjectRepository(Company) repo) {
     super(repo);
   }
 }

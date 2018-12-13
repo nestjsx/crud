@@ -6,9 +6,13 @@ export interface CrudController<S extends RestfulService<T>, T> {
     service: S;
     paramsFilter?: string[] | ObjectLiteral;
     options?: RestfulOptions;
-    getManyBase?(query: RestfulParamsDto, params?: ObjectLiteral): Promise<T[]>;
-    getOneBase?(params: any, query: RestfulParamsDto): Promise<T>;
-    createOneBase?(dto: T): Promise<T>;
-    updateOneBase?(params: any, dto: T): Promise<void>;
-    deleteOneBase?(): Promise<void>;
+    getManyBase?(params: ObjectLiteral, query: RestfulParamsDto): Promise<T[]>;
+    getOneBase?(params: ObjectLiteral, query: RestfulParamsDto): Promise<T>;
+    createOneBase?(params: ObjectLiteral, dto: T): Promise<T>;
+    createManyBase?(params: ObjectLiteral, dto: EntitiesBulk<T>): Promise<T[]>;
+    updateOneBase?(params: ObjectLiteral, dto: T): Promise<T>;
+    deleteOneBase?(params: ObjectLiteral): Promise<void>;
+}
+export interface EntitiesBulk<T> {
+    bulk: T[];
 }
