@@ -1,6 +1,6 @@
 {
   "name": "@nestjsx/crud",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "NestJs CRUD for RESTful APIs",
   "main": "index.js",
   "types": "index.d.ts",
