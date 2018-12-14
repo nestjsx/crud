@@ -13,7 +13,7 @@
 
 # NestJs CRUD for RESTful APIs
 
-`@nestjsx/crud` has been designed for creating CRUD controllers and services for RESTful applications built with NestJs. It can be used with TypeORM repositories for now, but Mongoose functionality available in the future.
+`@nestjsx/crud` has been designed for creating CRUD controllers and services for RESTful applications built with NestJs. It can be used with TypeORM repositories for now, but Mongoose functionality perhaps will be available in the future.
 
 ## Features and merits
 
@@ -33,11 +33,12 @@
   - [Entity](#entity)
   - [Service](#service)
   - [Controller](#controller)
-  - [API Endpoints](#api-endpoints)
+- [API Endpoints](#api-endpoints)
 - [Query Parameters](#query-parameters)
 - [Repository Service](#repository-service)
   - [Restful Options](#restful-options)
 - [Crud Controller](#crud-controller)
+  - [Validation](#validation)
   - [IntelliSense](#intellisense)
   - [Method Override](#method-override)
   - [Restful Options merge](#restfuloptions-merge)
@@ -54,7 +55,7 @@
 ## Install
 
 ```bash
-npm i @nestjsx/crud @nestjs/typeorm typeorm class-validator class-transformer --save
+npm i @nestjsx/crud@next @nestjs/typeorm typeorm class-validator class-transformer --save
 ```
 
 ## Getting Started
@@ -119,19 +120,70 @@ And that's it, no more inheritance and tight coupling. Let's see what happens he
 @Crud(Hero)
 ```
 
-We pass our `Hero` entity as a `dto` for validation purpose (you can pass any other Dto class that fits you needs). So, if you use [class-validator](https://github.com/typestack/class-validator) package and [ValidationPipe](https://docs.nestjs.com/techniques/validation) (or maybe your own implementation of it), in that case you can use validation decorators inside your entity class. Pretty handy, right?  
-If you don't use those, the implementation of request data validation is your own prerogative.
+We pass our `Hero` entity as a `dto` for [Validation](#validation) purpose and inject `HeroesService`. After that, all you have to do is to hook up everything in your module. And after being done with these simple steps your application will expose these endpoints:
 
-After that, all you have to do is to hook up everything in your module. And after being done with these simple steps your application will expose these endpoints:
+## API Endpoints Examples
 
-### API Endpoints
+### Get Many Entities
 
-- `GET /heroes` - get list of heroes
-- `GET /heroes/:id` - get one hero by id
-- `POST /heroes` - create new hero
-- `POST /heroes/bulk` - create many heroes
-- `PATCH /heroes/:id` - update existing hero
-- `DELETE /heroes/:id` - delete one hero
+> `GET /heroes`  
+> `GET /heroes/:heroId/perks`
+
+_Result:_ array of entities | empty array  
+_Status Codes:_ 200
+
+### Get One Entity
+
+> `GET /heroes/:id`  
+> `GET /heroes/:heroId/perks:id`
+
+_Request Params:_ `:id` - entity id  
+_Result:_ entity object | error object  
+_Status Codes:_ 200 | 404
+
+### Create One Entity
+
+> `POST /heroes`  
+> `POST /heroes/:heroId/perks`
+
+_Request Body:_ entity object | entity object with nested (relational) objects  
+_Result:_ created entity object | error object  
+_Status Codes:_ 201 | 400
+
+### Create Many Entities
+
+> `POST /heroes/bulk`  
+> `POST /heroes/:heroId/perks/bulk`
+
+_Request Body:_ array of entity objects | array of entity objects with nested (relational) objects
+
+```json
+{
+  "bulk": [{...}, {...}, ...]
+}
+```
+
+_Result:_ array of created entitie | error object  
+_Status codes:_ 201 | 400
+
+### Update One Entity
+
+> `PATCH /heroes/:id`  
+> `PATCH /heroes/:heroId/perks:id`
+
+_Request Params:_ `:id` - entity id  
+_Request Body:_ entity object (or partial) | entity object with nested (relational) objects (or partial)  
+_Result:_: updated partial entity object | error object  
+_Status codes:_ 200 | 400 | 404
+
+### Delete One Entity
+
+> `DELETE /heroes/:id`  
+> `DELETE /heroes/:heroId/perks:id`
+
+_Request Params:_ `:id` - entity id  
+_Result:_: empty | error object  
+_Status codes:_ 200 | 404
 
 ## Query Parameters
 
@@ -483,6 +535,65 @@ Cache can be [reseted](#cache) by using the query parameter in your `GET` reques
 ## Crud Controller
 
 Our newly generated working horse. Let's dive in some details.
+
+### Validation
+
+Request data validation is performed by using [class-validator](https://github.com/typestack/class-validator) package and [ValidationPipe](https://docs.nestjs.com/techniques/validation). If you don't use this approach in your project, then you can implementat request data validation on your own.
+
+We distinguish request validation on `create` and `update` methods. This was achieved by using [validation groups](https://github.com/typestack/class-validator#validation-groups).
+
+Let's take a look at this example:
+
+```typescript
+import { Entity, Column, JoinColumn, OneToOne } from 'typeorm';
+import {
+  IsOptional,
+  IsString,
+  MaxLength,
+  IsNotEmpty,
+  IsEmail,
+  IsBoolean,
+  ValidateNested,
+} from 'class-validator';
+import { Type } from 'class-transformer';
+import { CrudValidate } from '@nestjsx/crud';
+
+import { BaseEntity } from '../base-entity';
+import { UserProfile } from '../users-profiles/user-profile.entity';
+
+const { CREATE, UPDATE } = CrudValidate;
+
+@Entity('users')
+export class User extends BaseEntity {
+  @IsOptional({ groups: [UPDATE] }) // validate on PATCH only
+  @IsNotEmpty({ groups: [CREATE] }) // validate on POST only
+  @IsString({ always: true }) // validate on both
+  @MaxLength(255, { always: true })
+  @IsEmail({ require_tld: false }, { always: true })
+  @Column({ type: 'varchar', length: 255, nullable: false, unique: true })
+  email: string;
+
+  @IsOptional({ groups: [UPDATE] })
+  @IsNotEmpty({ groups: [CREATE] })
+  @IsBoolean({ always: true })
+  @Column({ type: 'boolean', default: true })
+  isActive: boolean;
+
+  @Column({ nullable: true })
+  profileId: number;
+
+  // validate relations, that could be saved/updated as nested objects
+  @IsOptional({ groups: [UPDATE] })
+  @IsNotEmpty({ groups: [CREATE] })
+  @ValidateNested({ always: true })
+  @Type((t) => UserProfile)
+  @OneToOne((type) => UserProfile, (p) => p.user, { cascade: true })
+  @JoinColumn()
+  profile: UserProfile;
+}
+```
+
+You can import `CrudValidate` enum and set up validation rules for each field on firing of `POST`, `PATCH` requests or both of them.
 
 ### IntelliSense
 
