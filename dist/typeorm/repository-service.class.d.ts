@@ -17,9 +17,10 @@ export declare class RepositoryService<T> extends RestfulService<T> {
         bulk: DeepPartial<T>[];
     }, paramsFilter?: FilterParamParsed[]): Promise<T[]>;
     updateOne(id: number, data: DeepPartial<T>, paramsFilter?: FilterParamParsed[]): Promise<T>;
-    getOneOrFail({ filter, fields, join, cache }?: RequestParamsParsed, options?: RestfulOptions): Promise<T>;
+    deleteOne(id: number, paramsFilter?: FilterParamParsed[]): Promise<void>;
     findOneOrFail(options: FindOneOptions<T>): Promise<T>;
-    query(query: RequestParamsParsed, options?: RestfulOptions, many?: boolean): Promise<T | T[]>;
+    private getOneOrFail;
+    private query;
     private plainToClass;
     private onInitMapEntityColumns;
     private onInitMapRelations;

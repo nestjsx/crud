@@ -31,7 +31,8 @@ class RepositoryService extends restful_service_class_1.RestfulService {
     }
     getMany(query = {}, options = {}) {
         return __awaiter(this, void 0, void 0, function* () {
-            return this.query(query, options);
+            const builder = yield this.query(query, options);
+            return builder.getMany();
         });
     }
     getOne(id, { fields, join, cache } = {}, options = {}) {
@@ -77,13 +78,12 @@ class RepositoryService extends restful_service_class_1.RestfulService {
             return this.repo.save(entity);
         });
     }
-    getOneOrFail({ filter, fields, join, cache } = {}, options = {}) {
+    deleteOne(id, paramsFilter = []) {
         return __awaiter(this, void 0, void 0, function* () {
-            const found = (yield this.query({ filter, fields, join, cache }, options, false));
-            if (!found) {
-                this.throwNotFoundException(this.alias);
-            }
-            return found;
+            const found = yield this.getOneOrFail({
+                filter: [{ field: 'id', operator: 'eq', value: id }, ...paramsFilter],
+            });
+            const deleted = yield this.repo.remove(found);
         });
     }
     findOneOrFail(options) {
@@ -95,12 +95,22 @@ class RepositoryService extends restful_service_class_1.RestfulService {
             return found;
         });
     }
+    getOneOrFail({ filter, fields, join, cache } = {}, options = {}) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const builder = yield this.query({ filter, fields, join, cache }, options, false);
+            const found = yield builder.getOne();
+            if (!found) {
+                this.throwNotFoundException(this.alias);
+            }
+            return found;
+        });
+    }
     query(query, options = {}, many = true) {
         return __awaiter(this, void 0, void 0, function* () {
             const mergedOptions = Object.assign({}, this.options, options);
             const select = this.getSelect(query, mergedOptions);
             if (!select.length) {
-                return [];
+                return null;
             }
             const builder = this.repo.createQueryBuilder(this.alias);
             builder.select(select);
@@ -185,7 +195,7 @@ class RepositoryService extends restful_service_class_1.RestfulService {
                 const cacheId = this.getCacheId(query);
                 builder.cache(cacheId, mergedOptions.cache);
             }
-            return many ? builder.getMany() : builder.getOne();
+            return builder;
         });
     }
     plainToClass(data, paramsFilter = []) {

@@ -45,7 +45,8 @@ export class RepositoryService<T> extends RestfulService<T> {
     query: RequestParamsParsed = {},
     options: RestfulOptions = {},
   ): Promise<T[]> {
-    return this.query(query, options) as Promise<T[]>;
+    const builder = await this.query(query, options);
+    return builder.getMany();
   }
 
   /**
@@ -133,19 +134,23 @@ export class RepositoryService<T> extends RestfulService<T> {
     return this.repo.save<any>(entity);
   }
 
-  public async getOneOrFail(
-    { filter, fields, join, cache }: RequestParamsParsed = {},
-    options: RestfulOptions = {},
-  ): Promise<T> {
-    const found = (await this.query({ filter, fields, join, cache }, options, false)) as T;
+  /**
+   * Delete one entity
+   * @param id
+   * @param paramsFilter
+   */
+  public async deleteOne(id: number, paramsFilter: FilterParamParsed[] = []): Promise<void> {
+    const found = await this.getOneOrFail({
+      filter: [{ field: 'id', operator: 'eq', value: id }, ...paramsFilter],
+    });
 
-    if (!found) {
-      this.throwNotFoundException(this.alias);
-    }
-
-    return found;
+    const deleted = await this.repo.remove(found);
   }
 
+  /**
+   * Simple find one
+   * @param options
+   */
   public async findOneOrFail(options: FindOneOptions<T>) {
     const found = await this.repo.findOne(options);
 
@@ -156,18 +161,38 @@ export class RepositoryService<T> extends RestfulService<T> {
     return found;
   }
 
-  public async query(
+  private async getOneOrFail(
+    { filter, fields, join, cache }: RequestParamsParsed = {},
+    options: RestfulOptions = {},
+  ): Promise<T> {
+    const builder = await this.query({ filter, fields, join, cache }, options, false);
+    const found = await builder.getOne();
+
+    if (!found) {
+      this.throwNotFoundException(this.alias);
+    }
+
+    return found;
+  }
+
+  /**
+   * Do query into DB
+   * @param query
+   * @param options
+   * @param many
+   */
+  private async query(
     query: RequestParamsParsed,
     options: RestfulOptions = {},
     many = true,
-  ): Promise<T | T[]> {
+  ): Promise<SelectQueryBuilder<T>> {
     // merge options
     const mergedOptions = Object.assign({}, this.options, options);
     // get selet fields
     const select = this.getSelect(query, mergedOptions);
 
     if (!select.length) {
-      return [];
+      return null;
     }
 
     // create query builder
@@ -285,8 +310,7 @@ export class RepositoryService<T> extends RestfulService<T> {
       builder.cache(cacheId, mergedOptions.cache);
     }
 
-    // fire request
-    return many ? builder.getMany() : builder.getOne();
+    return builder;
   }
 
   private plainToClass(data: DeepPartial<T>, paramsFilter: FilterParamParsed[] = []): T {

@@ -552,7 +552,10 @@ updateOneBase(
   @Body() dto: T,
 ): Promise<T>;
 
-deleteOneBase(@Param() params: ObjectLiteral): Promise<void>;
+deleteOneBase(
+  @Param('id') id: number,
+  @Param() params: ObjectLiteral,
+): Promise<void>;
 ```
 
 Since all composed methods have `Base` ending in their names, overriding those endpoints could be done in two ways:

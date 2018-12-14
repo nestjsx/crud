@@ -14,6 +14,7 @@ try {
 
 export const hasValidator = !!classValidator;
 export const hasTypeorm = !!typeorm;
+
 export const isArrayFull = (obj) => Array.isArray(obj) && obj.length !== 0;
 
 export const mockValidatorDecorator = (name: string) =>

@@ -264,16 +264,26 @@ function updateOneBase(target: object, name: string, dto: any, crudOptions: Crud
   setAction(CrudActions.UpdateOne, prototype[name]);
 }
 
+/**
+ * Delete one entity route base
+ */
 function deleteOneBase(target: object, name: string) {
   const prototype = (target as any).prototype;
 
   prototype[name] = function(id: number, params: ObjectLiteral) {
     const paramsFilter = this.getParamsFilter(params);
-    return 'deleted';
+    return this.service.deleteOne(id, paramsFilter);
   };
 
-  setParams(createParamMetadata(RouteParamtypes.PARAM, 0), target, name);
-  setParamTypes([Object], prototype, name);
+  setParams(
+    {
+      ...createParamMetadata(RouteParamtypes.PARAM, 0, [setParseIntPipe()], 'id'),
+      ...createParamMetadata(RouteParamtypes.PARAM, 1),
+    },
+    target,
+    name,
+  );
+  setParamTypes([Number, Object], prototype, name);
   setAction(CrudActions.DeleteOne, prototype[name]);
 }
 

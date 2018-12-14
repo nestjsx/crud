@@ -156,12 +156,12 @@ function updateOneBase(target, name, dto, crudOptions) {
 }
 function deleteOneBase(target, name) {
     const prototype = target.prototype;
-    prototype[name] = function (params) {
-        const filter = this.getParamsFilter(params);
-        return 'deleted';
+    prototype[name] = function (id, params) {
+        const paramsFilter = this.getParamsFilter(params);
+        return this.service.deleteOne(id, paramsFilter);
     };
-    setParams(createParamMetadata(route_paramtypes_enum_1.RouteParamtypes.PARAM, 0), target, name);
-    setParamTypes([Object], prototype, name);
+    setParams(Object.assign({}, createParamMetadata(route_paramtypes_enum_1.RouteParamtypes.PARAM, 0, [setParseIntPipe()], 'id'), createParamMetadata(route_paramtypes_enum_1.RouteParamtypes.PARAM, 1)), target, name);
+    setParamTypes([Number, Object], prototype, name);
     setAction(enums_1.CrudActions.DeleteOne, prototype[name]);
 }
 function getParamsFilter(prototype) {
