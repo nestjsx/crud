@@ -1,19 +1,26 @@
-import { Repository, FindOneOptions } from 'typeorm';
+import { Repository, FindOneOptions, DeepPartial } from 'typeorm';
 import { RestfulService } from '../classes/restful-service.class';
-import { RestfulOptions, RequestParamsParsed } from '../interfaces';
+import { RestfulOptions, RequestParamsParsed, FilterParamParsed } from '../interfaces';
 export declare class RepositoryService<T> extends RestfulService<T> {
     protected repo: Repository<T>;
     protected options: RestfulOptions;
-    private alias;
     private entityColumns;
     private entityColumnsHash;
     private entityRelationsHash;
     constructor(repo: Repository<T>);
+    private readonly entityType;
+    private readonly alias;
     getMany(query?: RequestParamsParsed, options?: RestfulOptions): Promise<T[]>;
-    getOne(id: number | string, { fields, join, cache }?: RequestParamsParsed, options?: RestfulOptions): Promise<T>;
+    getOne(id: number, { fields, join, cache }?: RequestParamsParsed, options?: RestfulOptions): Promise<T>;
+    createOne(data: DeepPartial<T>, paramsFilter?: FilterParamParsed[]): Promise<T>;
+    createMany(data: {
+        bulk: DeepPartial<T>[];
+    }, paramsFilter?: FilterParamParsed[]): Promise<T[]>;
+    updateOne(id: number, data: DeepPartial<T>, paramsFilter?: FilterParamParsed[]): Promise<T>;
     getOneOrFail({ filter, fields, join, cache }?: RequestParamsParsed, options?: RestfulOptions): Promise<T>;
     findOneOrFail(options: FindOneOptions<T>): Promise<T>;
     query(query: RequestParamsParsed, options?: RestfulOptions, many?: boolean): Promise<T | T[]>;
+    private plainToClass;
     private onInitMapEntityColumns;
     private onInitMapRelations;
     private getJoinType;

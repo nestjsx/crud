@@ -38,7 +38,6 @@
 - [Repository Service](#repository-service)
   - [Restful Options](#restful-options)
 - [Crud Controller](#crud-controller)
-  - [Request Validation](#request-validation)
   - [IntelliSense](#intellisense)
   - [Method Override](#method-override)
   - [Restful Options merge](#restfuloptions-merge)
@@ -55,7 +54,7 @@
 ## Install
 
 ```bash
-npm i @nestjsx/crud @nestjs/typeorm typeorm class-transformer --save
+npm i @nestjsx/crud @nestjs/typeorm typeorm class-validator class-transformer --save
 ```
 
 ## Getting Started
@@ -526,11 +525,33 @@ export class HeroesController implements CrudController<HeroesService, Hero> {
 List of composed base methods:
 
 ```typescript
-getManyBase(@Param() params: ObjectLiteral, @Query() query: RestfulParamsDto): Promise<T[]>;
-getOneBase(@Param() params: ObjectLiteral, @Query() query: RestfulParamsDto): Promise<T>;
-createOneBase(@Param() params: ObjectLiteral, @Body() dto: T): Promise<T>;
-createManyBase(@Param() params: ObjectLiteral, @Body() dto: EntitiesBulk<T>): Promise<T[]>;
-updateOneBase(@Param() params: ObjectLiteral, @Body() dto: T): Promise<T>;
+getManyBase(
+  @Param() params: ObjectLiteral,
+  @Query() query: RestfulParamsDto,
+): Promise<T[]>;
+
+getOneBase(
+  @Param('id') id: number,
+  @Param() params: ObjectLiteral,
+  @Query() query: RestfulParamsDto,
+): Promise<T>;
+
+createOneBase(
+  @Param() params: ObjectLiteral,
+  @Body() dto: T,
+): Promise<T>;
+
+createManyBase(
+  @Param() params: ObjectLiteral,
+  @Body() dto: EntitiesBulk<T>,
+): Promise<T[]>;
+
+updateOneBase(
+  @Param('id') id: number,
+  @Param() params: ObjectLiteral,
+  @Body() dto: T,
+): Promise<T>;
+
 deleteOneBase(@Param() params: ObjectLiteral): Promise<void>;
 ```
 
@@ -563,6 +584,7 @@ export class HeroesController implements CrudController<HeroesService, Hero> {
   getOneAndDoStuff() {
     // do some stuff
   }
+
 }
 ```
 

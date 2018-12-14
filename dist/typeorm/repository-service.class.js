@@ -9,6 +9,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const typeorm_1 = require("typeorm");
+const shared_utils_1 = require("@nestjs/common/utils/shared.utils");
+const class_transformer_1 = require("class-transformer");
 const restful_service_class_1 = require("../classes/restful-service.class");
 const utils_1 = require("../utils");
 class RepositoryService extends restful_service_class_1.RestfulService {
@@ -18,9 +20,14 @@ class RepositoryService extends restful_service_class_1.RestfulService {
         this.options = {};
         this.entityColumnsHash = {};
         this.entityRelationsHash = {};
-        this.alias = this.repo.metadata.targetName;
         this.onInitMapEntityColumns();
         this.onInitMapRelations();
+    }
+    get entityType() {
+        return this.repo.target;
+    }
+    get alias() {
+        return this.repo.metadata.targetName;
     }
     getMany(query = {}, options = {}) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -35,6 +42,39 @@ class RepositoryService extends restful_service_class_1.RestfulService {
                 join,
                 cache,
             }, options);
+        });
+    }
+    createOne(data, paramsFilter = []) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const entity = this.plainToClass(data, paramsFilter);
+            if (!entity) {
+                this.throwBadRequestException(`Empty data. Nothing to save.`);
+            }
+            return this.repo.save(entity);
+        });
+    }
+    createMany(data, paramsFilter = []) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (!data || !data.bulk || !data.bulk.length) {
+                this.throwBadRequestException(`Empty data. Nothing to save.`);
+            }
+            const bulk = data.bulk
+                .map((one) => this.plainToClass(one, paramsFilter))
+                .filter((d) => shared_utils_1.isObject(d));
+            if (!bulk.length) {
+                this.throwBadRequestException(`Empty data. Nothing to save.`);
+            }
+            return this.repo.save(bulk, { chunk: 50 });
+        });
+    }
+    updateOne(id, data, paramsFilter = []) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const found = yield this.getOneOrFail({
+                filter: [{ field: 'id', operator: 'eq', value: id }, ...paramsFilter],
+            });
+            data['id'] = id;
+            const entity = this.plainToClass(data, paramsFilter);
+            return this.repo.save(entity);
         });
     }
     getOneOrFail({ filter, fields, join, cache } = {}, options = {}) {
@@ -147,6 +187,17 @@ class RepositoryService extends restful_service_class_1.RestfulService {
             }
             return many ? builder.getMany() : builder.getOne();
         });
+    }
+    plainToClass(data, paramsFilter = []) {
+        if (!shared_utils_1.isObject(data)) {
+            return undefined;
+        }
+        if (paramsFilter.length) {
+            for (let filter of paramsFilter) {
+                data[filter.field] = filter.value;
+            }
+        }
+        return class_transformer_1.plainToClass(this.entityType, data);
     }
     onInitMapEntityColumns() {
         this.entityColumns = this.repo.metadata.columns.map((prop) => {

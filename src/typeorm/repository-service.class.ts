@@ -1,4 +1,7 @@
-import { Repository, SelectQueryBuilder, Brackets, FindOneOptions } from 'typeorm';
+import { Repository, SelectQueryBuilder, Brackets, FindOneOptions, DeepPartial } from 'typeorm';
+import { isObject } from '@nestjs/common/utils/shared.utils';
+import { plainToClass } from 'class-transformer';
+import { ClassType } from 'class-transformer/ClassTransformer';
 
 import { RestfulService } from '../classes/restful-service.class';
 import {
@@ -14,7 +17,6 @@ import { isArrayFull } from '../utils';
 export class RepositoryService<T> extends RestfulService<T> {
   protected options: RestfulOptions = {};
 
-  private alias: string;
   private entityColumns: string[];
   private entityColumnsHash: ObjectLiteral = {};
   private entityRelationsHash: ObjectLiteral = {};
@@ -22,11 +24,23 @@ export class RepositoryService<T> extends RestfulService<T> {
   constructor(protected repo: Repository<T>) {
     super();
 
-    this.alias = this.repo.metadata.targetName;
     this.onInitMapEntityColumns();
     this.onInitMapRelations();
   }
 
+  private get entityType(): ClassType<T> {
+    return this.repo.target as ClassType<T>;
+  }
+
+  private get alias(): string {
+    return this.repo.metadata.targetName;
+  }
+
+  /**
+   * Get many entities
+   * @param query
+   * @param options
+   */
   public async getMany(
     query: RequestParamsParsed = {},
     options: RestfulOptions = {},
@@ -34,8 +48,14 @@ export class RepositoryService<T> extends RestfulService<T> {
     return this.query(query, options) as Promise<T[]>;
   }
 
+  /**
+   * Get one entity by id
+   * @param id
+   * @param param1
+   * @param options
+   */
   public async getOne(
-    id: number | string,
+    id: number,
     { fields, join, cache }: RequestParamsParsed = {},
     options: RestfulOptions = {},
   ): Promise<T> {
@@ -48,6 +68,69 @@ export class RepositoryService<T> extends RestfulService<T> {
       },
       options,
     );
+  }
+
+  /**
+   * Create one entity
+   * @param data
+   * @param paramsFilter
+   */
+  public async createOne(data: DeepPartial<T>, paramsFilter: FilterParamParsed[] = []): Promise<T> {
+    const entity = this.plainToClass(data, paramsFilter);
+
+    if (!entity) {
+      this.throwBadRequestException(`Empty data. Nothing to save.`);
+    }
+
+    return this.repo.save<any>(entity);
+  }
+
+  /**
+   * Create many
+   * @param data
+   * @param paramsFilter
+   */
+  public async createMany(
+    data: { bulk: DeepPartial<T>[] },
+    paramsFilter: FilterParamParsed[] = [],
+  ): Promise<T[]> {
+    if (!data || !data.bulk || !data.bulk.length) {
+      this.throwBadRequestException(`Empty data. Nothing to save.`);
+    }
+
+    const bulk = data.bulk
+      .map((one) => this.plainToClass(one, paramsFilter))
+      .filter((d) => isObject(d));
+
+    if (!bulk.length) {
+      this.throwBadRequestException(`Empty data. Nothing to save.`);
+    }
+
+    return this.repo.save<any>(bulk, { chunk: 50 });
+  }
+
+  /**
+   * Update one entity
+   * @param id
+   * @param data
+   * @param paramsFilter
+   */
+  public async updateOne(
+    id: number,
+    data: DeepPartial<T>,
+    paramsFilter: FilterParamParsed[] = [],
+  ): Promise<T> {
+    // we need this, because TypeOrm will try to insert if no data found by id
+    const found = await this.getOneOrFail({
+      filter: [{ field: 'id', operator: 'eq', value: id }, ...paramsFilter],
+    });
+
+    data['id'] = id;
+    const entity = this.plainToClass(data, paramsFilter);
+
+    // we use save and not update because
+    // we might want to update relational entities
+    return this.repo.save<any>(entity);
   }
 
   public async getOneOrFail(
@@ -204,6 +287,20 @@ export class RepositoryService<T> extends RestfulService<T> {
 
     // fire request
     return many ? builder.getMany() : builder.getOne();
+  }
+
+  private plainToClass(data: DeepPartial<T>, paramsFilter: FilterParamParsed[] = []): T {
+    if (!isObject(data)) {
+      return undefined;
+    }
+
+    if (paramsFilter.length) {
+      for (let filter of paramsFilter) {
+        data[filter.field] = filter.value;
+      }
+    }
+
+    return plainToClass(this.entityType, data);
   }
 
   private onInitMapEntityColumns() {
