@@ -4,9 +4,9 @@ default:
   port: 5432
   username: root
   password: root
-  database: nestjsx_crud
+  database: nestjsx_crud_e2e
   entities:
-    - ./src/**/*.entity.ts
+    - ./e2e/**/*.entity.ts
   migrationsTableName: orm_migrations
   migrations:
-    - ./seeds.ts
+    - ./e2e/seeds.ts

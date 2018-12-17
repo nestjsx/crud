@@ -184,7 +184,11 @@ function getMergedOptions(prototype) {
         const paramsFilter = this.getParamsFilter(params);
         const options = this.options || {};
         const optionsFilter = options.filter || [];
-        return Object.assign({}, options, { filter: [...optionsFilter, ...paramsFilter] });
+        const filter = [...optionsFilter, ...paramsFilter];
+        if (filter.length) {
+            options.filter = filter;
+        }
+        return options;
     };
 }
 function setRoute(path, method, func) {

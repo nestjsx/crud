@@ -1,4 +1,5 @@
 import { Injectable, NestInterceptor, ExecutionContext } from '@nestjs/common';
+import { isObject } from '@nestjs/common/utils/shared.utils';
 import { Observable } from 'rxjs';
 
 import {
@@ -40,7 +41,7 @@ export class RestfulQueryInterceptor implements NestInterceptor {
   }
 
   private transform(query: RequestQueryParams): RequestParamsParsed {
-    if (!query) {
+    if (!isObject(query) || !Object.keys(query).length) {
       return {};
     }
 
@@ -84,7 +85,7 @@ export class RestfulQueryInterceptor implements NestInterceptor {
 
   private parseFilter(str: string): FilterParamParsed {
     try {
-      const isArrayValue = ['in', 'notin', 'beetwen'];
+      const isArrayValue = ['in', 'notin', 'between'];
       const params = str.split(this.delim);
       const field = params[0];
       const operator = params[1] as ComparisonOperator;

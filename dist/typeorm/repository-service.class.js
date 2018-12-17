@@ -86,15 +86,6 @@ class RepositoryService extends restful_service_class_1.RestfulService {
             const deleted = yield this.repo.remove(found);
         });
     }
-    findOneOrFail(options) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const found = yield this.repo.findOne(options);
-            if (!found) {
-                this.throwNotFoundException(this.alias);
-            }
-            return found;
-        });
-    }
     getOneOrFail({ filter, fields, join, cache } = {}, options = {}) {
         return __awaiter(this, void 0, void 0, function* () {
             const builder = yield this.query({ filter, fields, join, cache }, options, false);
@@ -109,9 +100,6 @@ class RepositoryService extends restful_service_class_1.RestfulService {
         return __awaiter(this, void 0, void 0, function* () {
             const mergedOptions = Object.assign({}, this.options, options);
             const select = this.getSelect(query, mergedOptions);
-            if (!select.length) {
-                return null;
-            }
             const builder = this.repo.createQueryBuilder(this.alias);
             builder.select(select);
             if (utils_1.isArrayFull(mergedOptions.filter)) {
@@ -206,6 +194,9 @@ class RepositoryService extends restful_service_class_1.RestfulService {
             for (let filter of paramsFilter) {
                 data[filter.field] = filter.value;
             }
+        }
+        if (!Object.keys(data).length) {
+            return undefined;
         }
         return class_transformer_1.plainToClass(this.entityType, data);
     }
@@ -374,9 +365,15 @@ class RepositoryService extends restful_service_class_1.RestfulService {
                 params = { [param]: `%${cond.value}%` };
                 break;
             case 'in':
+                if (!Array.isArray(cond.value) || !cond.value.length) {
+                    this.throwBadRequestException(`Invalid column '${cond.field}' value`);
+                }
                 str = `${field} IN (:...${param})`;
                 break;
             case 'notin':
+                if (!Array.isArray(cond.value) || !cond.value.length) {
+                    this.throwBadRequestException(`Invalid column '${cond.field}' value`);
+                }
                 str = `${field} NOT IN (:...${param})`;
                 break;
             case 'isnull':

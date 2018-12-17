@@ -110,7 +110,7 @@ import { HeroesService } from './heroes.service';
 @Crud(Hero)
 @Controller('heroes')
 export class HeroesController {
-  constructor(service: HeroesService) {}
+  constructor(public service: HeroesService) {}
 }
 ```
 
@@ -608,7 +608,7 @@ import { Crud, CrudController } from '@nestjsx/crud';
 @Crud(Hero)
 @Controller('heroes')
 export class HeroesController implements CrudController<HeroesService, Hero> {
-  constructor(service: HeroesService) {}
+  constructor(public service: HeroesService) {}
 }
 ```
 
@@ -623,7 +623,7 @@ import { Crud, CrudController } from '@nestjsx/crud';
 @Crud(Hero)
 @Controller('heroes')
 export class HeroesController implements CrudController<HeroesService, Hero> {
-  constructor(service: HeroesService) {}
+  constructor(public service: HeroesService) {}
 
   get base(): CrudController<HeroesService, Hero> {
     return this;
@@ -682,7 +682,7 @@ import { Crud, CrudController, Override, RestfulParamsDto } from '@nestjsx/crud'
 @Crud(Hero)
 @Controller('heroes')
 export class HeroesController implements CrudController<HeroesService, Hero> {
-  constructor(service: HeroesService) {}
+  constructor(public service: HeroesService) {}
 
   get base(): CrudController<HeroesService, Hero> {
     return this;
@@ -713,7 +713,7 @@ import { Crud, CrudController, RestfulOptions } from '@nestjsx/crud';
 export class HeroesController implements CrudController<HeroesService, Hero> {
   options: RestfulOptions = {};
 
-  constructor(service: HeroesService) {}
+  constructor(public service: HeroesService) {}
 }
 ```
 
@@ -734,7 +734,7 @@ import { Crud, CrudController, RestfulOptions } from '@nestjsx/crud';
 export class UsersController implements CrudController<UsersService, User> {
   paramsFilter = ['companyId'];
 
-  constructor(service: UsersService) {}
+  constructor(public service: UsersService) {}
 }
 ```
 
@@ -753,7 +753,7 @@ export class UsersController implements CrudController<UsersService, User> {
     company: 'companyId'
   };
 
-  constructor(service: UsersService) {}
+  constructor(public service: UsersService) {}
 }
 ```
 
@@ -775,7 +775,7 @@ import { Feature, Crud, CrudController, RestfulOptions } from '@nestjsx/crud';
 @Crud(Hero)
 @Controller('heroes')
 export class HeroesController {
-  constructor(service: HeroesService) {}
+  constructor(public service: HeroesService) {}
 }
 ```
 

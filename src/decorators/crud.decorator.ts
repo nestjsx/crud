@@ -315,11 +315,13 @@ function getMergedOptions(prototype: any) {
     const paramsFilter = this.getParamsFilter(params);
     const options = this.options || {};
     const optionsFilter = options.filter || [];
+    const filter = [...optionsFilter, ...paramsFilter];
 
-    return {
-      ...options,
-      filter: [...optionsFilter, ...paramsFilter],
-    };
+    if (filter.length) {
+      options.filter = filter;
+    }
+
+    return options;
   };
 }
 

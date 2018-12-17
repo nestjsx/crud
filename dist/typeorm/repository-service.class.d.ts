@@ -1,4 +1,4 @@
-import { Repository, FindOneOptions, DeepPartial } from 'typeorm';
+import { Repository, DeepPartial } from 'typeorm';
 import { RestfulService } from '../classes/restful-service.class';
 import { RestfulOptions, RequestParamsParsed, FilterParamParsed } from '../interfaces';
 export declare class RepositoryService<T> extends RestfulService<T> {
@@ -18,7 +18,6 @@ export declare class RepositoryService<T> extends RestfulService<T> {
     }, paramsFilter?: FilterParamParsed[]): Promise<T[]>;
     updateOne(id: number, data: DeepPartial<T>, paramsFilter?: FilterParamParsed[]): Promise<T>;
     deleteOne(id: number, paramsFilter?: FilterParamParsed[]): Promise<void>;
-    findOneOrFail(options: FindOneOptions<T>): Promise<T>;
     private getOneOrFail;
     private query;
     private plainToClass;

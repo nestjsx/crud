@@ -1,20 +1,18 @@
 import { Entity, Column, OneToMany } from 'typeorm';
-import { IsOptional, IsString, MaxLength, IsNotEmpty } from 'class-validator';
+import { IsOptional, IsString, MaxLength, IsNotEmpty } from '../../../node_modules/class-validator';
 import { CREATE_UPDATE, CrudValidate } from '@nestjsx/crud';
 
-import { BaseEntity } from '../base-entity';
-import { User } from '../users/user.entity';
-import { Project } from '../projects/project.entity';
-import { Task } from '../tasks/task.entity';
+import { BaseEntity } from '../src/base-entity';
+import { User } from './user.entity';
 
 const { CREATE, UPDATE } = CrudValidate;
 
 @Entity('companies')
 export class Company extends BaseEntity {
-  @IsOptional({ groups: [UPDATE] }) // using as an array of strings
+  @IsOptional({ groups: [UPDATE] })
   @IsNotEmpty({ groups: [CREATE] })
-  @IsString({ always: true }) // using as a destructured '{ groups: [CREATE, UPDATE] }'
-  @MaxLength(100, { always: true }) // using as 'always: true'
+  @IsString({ groups: [CREATE, UPDATE] })
+  @MaxLength(100, { groups: [CREATE, UPDATE] })
   @Column({ type: 'varchar', length: 100, nullable: false })
   name: string;
 
@@ -36,10 +34,4 @@ export class Company extends BaseEntity {
 
   @OneToMany((type) => User, (u) => u.company)
   users: User[];
-
-  @OneToMany((type) => Project, (p) => p.company)
-  projects: Project[];
-
-  @OneToMany((type) => Task, (t) => t.company)
-  tasks: Task[];
 }

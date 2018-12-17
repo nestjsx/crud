@@ -147,20 +147,6 @@ export class RepositoryService<T> extends RestfulService<T> {
     const deleted = await this.repo.remove(found);
   }
 
-  /**
-   * Simple find one
-   * @param options
-   */
-  public async findOneOrFail(options: FindOneOptions<T>) {
-    const found = await this.repo.findOne(options);
-
-    if (!found) {
-      this.throwNotFoundException(this.alias);
-    }
-
-    return found;
-  }
-
   private async getOneOrFail(
     { filter, fields, join, cache }: RequestParamsParsed = {},
     options: RestfulOptions = {},
@@ -190,10 +176,6 @@ export class RepositoryService<T> extends RestfulService<T> {
     const mergedOptions = Object.assign({}, this.options, options);
     // get selet fields
     const select = this.getSelect(query, mergedOptions);
-
-    if (!select.length) {
-      return null;
-    }
 
     // create query builder
     const builder = this.repo.createQueryBuilder(this.alias);
@@ -324,6 +306,10 @@ export class RepositoryService<T> extends RestfulService<T> {
       }
     }
 
+    if (!Object.keys(data).length) {
+      return undefined;
+    }
+
     return plainToClass(this.entityType, data);
   }
 
@@ -443,7 +429,7 @@ export class RepositoryService<T> extends RestfulService<T> {
     const select = [
       ...(options.persist && options.persist.length ? options.persist : []),
       ...columns,
-      'id',
+      'id', // always persist ids
     ].map((col) => `${this.alias}.${col}`);
 
     return select;
@@ -546,10 +532,16 @@ export class RepositoryService<T> extends RestfulService<T> {
         break;
 
       case 'in':
+        if (!Array.isArray(cond.value) || !cond.value.length) {
+          this.throwBadRequestException(`Invalid column '${cond.field}' value`);
+        }
         str = `${field} IN (:...${param})`;
         break;
 
       case 'notin':
+        if (!Array.isArray(cond.value) || !cond.value.length) {
+          this.throwBadRequestException(`Invalid column '${cond.field}' value`);
+        }
         str = `${field} NOT IN (:...${param})`;
         break;
 

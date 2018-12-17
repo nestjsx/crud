@@ -7,6 +7,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const common_1 = require("@nestjs/common");
+const shared_utils_1 = require("@nestjs/common/utils/shared.utils");
 let RestfulQueryInterceptor = class RestfulQueryInterceptor {
     constructor() {
         this.delim = '||';
@@ -34,7 +35,7 @@ let RestfulQueryInterceptor = class RestfulQueryInterceptor {
         return call$;
     }
     transform(query) {
-        if (!query) {
+        if (!shared_utils_1.isObject(query) || !Object.keys(query).length) {
             return {};
         }
         const fields = this.splitString(query.fields);
@@ -73,7 +74,7 @@ let RestfulQueryInterceptor = class RestfulQueryInterceptor {
     }
     parseFilter(str) {
         try {
-            const isArrayValue = ['in', 'notin', 'beetwen'];
+            const isArrayValue = ['in', 'notin', 'between'];
             const params = str.split(this.delim);
             const field = params[0];
             const operator = params[1];
