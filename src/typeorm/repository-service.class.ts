@@ -1,4 +1,7 @@
-import { Repository, SelectQueryBuilder, Brackets, WhereExpression, FindOneOptions } from 'typeorm';
+import { Repository, SelectQueryBuilder, Brackets, FindOneOptions, DeepPartial } from 'typeorm';
+import { isObject } from '@nestjs/common/utils/shared.utils';
+import { plainToClass } from 'class-transformer';
+import { ClassType } from 'class-transformer/ClassTransformer';
 
 import { RestfulService } from '../classes/restful-service.class';
 import {
@@ -9,11 +12,11 @@ import {
   JoinParamParsed,
 } from '../interfaces';
 import { ObjectLiteral } from '../interfaces/object-literal.interface';
+import { isArrayFull } from '../utils';
 
-export class RepositoryService<T = any> extends RestfulService<T> {
+export class RepositoryService<T> extends RestfulService<T> {
   protected options: RestfulOptions = {};
 
-  private alias: string;
   private entityColumns: string[];
   private entityColumnsHash: ObjectLiteral = {};
   private entityRelationsHash: ObjectLiteral = {};
@@ -21,23 +24,39 @@ export class RepositoryService<T = any> extends RestfulService<T> {
   constructor(protected repo: Repository<T>) {
     super();
 
-    // set alias
-    this.alias = this.repo.metadata.targetName;
-    // map all entity columns names
     this.onInitMapEntityColumns();
-    // map entity relations
     this.onInitMapRelations();
   }
 
+  private get entityType(): ClassType<T> {
+    return this.repo.target as ClassType<T>;
+  }
+
+  private get alias(): string {
+    return this.repo.metadata.targetName;
+  }
+
+  /**
+   * Get many entities
+   * @param query
+   * @param options
+   */
   public async getMany(
     query: RequestParamsParsed = {},
     options: RestfulOptions = {},
   ): Promise<T[]> {
-    return this.query(query, options) as Promise<T[]>;
+    const builder = await this.query(query, options);
+    return builder.getMany();
   }
 
+  /**
+   * Get one entity by id
+   * @param id
+   * @param param1
+   * @param options
+   */
   public async getOne(
-    id: number | string,
+    id: number,
     { fields, join, cache }: RequestParamsParsed = {},
     options: RestfulOptions = {},
   ): Promise<T> {
@@ -52,11 +71,88 @@ export class RepositoryService<T = any> extends RestfulService<T> {
     );
   }
 
-  public async getOneOrFail(
+  /**
+   * Create one entity
+   * @param data
+   * @param paramsFilter
+   */
+  public async createOne(data: DeepPartial<T>, paramsFilter: FilterParamParsed[] = []): Promise<T> {
+    const entity = this.plainToClass(data, paramsFilter);
+
+    if (!entity) {
+      this.throwBadRequestException(`Empty data. Nothing to save.`);
+    }
+
+    return this.repo.save<any>(entity);
+  }
+
+  /**
+   * Create many
+   * @param data
+   * @param paramsFilter
+   */
+  public async createMany(
+    data: { bulk: DeepPartial<T>[] },
+    paramsFilter: FilterParamParsed[] = [],
+  ): Promise<T[]> {
+    if (!data || !data.bulk || !data.bulk.length) {
+      this.throwBadRequestException(`Empty data. Nothing to save.`);
+    }
+
+    const bulk = data.bulk
+      .map((one) => this.plainToClass(one, paramsFilter))
+      .filter((d) => isObject(d));
+
+    if (!bulk.length) {
+      this.throwBadRequestException(`Empty data. Nothing to save.`);
+    }
+
+    return this.repo.save<any>(bulk, { chunk: 50 });
+  }
+
+  /**
+   * Update one entity
+   * @param id
+   * @param data
+   * @param paramsFilter
+   */
+  public async updateOne(
+    id: number,
+    data: DeepPartial<T>,
+    paramsFilter: FilterParamParsed[] = [],
+  ): Promise<T> {
+    // we need this, because TypeOrm will try to insert if no data found by id
+    const found = await this.getOneOrFail({
+      filter: [{ field: 'id', operator: 'eq', value: id }, ...paramsFilter],
+    });
+
+    data['id'] = id;
+    const entity = this.plainToClass(data, paramsFilter);
+
+    // we use save and not update because
+    // we might want to update relational entities
+    return this.repo.save<any>(entity);
+  }
+
+  /**
+   * Delete one entity
+   * @param id
+   * @param paramsFilter
+   */
+  public async deleteOne(id: number, paramsFilter: FilterParamParsed[] = []): Promise<void> {
+    const found = await this.getOneOrFail({
+      filter: [{ field: 'id', operator: 'eq', value: id }, ...paramsFilter],
+    });
+
+    const deleted = await this.repo.remove(found);
+  }
+
+  private async getOneOrFail(
     { filter, fields, join, cache }: RequestParamsParsed = {},
     options: RestfulOptions = {},
   ): Promise<T> {
-    const found = (await this.query({ filter, fields, join, cache }, options, false)) as T;
+    const builder = await this.query({ filter, fields, join, cache }, options, false);
+    const found = await builder.getOne();
 
     if (!found) {
       this.throwNotFoundException(this.alias);
@@ -65,29 +161,21 @@ export class RepositoryService<T = any> extends RestfulService<T> {
     return found;
   }
 
-  public async findOneOrFail(options: FindOneOptions<T>) {
-    const found = await this.repo.findOne(options);
-
-    if (!found) {
-      this.throwNotFoundException(this.alias);
-    }
-
-    return found;
-  }
-
-  public async query(
+  /**
+   * Do query into DB
+   * @param query
+   * @param options
+   * @param many
+   */
+  private async query(
     query: RequestParamsParsed,
     options: RestfulOptions = {},
     many = true,
-  ): Promise<T | T[]> {
+  ): Promise<SelectQueryBuilder<T>> {
     // merge options
     const mergedOptions = Object.assign({}, this.options, options);
     // get selet fields
     const select = this.getSelect(query, mergedOptions);
-
-    if (!select.length) {
-      return [];
-    }
 
     // create query builder
     const builder = this.repo.createQueryBuilder(this.alias);
@@ -96,32 +184,68 @@ export class RepositoryService<T = any> extends RestfulService<T> {
     builder.select(select);
 
     // set mandatory where condition
-    if (Array.isArray(mergedOptions.filter) && mergedOptions.filter.length) {
+    if (isArrayFull(mergedOptions.filter)) {
       for (let i = 0; i < mergedOptions.filter.length; i++) {
         this.setAndWhere(mergedOptions.filter[i], `mergedOptions${i}`, builder);
       }
     }
 
-    // set filter conditions
-    if (Array.isArray(query.filter) && query.filter.length) {
+    const hasFilter = isArrayFull(query.filter);
+    const hasOr = isArrayFull(query.or);
+
+    if (hasFilter && hasOr) {
+      if (query.filter.length === 1 && query.or.length === 1) {
+        // WHERE :filter OR :or
+        this.setOrWhere(query.filter[0], `filter0`, builder);
+        this.setOrWhere(query.or[0], `or0`, builder);
+      } else if (query.filter.length === 1) {
+        this.setAndWhere(query.filter[0], `filter0`, builder);
+        builder.orWhere(
+          new Brackets((qb) => {
+            for (let i = 0; i < query.or.length; i++) {
+              this.setAndWhere(query.or[i], `or${i}`, qb as any);
+            }
+          }),
+        );
+      } else if (query.or.length === 1) {
+        this.setAndWhere(query.or[0], `or0`, builder);
+        builder.orWhere(
+          new Brackets((qb) => {
+            for (let i = 0; i < query.filter.length; i++) {
+              this.setAndWhere(query.filter[i], `filter${i}`, qb as any);
+            }
+          }),
+        );
+      } else {
+        builder.andWhere(
+          new Brackets((qb) => {
+            for (let i = 0; i < query.filter.length; i++) {
+              this.setAndWhere(query.filter[i], `filter${i}`, qb as any);
+            }
+          }),
+        );
+        builder.orWhere(
+          new Brackets((qb) => {
+            for (let i = 0; i < query.or.length; i++) {
+              this.setAndWhere(query.or[i], `or${i}`, qb as any);
+            }
+          }),
+        );
+      }
+    } else if (hasOr) {
+      // WHERE :or OR :or OR ...
+      for (let i = 0; i < query.or.length; i++) {
+        this.setOrWhere(query.or[i], `or${i}`, builder);
+      }
+    } else if (hasFilter) {
+      // WHERE :filter AND :filter AND ...
       for (let i = 0; i < query.filter.length; i++) {
-        this.setAndWhere(query.filter[i], i, builder);
+        this.setAndWhere(query.filter[i], `filter${i}`, builder);
       }
     }
 
-    // set OR conditions
-    if (Array.isArray(query.or) && query.or.length) {
-      builder.andWhere(
-        new Brackets((qb) => {
-          for (let i = 0; i < query.or.length; i++) {
-            this.setOrWhere(query.or[i], i, qb);
-          }
-        }),
-      );
-    }
-
     // set joins
-    if (Array.isArray(query.join) && query.join.length) {
+    if (isArrayFull(query.join)) {
       const joinOptions = {
         ...(this.options.join ? this.options.join : {}),
         ...(options.join ? options.join : {}),
@@ -168,8 +292,25 @@ export class RepositoryService<T = any> extends RestfulService<T> {
       builder.cache(cacheId, mergedOptions.cache);
     }
 
-    // fire request
-    return many ? builder.getMany() : builder.getOne();
+    return builder;
+  }
+
+  private plainToClass(data: DeepPartial<T>, paramsFilter: FilterParamParsed[] = []): T {
+    if (!isObject(data)) {
+      return undefined;
+    }
+
+    if (paramsFilter.length) {
+      for (let filter of paramsFilter) {
+        data[filter.field] = filter.value;
+      }
+    }
+
+    if (!Object.keys(data).length) {
+      return undefined;
+    }
+
+    return plainToClass(this.entityType, data);
   }
 
   private onInitMapEntityColumns() {
@@ -267,10 +408,10 @@ export class RepositoryService<T = any> extends RestfulService<T> {
     builder.andWhere(str, params);
   }
 
-  private setOrWhere(cond: FilterParamParsed, i: any, qb: WhereExpression) {
+  private setOrWhere(cond: FilterParamParsed, i: any, builder: SelectQueryBuilder<T>) {
     this.validateHasColumn(cond.field);
     const { str, params } = this.mapOperatorsToQuery(cond, `orWhere${i}`);
-    qb.orWhere(str, params);
+    builder.orWhere(str, params);
   }
 
   private getCacheId(query: RequestParamsParsed): string {
@@ -288,7 +429,7 @@ export class RepositoryService<T = any> extends RestfulService<T> {
     const select = [
       ...(options.persist && options.persist.length ? options.persist : []),
       ...columns,
-      'id',
+      'id', // always persist ids
     ].map((col) => `${this.alias}.${col}`);
 
     return select;
@@ -391,10 +532,16 @@ export class RepositoryService<T = any> extends RestfulService<T> {
         break;
 
       case 'in':
+        if (!Array.isArray(cond.value) || !cond.value.length) {
+          this.throwBadRequestException(`Invalid column '${cond.field}' value`);
+        }
         str = `${field} IN (:...${param})`;
         break;
 
       case 'notin':
+        if (!Array.isArray(cond.value) || !cond.value.length) {
+          this.throwBadRequestException(`Invalid column '${cond.field}' value`);
+        }
         str = `${field} NOT IN (:...${param})`;
         break;
 

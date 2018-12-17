@@ -1,0 +1,40 @@
+import { Repository, DeepPartial } from 'typeorm';
+import { RestfulService } from '../classes/restful-service.class';
+import { RestfulOptions, RequestParamsParsed, FilterParamParsed } from '../interfaces';
+export declare class RepositoryService<T> extends RestfulService<T> {
+    protected repo: Repository<T>;
+    protected options: RestfulOptions;
+    private entityColumns;
+    private entityColumnsHash;
+    private entityRelationsHash;
+    constructor(repo: Repository<T>);
+    private readonly entityType;
+    private readonly alias;
+    getMany(query?: RequestParamsParsed, options?: RestfulOptions): Promise<T[]>;
+    getOne(id: number, { fields, join, cache }?: RequestParamsParsed, options?: RestfulOptions): Promise<T>;
+    createOne(data: DeepPartial<T>, paramsFilter?: FilterParamParsed[]): Promise<T>;
+    createMany(data: {
+        bulk: DeepPartial<T>[];
+    }, paramsFilter?: FilterParamParsed[]): Promise<T[]>;
+    updateOne(id: number, data: DeepPartial<T>, paramsFilter?: FilterParamParsed[]): Promise<T>;
+    deleteOne(id: number, paramsFilter?: FilterParamParsed[]): Promise<void>;
+    private getOneOrFail;
+    private query;
+    private plainToClass;
+    private onInitMapEntityColumns;
+    private onInitMapRelations;
+    private getJoinType;
+    private hasColumn;
+    private validateHasColumn;
+    private getAllowedColumns;
+    private setJoin;
+    private setAndWhere;
+    private setOrWhere;
+    private getCacheId;
+    private getSelect;
+    private getSkip;
+    private getTake;
+    private getSort;
+    private mapSort;
+    private mapOperatorsToQuery;
+}

@@ -1,4 +1,8 @@
-import { IsString, IsNotEmpty, IsOptional } from 'class-validator';
+import { mockValidatorDecorator } from '../utils';
+
+const IsNotEmpty = mockValidatorDecorator('IsNotEmpty');
+const IsString = mockValidatorDecorator('IsString');
+const IsOptional = mockValidatorDecorator('IsOptional');
 
 export class JoinParamDto {
   @IsNotEmpty()

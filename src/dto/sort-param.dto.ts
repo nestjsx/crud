@@ -1,6 +1,9 @@
-import { IsString, IsNotEmpty, IsIn } from 'class-validator';
-
+import { mockValidatorDecorator } from '../utils';
 import { ORDER_BY } from '../operators.list';
+
+const IsNotEmpty = mockValidatorDecorator('IsNotEmpty');
+const IsString = mockValidatorDecorator('IsString');
+const IsIn = mockValidatorDecorator('IsIn');
 
 export class SortParamDto {
   @IsNotEmpty()

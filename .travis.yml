@@ -1,17 +1,26 @@
 language: node_js
 
 node_js:
-  - '8'
-  - '9'
   - '10'
+
+env:
+  - DOCKER_COMPOSE_VERSION=1.23.1
+
+before_install:
+  - sudo rm /usr/local/bin/docker-compose
+  - curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` > docker-compose
+  - chmod +x docker-compose
+  - sudo mv docker-compose /usr/local/bin
 
 before_script:
   - npm i -g npm@latest
 
 install:
+  - docker-compose up -d
+  - cd integration/typeorm
   - npm i
-# script:
-#  - npm test
-#  - npm run test:e2e
+  - cd ../../
+  - npm i
 
-# after_success: npm run coverage
+script:
+  - npm run test:e2e | coveralls
