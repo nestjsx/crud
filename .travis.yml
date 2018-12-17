@@ -17,5 +17,6 @@ before_script:
 
 install:
   - docker-compose up -d
+  - cd integration/typeorm && npm i
   - npm i
   - npm run test:e2e | coveralls
