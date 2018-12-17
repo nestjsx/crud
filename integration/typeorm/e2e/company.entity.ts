@@ -1,6 +1,6 @@
 import { Entity, Column, OneToMany } from 'typeorm';
 import { IsOptional, IsString, MaxLength, IsNotEmpty } from '../../../node_modules/class-validator';
-import { CREATE_UPDATE, CrudValidate } from '@nestjsx/crud';
+import { CrudValidate } from '../../../src/';
 
 import { BaseEntity } from '../src/base-entity';
 import { User } from './user.entity';
