@@ -46,7 +46,6 @@
 - [Example Project](#example-project)
 - [Contribution](#contribution)
 - [Tests](#tests)
-- [Warning](#warning)
 - [License](#license)
 
 ---
@@ -54,7 +53,8 @@
 ## Install
 
 ```bash
-npm i @nestjsx/crud @nestjs/typeorm typeorm class-validator class-transformer --save
+npm i @nestjsx/crud --save
+npm i @nestjs/typeorm typeorm class-validator class-transformer --save
 ```
 
 ## Getting Started
@@ -121,7 +121,7 @@ And that's it, no more inheritance and tight coupling. Let's see what happens he
 
 We pass our `Hero` entity as a `dto` for [Validation](#validation) purpose and inject `HeroesService`. After that, all you have to do is to hook up everything in your module. And after being done with these simple steps your application will expose these endpoints:
 
-## API Endpoints Examples
+## API Endpoints
 
 ### Get Many Entities
 
@@ -158,7 +158,7 @@ _Request Body:_ array of entity objects | array of entity objects with nested (r
 
 ```json
 {
-  "bulk": [{ "name": "Batman" }, { "name": "Batgirl" }, { "name": "Joker" }]
+  "bulk": [{ "name": "Batman" }, { "name": "Batgirl" }]
 }
 ```
 
@@ -192,7 +192,7 @@ _Status codes:_ 200 | 404
 - [**`filter`**](#filter) (alias: `filter[]`) - filter GET result by `AND` type of condition
 - [**`or`**](#or) (alias: `or[]`) - filter GET result by `OR` type of condition
 - [**`sort`**](#sort) (alias: `sort[]`) - sort GET result by some `field` in `ASC | DESC` order
-- [**`join`**](join) (alias: `join[]`) - receive joined relational entities in GET result (with all or selected fields)
+- [**`join`**](#join) (alias: `join[]`) - receive joined relational entities in GET result (with all or selected fields)
 - [**`limit`**](#limit) (alias `per_page`) - receive `N` amount of entities
 - [**`offset`**](#offset) (alias `skip`) - offset `N` amount of entities
 - [**`page`**](#page) - receive a portion of `limit` (`per_page`) entities (alternative to `offset`)
@@ -693,7 +693,12 @@ Since all composed methods have `Base` ending in their names, overriding those e
 
 ```typescript
 ...
-import { Crud, CrudController, Override, RestfulParamsDto } from '@nestjsx/crud';
+import {
+  Crud,
+  CrudController,
+  Override,
+  RestfulParamsDto
+} from '@nestjsx/crud';
 
 @Crud(Hero)
 @Controller('heroes')
@@ -820,8 +825,8 @@ export class ACLGuard implements CanActivate {
     const handler = ctx.getHandler();
     const controller = ctx.getClass();
 
-    const feature = this.reflector.get<string>(FEAUTURE_NAME_METADATA, controller);
-    const action = this.reflector.get<string>(ACTION_NAME_METADATA, handler);
+    const feature = this.reflector.get(FEAUTURE_NAME_METADATA, controller);
+    const action = this.reflector.get(ACTION_NAME_METADATA, handler);
 
     console.log(`${feature}-${action}`); // e.g. 'Heroes-Read-All'
 
@@ -845,7 +850,8 @@ Or you can open `integration/typeorm` folder separately in the Visual Studio Cod
 2. Clone the project
 
 ```shell
-git clone https://github.com/nestjsx/crud.git && cd crud/integration/typeorm
+git clone https://github.com/nestjsx/crud.git
+cd crud/integration/typeorm
 ```
 
 3. Install [Docker](https://docs.docker.com/install/) and [Docker Compose](https://docs.docker.com/compose/install/) if you haven't done it yet.
