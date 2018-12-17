@@ -1,6 +1,3 @@
-<!-- [![Build Status](https://travis-ci.org/zMotivat0r/nest-crud.svg?branch=master)](https://travis-ci.org/zMotivat0r/nest-crud)
-[![Coverage Status](https://img.shields.io/coveralls/github/zMotivat0r/nest-crud.svg)](https://coveralls.io/github/zMotivat0r/nest-crud?branch=master&&service=github) -->
-
 <p align="center">
   <a href="https://github.com/nestjsx" target="blank"><img src="https://github.com/nestjsx/nestjsx/raw/master/img/logo.png" width="160" alt="Nestjsx Logo" /></a>
 </p>
@@ -8,6 +5,8 @@
   A set of opinionated <a href="https://github.com/nestjs/nest" target="blank">NestJS</a> extensions and modules
 </p>
 <p align="center">
+  <a href="https://coveralls.io/github/nestjsx/crud?branch=master"><img src="https://travis-ci.org/nestjsx/crud.svg?branch=master" alt="Coverage" /></a>
+  <a href="https://travis-ci.org/nestjsx/crud"><img src="https://coveralls.io/repos/github/nestjsx/crud/badge.svg?branch=master" alt="Build" /></a>
   <a href="https://github.com/nestjsx/crud/blob/master/LICENSE"><img src="https://img.shields.io/github/license/nestjsx/crud.svg" alt="License" /></a>
 </p>
 
