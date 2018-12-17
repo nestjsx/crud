@@ -54,7 +54,7 @@
 ## Install
 
 ```bash
-npm i @nestjsx/crud@next @nestjs/typeorm typeorm class-validator class-transformer --save
+npm i @nestjsx/crud @nestjs/typeorm typeorm class-validator class-transformer --save
 ```
 
 ## Getting Started
