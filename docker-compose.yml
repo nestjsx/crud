@@ -7,7 +7,7 @@ services:
   postresql:
     image: postgres
     ports:
-      - 5432:5432
+      - 5455:5432
     environment:
       POSTGRES_USER: root
       POSTGRES_PASSWORD: root
@@ -18,7 +18,7 @@ services:
   redis:
     image: redis:alpine
     ports:
-      - 6379:6379
+      - 6399:6379
     command: redis-server
     networks:
       - nestjsx_crud_e2e
