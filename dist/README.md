@@ -876,11 +876,10 @@ Any support is wellcome. Please open an [issue](https://github.com/nestjsx/crud/
 
 ## Tests
 
-IN PROGRESS
-
-## Warning
-
-**USE IN PRODUCTION ON YOUR OWN RISK**. This package hasn't been properly fully tested yet.
+```shell
+docker-compose up -d
+npm run test:e2e
+```
 
 ## License
 
