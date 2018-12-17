@@ -7,16 +7,20 @@
   },
   "globals": {
     "ts-jest": {
-      "tsConfigFile": "tsconfig.jest.json"
+      "tsConfig": "tsconfig.jest.json"
     }
   },
   "coverageReporters": ["json", "lcov"],
   "coverageDirectory": "coverage",
   "collectCoverageFrom": [
     "src/**/*.ts",
-    "!src/**/*.interface.ts",
-    "!src/**/*.controller.ts",
+    "!src/**/interfaces/*.ts",
+    "!src/**/dto/*.ts",
     "!src/**/index.ts",
+    "!src/**/enums/*.ts",
+    "!src/constants.ts",
+    "!src/crud.module.ts",
+    "!src/operators.list.ts",
     "!**/node_modules/**"
   ]
 }
