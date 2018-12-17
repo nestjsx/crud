@@ -41,7 +41,7 @@
   - [Validation](#validation)
   - [IntelliSense](#intellisense)
   - [Method Override](#method-override)
-  - [Restful Options merge](#restfuloptions-merge)
+  - [Restful Options merge](#restful-options-merge)
   - [Path Filter](#path-filter)
   - [Additional Decorators](#additional-decorators)
 - [Example Project](#example-project)
@@ -159,7 +159,7 @@ _Request Body:_ array of entity objects | array of entity objects with nested (r
 
 ```json
 {
-  "bulk": [{...}, {...}, ...]
+  "bulk": [{ "name": "Batman" }, { "name": "Batgirl" }, { "name": "Joker" }]
 }
 ```
 
@@ -595,6 +595,23 @@ export class User extends BaseEntity {
 
 You can import `CrudValidate` enum and set up validation rules for each field on firing of `POST`, `PATCH` requests or both of them.
 
+You can pass you custom validation options here:
+
+```typescript
+import { Crud } from '@nestjsx/crud';
+
+@Crud(Hero, {
+  validation: {
+    validationError: {
+      target: false,
+      value: false
+    }
+  }
+})
+@Controller('heroes')
+...
+```
+
 ### IntelliSense
 
 Please, keep in mind that we compose `HeroesController.prototype` by the logic inside our `@Crud()` class decorator. And there are some unpleasant but not very significant side effects of this approach.
@@ -607,7 +624,7 @@ import { Crud, CrudController } from '@nestjsx/crud';
 
 @Crud(Hero)
 @Controller('heroes')
-export class HeroesController implements CrudController<HeroesService, Hero> {
+export class HeroesCrud implements CrudController<HeroesService, Hero> {
   constructor(public service: HeroesService) {}
 }
 ```
@@ -622,7 +639,7 @@ import { Crud, CrudController } from '@nestjsx/crud';
 
 @Crud(Hero)
 @Controller('heroes')
-export class HeroesController implements CrudController<HeroesService, Hero> {
+export class HeroesCrud implements CrudController<HeroesService, Hero> {
   constructor(public service: HeroesService) {}
 
   get base(): CrudController<HeroesService, Hero> {
@@ -681,7 +698,7 @@ import { Crud, CrudController, Override, RestfulParamsDto } from '@nestjsx/crud'
 
 @Crud(Hero)
 @Controller('heroes')
-export class HeroesController implements CrudController<HeroesService, Hero> {
+export class HeroesCrud implements CrudController<HeroesService, Hero> {
   constructor(public service: HeroesService) {}
 
   get base(): CrudController<HeroesService, Hero> {
@@ -710,7 +727,7 @@ import { Crud, CrudController, RestfulOptions } from '@nestjsx/crud';
 
 @Crud(Hero)
 @Controller('heroes')
-export class HeroesController implements CrudController<HeroesService, Hero> {
+export class HeroesCrud implements CrudController<HeroesService, Hero> {
   options: RestfulOptions = {};
 
   constructor(public service: HeroesService) {}
@@ -727,11 +744,11 @@ Assume, you have an entity `User` that belongs to some `Company` and has a field
 
 ```typescript
 ...
-import { Crud, CrudController, RestfulOptions } from '@nestjsx/crud';
+import { Crud, CrudController } from '@nestjsx/crud';
 
 @Crud(Hero)
 @Controller('/company/:companyId/users')
-export class UsersController implements CrudController<UsersService, User> {
+export class UsersCrud implements CrudController<UsersService, User> {
   paramsFilter = ['companyId'];
 
   constructor(public service: UsersService) {}
@@ -744,11 +761,11 @@ In this example you're URL param name `companyId` should match the name of `User
 
 ```typescript
 ...
-import { Crud, CrudController, RestfulOptions } from '@nestjsx/crud';
+import { Crud, CrudController } from '@nestjsx/crud';
 
 @Crud(Hero)
 @Controller('/company/:company/users')
-export class UsersController implements CrudController<UsersService, User> {
+export class UsersCrud implements CrudController<UsersService, User> {
   paramsFilter = {
     company: 'companyId'
   };
@@ -769,7 +786,7 @@ There are two additional decorators that come out of the box: `@Feature()` and `
 
 ```typescript
 ...
-import { Feature, Crud, CrudController, RestfulOptions } from '@nestjsx/crud';
+import { Feature, Crud, CrudController } from '@nestjsx/crud';
 
 @Feature('Heroes')
 @Crud(Hero)
