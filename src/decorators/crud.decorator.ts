@@ -16,6 +16,7 @@ import { ACTION_NAME_METADATA, OVERRIDE_METHOD_METADATA } from '../constants';
 import {
   mockValidatorDecorator,
   mockTransformerDecorator,
+  swagger,
   hasValidator,
   hasTypeorm,
 } from '../utils';
@@ -72,12 +73,12 @@ export const Crud = (dto: any, crudOptions: CrudOptions = {}) => (target: object
   getParamsFilter(prototype);
   getMergedOptions(prototype);
   // set routes
-  getManyBase(target, baseRoutes.getManyBase.name);
-  getOneBase(target, baseRoutes.getOneBase.name);
-  createOneBase(target, baseRoutes.createOneBase.name, dto, crudOptions);
-  createManyBase(target, baseRoutes.createManyBase.name, dto, crudOptions);
-  updateOneBase(target, baseRoutes.updateOneBase.name, dto, crudOptions);
-  deleteOneBase(target, baseRoutes.deleteOneBase.name);
+  getManyBaseInit(target, baseRoutes.getManyBase.name);
+  getOneBaseInit(target, baseRoutes.getOneBase.name);
+  createOneBaseInit(target, baseRoutes.createOneBase.name, dto, crudOptions);
+  createManyBaseInit(target, baseRoutes.createManyBase.name, dto, crudOptions);
+  updateOneBaseInit(target, baseRoutes.updateOneBase.name, dto, crudOptions);
+  deleteOneBaseInit(target, baseRoutes.deleteOneBase.name);
 
   // method override
   Object.getOwnPropertyNames(prototype).forEach((name) => {
@@ -122,10 +123,10 @@ export const Override = (
 /**
  * Get meny entities base route
  */
-function getManyBase(target: object, name: string) {
+function getManyBaseInit(target: object, name: string) {
   const prototype = (target as any).prototype;
 
-  prototype[name] = function(params: ObjectLiteral, query: RestfulParamsDto) {
+  prototype[name] = function getManyBase(params: ObjectLiteral, query: RestfulParamsDto) {
     const mergedOptions = this.getMergedOptions(params);
 
     return this.service.getMany(query, mergedOptions);
@@ -148,10 +149,14 @@ function getManyBase(target: object, name: string) {
  * Get one entity base route
  */
 
-function getOneBase(target: object, name: string) {
+function getOneBaseInit(target: object, name: string) {
   const prototype = (target as any).prototype;
 
-  prototype[name] = function(id: string, params: ObjectLiteral, query: RestfulParamsDto) {
+  prototype[name] = function getOneBase(
+    id: string,
+    params: ObjectLiteral,
+    query: RestfulParamsDto,
+  ) {
     const mergedOptions = this.getMergedOptions(params);
 
     return this.service.getOne(id, query, mergedOptions);
@@ -175,10 +180,10 @@ function getOneBase(target: object, name: string) {
  * Create one entity base route
  */
 
-function createOneBase(target: object, name: string, dto: any, crudOptions: CrudOptions) {
+function createOneBaseInit(target: object, name: string, dto: any, crudOptions: CrudOptions) {
   const prototype = (target as any).prototype;
 
-  prototype[name] = function(params: ObjectLiteral, body: any) {
+  prototype[name] = function createOneBase(params: ObjectLiteral, body: any) {
     const paramsFilter = this.getParamsFilter(params);
 
     return this.service.createOne(body, paramsFilter);
@@ -201,10 +206,10 @@ function createOneBase(target: object, name: string, dto: any, crudOptions: Crud
 /**
  * Create many entities base route
  */
-function createManyBase(target: object, name: string, dto: any, crudOptions: CrudOptions) {
+function createManyBaseInit(target: object, name: string, dto: any, crudOptions: CrudOptions) {
   const prototype = (target as any).prototype;
 
-  prototype[name] = function(params: ObjectLiteral, body: any) {
+  prototype[name] = function createManyBase(params: ObjectLiteral, body: any) {
     const paramsFilter = this.getParamsFilter(params);
 
     return this.service.createMany(body, paramsFilter);
@@ -240,10 +245,10 @@ function createManyBase(target: object, name: string, dto: any, crudOptions: Cru
 /**
  * Update one entity base route
  */
-function updateOneBase(target: object, name: string, dto: any, crudOptions: CrudOptions) {
+function updateOneBaseInit(target: object, name: string, dto: any, crudOptions: CrudOptions) {
   const prototype = (target as any).prototype;
 
-  prototype[name] = function(id: string, params: ObjectLiteral, body) {
+  prototype[name] = function updateOneBase(id: string, params: ObjectLiteral, body) {
     const paramsFilter = this.getParamsFilter(params);
 
     return this.service.updateOne(id, body, paramsFilter);
@@ -267,10 +272,10 @@ function updateOneBase(target: object, name: string, dto: any, crudOptions: Crud
 /**
  * Delete one entity route base
  */
-function deleteOneBase(target: object, name: string) {
+function deleteOneBaseInit(target: object, name: string) {
   const prototype = (target as any).prototype;
 
-  prototype[name] = function(id: number, params: ObjectLiteral) {
+  prototype[name] = function deleteOneBase(id: number, params: ObjectLiteral) {
     const paramsFilter = this.getParamsFilter(params);
     return this.service.deleteOne(id, paramsFilter);
   };

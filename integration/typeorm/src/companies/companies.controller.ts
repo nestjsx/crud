@@ -1,11 +1,13 @@
 import { Controller } from '@nestjs/common';
+import { ApiUseTags } from '@nestjs/swagger';
 import { Crud, CrudController, RestfulOptions } from '@nestjsx/crud';
 
 import { Company } from './company.entity';
 import { CompaniesService } from './companies.service';
 
 @Crud(Company)
-@Controller('/companies')
+@ApiUseTags('companies')
+@Controller('companies')
 export class CompaniesController implements CrudController<CompaniesService, Company> {
   paramsFilter = [];
 

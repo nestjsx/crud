@@ -5,7 +5,7 @@
   "scripts": {
     "docker:up": "docker-compose up -d",
     "docker:down": "docker-compose down",
-    "test:e2e": "node_modules/.bin/jest --verbose --coverage --config ./jest.json --coverageReporters=text-lcov",
+    "test:e2e": "node_modules/.bin/jest --verbose --coverage --config ./jest.json",
     "pretest:e2e": "npm run test:e2e:typeorm:prepare",
     "posttest:e2e": "npm run test:e2e:typeorm:clean",
     "test:e2e:typeorm:prepare": "cd integration/typeorm && npm run db:sync -- -f=e2e/orm && npm run db:flush -- -f=e2e/orm && npm run db:seeds -- -f=e2e/orm",

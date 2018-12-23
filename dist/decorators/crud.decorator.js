@@ -53,12 +53,12 @@ exports.Crud = (dto, crudOptions = {}) => (target) => {
     };
     getParamsFilter(prototype);
     getMergedOptions(prototype);
-    getManyBase(target, baseRoutes.getManyBase.name);
-    getOneBase(target, baseRoutes.getOneBase.name);
-    createOneBase(target, baseRoutes.createOneBase.name, dto, crudOptions);
-    createManyBase(target, baseRoutes.createManyBase.name, dto, crudOptions);
-    updateOneBase(target, baseRoutes.updateOneBase.name, dto, crudOptions);
-    deleteOneBase(target, baseRoutes.deleteOneBase.name);
+    getManyBaseInit(target, baseRoutes.getManyBase.name);
+    getOneBaseInit(target, baseRoutes.getOneBase.name);
+    createOneBaseInit(target, baseRoutes.createOneBase.name, dto, crudOptions);
+    createManyBaseInit(target, baseRoutes.createManyBase.name, dto, crudOptions);
+    updateOneBaseInit(target, baseRoutes.updateOneBase.name, dto, crudOptions);
+    deleteOneBaseInit(target, baseRoutes.deleteOneBase.name);
     Object.getOwnPropertyNames(prototype).forEach((name) => {
         const overrided = getOverrideMetadata(prototype[name]);
         const route = baseRoutes[overrided];
@@ -83,9 +83,9 @@ exports.Override = (name) => (target, key, descriptor) => {
     Reflect.defineMetadata(constants_2.OVERRIDE_METHOD_METADATA, name || `${key}Base`, target[key]);
     return descriptor;
 };
-function getManyBase(target, name) {
+function getManyBaseInit(target, name) {
     const prototype = target.prototype;
-    prototype[name] = function (params, query) {
+    prototype[name] = function getManyBase(params, query) {
         const mergedOptions = this.getMergedOptions(params);
         return this.service.getMany(query, mergedOptions);
     };
@@ -94,9 +94,9 @@ function getManyBase(target, name) {
     setInterceptors([interceptors_1.RestfulQueryInterceptor], prototype[name]);
     setAction(enums_1.CrudActions.ReadAll, prototype[name]);
 }
-function getOneBase(target, name) {
+function getOneBaseInit(target, name) {
     const prototype = target.prototype;
-    prototype[name] = function (id, params, query) {
+    prototype[name] = function getOneBase(id, params, query) {
         const mergedOptions = this.getMergedOptions(params);
         return this.service.getOne(id, query, mergedOptions);
     };
@@ -105,9 +105,9 @@ function getOneBase(target, name) {
     setInterceptors([interceptors_1.RestfulQueryInterceptor], prototype[name]);
     setAction(enums_1.CrudActions.ReadOne, prototype[name]);
 }
-function createOneBase(target, name, dto, crudOptions) {
+function createOneBaseInit(target, name, dto, crudOptions) {
     const prototype = target.prototype;
-    prototype[name] = function (params, body) {
+    prototype[name] = function createOneBase(params, body) {
         const paramsFilter = this.getParamsFilter(params);
         return this.service.createOne(body, paramsFilter);
     };
@@ -117,9 +117,9 @@ function createOneBase(target, name, dto, crudOptions) {
     setParamTypes([Object, dto], prototype, name);
     setAction(enums_1.CrudActions.CreateOne, prototype[name]);
 }
-function createManyBase(target, name, dto, crudOptions) {
+function createManyBaseInit(target, name, dto, crudOptions) {
     const prototype = target.prototype;
-    prototype[name] = function (params, body) {
+    prototype[name] = function createManyBase(params, body) {
         const paramsFilter = this.getParamsFilter(params);
         return this.service.createMany(body, paramsFilter);
     };
@@ -142,9 +142,9 @@ function createManyBase(target, name, dto, crudOptions) {
     setParamTypes([Object, utils_1.hasValidator ? BulkDto : {}], prototype, name);
     setAction(enums_1.CrudActions.CreateMany, prototype[name]);
 }
-function updateOneBase(target, name, dto, crudOptions) {
+function updateOneBaseInit(target, name, dto, crudOptions) {
     const prototype = target.prototype;
-    prototype[name] = function (id, params, body) {
+    prototype[name] = function updateOneBase(id, params, body) {
         const paramsFilter = this.getParamsFilter(params);
         return this.service.updateOne(id, body, paramsFilter);
     };
@@ -154,9 +154,9 @@ function updateOneBase(target, name, dto, crudOptions) {
     setParamTypes([Number, Object, dto], prototype, name);
     setAction(enums_1.CrudActions.UpdateOne, prototype[name]);
 }
-function deleteOneBase(target, name) {
+function deleteOneBaseInit(target, name) {
     const prototype = target.prototype;
-    prototype[name] = function (id, params) {
+    prototype[name] = function deleteOneBase(id, params) {
         const paramsFilter = this.getParamsFilter(params);
         return this.service.deleteOne(id, paramsFilter);
     };

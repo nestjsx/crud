@@ -1,27 +1,31 @@
-let classValidator: any;
-let classTransformer: any;
-let typeorm: any;
+let classValidatorPkg: any;
+let classTransformerPkg: any;
+let typeormPkg: any;
+let swaggerPkg: any;
 
 try {
-  classValidator = require('class-validator');
+  classValidatorPkg = require('class-validator');
 } catch (error) {}
 try {
-  classTransformer = require('class-transformer');
+  classTransformerPkg = require('class-transformer');
 } catch (error) {}
 try {
-  typeorm = require('typeorm/decorator/entity/Entity');
+  typeormPkg = require('typeorm/decorator/entity/Entity');
+} catch (error) {}
+try {
+  swaggerPkg = require('@nestjs/swagger/dist/constants');
 } catch (error) {}
 
-export const hasValidator = !!classValidator;
-export const hasTypeorm = !!typeorm;
+export const swagger = swaggerPkg ? swaggerPkg : null;
+export const hasValidator = !!classValidatorPkg;
+export const hasTypeorm = !!typeormPkg;
 
 export const isArrayFull = (obj) => Array.isArray(obj) && obj.length !== 0;
-
 export const mockValidatorDecorator = (name: string) =>
-  classValidator && classValidator[name]
-    ? classValidator[name]
+  classValidatorPkg && classValidatorPkg[name]
+    ? classValidatorPkg[name]
     : (...args: any[]) => (target, key) => {};
 export const mockTransformerDecorator = (name: string) =>
-  classTransformer && classTransformer[name]
-    ? classTransformer[name]
+  classTransformerPkg && classTransformerPkg[name]
+    ? classTransformerPkg[name]
     : (...args: any[]) => (target, key) => {};
