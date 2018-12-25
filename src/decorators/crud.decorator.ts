@@ -1,39 +1,51 @@
-import { RequestMethod, ParseIntPipe, ValidationPipe, ValidationPipeOptions } from '@nestjs/common';
+import { RequestMethod } from '@nestjs/common';
 import { RouteParamtypes } from '@nestjs/common/enums/route-paramtypes.enum';
-import {
-  PATH_METADATA,
-  METHOD_METADATA,
-  INTERCEPTORS_METADATA,
-  ROUTE_ARGS_METADATA,
-  PARAMTYPES_METADATA,
-} from '@nestjs/common/constants';
 
 import { RestfulParamsDto } from '../dto';
 import { CrudActions, CrudValidate } from '../enums';
 import { RestfulQueryInterceptor } from '../interceptors';
-import { FilterParamParsed, ObjectLiteral, EntitiesBulk } from '../interfaces';
-import { ACTION_NAME_METADATA, OVERRIDE_METHOD_METADATA } from '../constants';
+import { CrudOptions, FilterParamParsed, ObjectLiteral, EntitiesBulk } from '../interfaces';
+import { OVERRIDE_METHOD_METADATA } from '../constants';
+import { mockValidatorDecorator, mockTransformerDecorator, hasValidator } from '../utils';
 import {
-  mockValidatorDecorator,
-  mockTransformerDecorator,
-  swagger,
-  hasValidator,
-  hasTypeorm,
-} from '../utils';
+  getOverrideMetadata,
+  getInterceptors,
+  getAction,
+  setAction,
+  setInterceptors,
+  setParamTypes,
+  setParams,
+  setRoute,
+  setSwaggerQueryGetMany,
+  setSwaggerQueryGetOne,
+  setSwaggerParams,
+  setValidationPipe,
+  setParseIntPipe,
+  createParamMetadata,
+} from './helpers';
+
+type BaseRouteName =
+  | 'getManyBase'
+  | 'getOneBase'
+  | 'createOneBase'
+  | 'createManyBase'
+  | 'updateOneBase'
+  | 'deleteOneBase';
 
 interface BaseRoutes {
   [key: string]: {
-    name: string;
+    name: BaseRouteName;
     path: string;
     method: RequestMethod;
     override?: boolean;
   };
 }
 
-interface CrudOptions {
-  validation?: ValidationPipeOptions;
-}
-
+/**
+ * @Crud() decorator
+ * @param dto
+ * @param crudOptions
+ */
 export const Crud = (dto: any, crudOptions: CrudOptions = {}) => (target: object) => {
   const prototype = (target as any).prototype;
   const baseRoutes: BaseRoutes = {
@@ -70,15 +82,15 @@ export const Crud = (dto: any, crudOptions: CrudOptions = {}) => (target: object
   };
 
   // set helpers
-  getParamsFilter(prototype);
-  getMergedOptions(prototype);
+  getParamsFilterInit(prototype, crudOptions);
+  getMergedOptionsInit(prototype, crudOptions);
   // set routes
-  getManyBaseInit(target, baseRoutes.getManyBase.name);
-  getOneBaseInit(target, baseRoutes.getOneBase.name);
+  getManyBaseInit(target, baseRoutes.getManyBase.name, dto, crudOptions);
+  getOneBaseInit(target, baseRoutes.getOneBase.name, dto, crudOptions);
   createOneBaseInit(target, baseRoutes.createOneBase.name, dto, crudOptions);
   createManyBaseInit(target, baseRoutes.createManyBase.name, dto, crudOptions);
   updateOneBaseInit(target, baseRoutes.updateOneBase.name, dto, crudOptions);
-  deleteOneBaseInit(target, baseRoutes.deleteOneBase.name);
+  deleteOneBaseInit(target, baseRoutes.deleteOneBase.name, crudOptions);
 
   // method override
   Object.getOwnPropertyNames(prototype).forEach((name) => {
@@ -111,9 +123,11 @@ export const Crud = (dto: any, crudOptions: CrudOptions = {}) => (target: object
   });
 };
 
-export const Override = (
-  name?: 'getManyBase' | 'getOneBase' | 'createOneBase' | 'updateOneBase' | 'deleteOneBase',
-) => (target, key, descriptor: PropertyDescriptor) => {
+/**
+ * @Override() decorator
+ * @param name
+ */
+export const Override = (name?: BaseRouteName) => (target, key, descriptor: PropertyDescriptor) => {
   Reflect.defineMetadata(OVERRIDE_METHOD_METADATA, name || `${key}Base`, target[key]);
   return descriptor;
 };
@@ -123,7 +137,7 @@ export const Override = (
 /**
  * Get meny entities base route
  */
-function getManyBaseInit(target: object, name: string) {
+function getManyBaseInit(target: object, name: string, dto: any, crudOptions: CrudOptions) {
   const prototype = (target as any).prototype;
 
   prototype[name] = function getManyBase(params: ObjectLiteral, query: RestfulParamsDto) {
@@ -143,13 +157,15 @@ function getManyBaseInit(target: object, name: string) {
   setParamTypes([Object, RestfulParamsDto], prototype, name);
   setInterceptors([RestfulQueryInterceptor], prototype[name]);
   setAction(CrudActions.ReadAll, prototype[name]);
+  setSwaggerParams(prototype[name], crudOptions);
+  setSwaggerQueryGetMany(prototype[name], dto.name);
 }
 
 /**
  * Get one entity base route
  */
 
-function getOneBaseInit(target: object, name: string) {
+function getOneBaseInit(target: object, name: string, dto: any, crudOptions: CrudOptions) {
   const prototype = (target as any).prototype;
 
   prototype[name] = function getOneBase(
@@ -174,6 +190,8 @@ function getOneBaseInit(target: object, name: string) {
   setParamTypes([Number, Object, RestfulParamsDto], prototype, name);
   setInterceptors([RestfulQueryInterceptor], prototype[name]);
   setAction(CrudActions.ReadOne, prototype[name]);
+  setSwaggerParams(prototype[name], crudOptions);
+  setSwaggerQueryGetOne(prototype[name], dto.name);
 }
 
 /**
@@ -201,6 +219,7 @@ function createOneBaseInit(target: object, name: string, dto: any, crudOptions: 
   );
   setParamTypes([Object, dto], prototype, name);
   setAction(CrudActions.CreateOne, prototype[name]);
+  setSwaggerParams(prototype[name], crudOptions);
 }
 
 /**
@@ -240,6 +259,7 @@ function createManyBaseInit(target: object, name: string, dto: any, crudOptions:
   );
   setParamTypes([Object, hasValidator ? BulkDto : {}], prototype, name);
   setAction(CrudActions.CreateMany, prototype[name]);
+  setSwaggerParams(prototype[name], crudOptions);
 }
 
 /**
@@ -267,12 +287,13 @@ function updateOneBaseInit(target: object, name: string, dto: any, crudOptions: 
   );
   setParamTypes([Number, Object, dto], prototype, name);
   setAction(CrudActions.UpdateOne, prototype[name]);
+  setSwaggerParams(prototype[name], crudOptions);
 }
 
 /**
  * Delete one entity route base
  */
-function deleteOneBaseInit(target: object, name: string) {
+function deleteOneBaseInit(target: object, name: string, crudOptions: CrudOptions) {
   const prototype = (target as any).prototype;
 
   prototype[name] = function deleteOneBase(id: number, params: ObjectLiteral) {
@@ -290,24 +311,27 @@ function deleteOneBaseInit(target: object, name: string) {
   );
   setParamTypes([Number, Object], prototype, name);
   setAction(CrudActions.DeleteOne, prototype[name]);
+  setSwaggerParams(prototype[name], crudOptions);
 }
 
 // Helpers
 
-function getParamsFilter(prototype: any) {
-  prototype['getParamsFilter'] = function(params: ObjectLiteral): FilterParamParsed[] {
-    if (!this.paramsFilter || !params) {
+function getParamsFilterInit(prototype: any, crudOptions: CrudOptions) {
+  prototype['getParamsFilter'] = function getParamsFilter(
+    params: ObjectLiteral,
+  ): FilterParamParsed[] {
+    if (!crudOptions.params || !params) {
       return [];
     }
 
-    const isArray = Array.isArray(this.paramsFilter);
+    const isArray = Array.isArray(crudOptions.params);
 
-    return (isArray ? this.paramsFilter : Object.keys(this.paramsFilter))
+    return (isArray ? crudOptions.params : Object.keys(crudOptions.params))
       .filter((field) => !!params[field])
       .map(
         (field) =>
           ({
-            field: isArray ? field : this.paramsFilter[field],
+            field: isArray ? field : crudOptions.params[field],
             operator: 'eq',
             value: params[field],
           } as FilterParamParsed),
@@ -315,10 +339,10 @@ function getParamsFilter(prototype: any) {
   };
 }
 
-function getMergedOptions(prototype: any) {
-  prototype['getMergedOptions'] = function(params: ObjectLiteral) {
+function getMergedOptionsInit(prototype: any, crudOptions: CrudOptions) {
+  prototype['getMergedOptions'] = function getMergedOptions(params: ObjectLiteral) {
     const paramsFilter = this.getParamsFilter(params);
-    const options = this.options || {};
+    const options = Object.assign({}, crudOptions.options || {});
     const optionsFilter = options.filter || [];
     const filter = [...optionsFilter, ...paramsFilter];
 
@@ -328,74 +352,4 @@ function getMergedOptions(prototype: any) {
 
     return options;
   };
-}
-
-// Metadata Setters
-
-function setRoute(path: string, method: RequestMethod, func: Function) {
-  Reflect.defineMetadata(PATH_METADATA, path, func);
-  Reflect.defineMetadata(METHOD_METADATA, method, func);
-}
-
-function setParamTypes(args: any[], prototype: any, name: string) {
-  Reflect.defineMetadata(PARAMTYPES_METADATA, args, prototype, name);
-}
-
-function setParams(metadata: any, target: object, name: string) {
-  Reflect.defineMetadata(ROUTE_ARGS_METADATA, metadata, target, name);
-}
-
-function setInterceptors(interceptors: any[], func: Function) {
-  Reflect.defineMetadata(INTERCEPTORS_METADATA, interceptors, func);
-}
-
-function setAction(action: CrudActions, func: Function) {
-  Reflect.defineMetadata(ACTION_NAME_METADATA, action, func);
-}
-
-// Metadata Getters
-
-function createParamMetadata(
-  paramtype: RouteParamtypes,
-  index: number,
-  pipes: any[] = [],
-  data = undefined,
-): any {
-  return {
-    [`${paramtype}:${index}`]: {
-      index,
-      pipes,
-      data,
-    },
-  };
-}
-
-function getOverrideMetadata(func: Function): string {
-  return Reflect.getMetadata(OVERRIDE_METHOD_METADATA, func);
-}
-
-function getInterceptors(func: Function): any[] {
-  return Reflect.getMetadata(INTERCEPTORS_METADATA, func);
-}
-
-function getAction(func: Function): CrudActions {
-  return Reflect.getMetadata(ACTION_NAME_METADATA, func);
-}
-
-// Pipes
-
-function setValidationPipe(crudOptions: CrudOptions = {}, group: CrudValidate) {
-  const options = crudOptions.validation || {};
-
-  return hasValidator
-    ? new ValidationPipe({
-        ...options,
-        groups: [group],
-        transform: false,
-      })
-    : undefined;
-}
-
-function setParseIntPipe() {
-  return hasTypeorm ? new ParseIntPipe() : undefined;
 }

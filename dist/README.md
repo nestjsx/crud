@@ -194,7 +194,7 @@ _Status codes:_ 200 | 404
 - [**`sort`**](#sort) (alias: `sort[]`) - sort GET result by some `field` in `ASC | DESC` order
 - [**`join`**](#join) (alias: `join[]`) - receive joined relational entities in GET result (with all or selected fields)
 - [**`limit`**](#limit) (alias `per_page`) - receive `N` amount of entities
-- [**`offset`**](#offset) (alias `skip`) - offset `N` amount of entities
+- [**`offset`**](#offset) - offset `N` amount of entities
 - [**`page`**](#page) - receive a portion of `limit` (`per_page`) entities (alternative to `offset`)
 - [**`cache`**](#cache) - reset cache (if was enabled) and receive entities from the DB
 
@@ -816,11 +816,14 @@ enum CrudActions {
 `ACLGuard` dummy example:
 
 ```typescript
+import { Reflector } from '@nestjs/core';
 import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
 import { FEAUTURE_NAME_METADATA, ACTION_NAME_METADATA } from '@nestjsx/crud';
 
 @Injectable()
 export class ACLGuard implements CanActivate {
+  constructor(private reflector: Reflector) {}
+
   canActivate(ctx: ExecutionContext): boolean {
     const handler = ctx.getHandler();
     const controller = ctx.getClass();

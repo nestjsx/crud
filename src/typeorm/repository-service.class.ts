@@ -45,7 +45,7 @@ export class RepositoryService<T> extends RestfulService<T> {
     query: RequestParamsParsed = {},
     options: RestfulOptions = {},
   ): Promise<T[]> {
-    const builder = await this.query(query, options);
+    const builder = await this.buildQuery(query, options);
     return builder.getMany();
   }
 
@@ -151,7 +151,7 @@ export class RepositoryService<T> extends RestfulService<T> {
     { filter, fields, join, cache }: RequestParamsParsed = {},
     options: RestfulOptions = {},
   ): Promise<T> {
-    const builder = await this.query({ filter, fields, join, cache }, options, false);
+    const builder = await this.buildQuery({ filter, fields, join, cache }, options, false);
     const found = await builder.getOne();
 
     if (!found) {
@@ -167,7 +167,7 @@ export class RepositoryService<T> extends RestfulService<T> {
    * @param options
    * @param many
    */
-  private async query(
+  private async buildQuery(
     query: RequestParamsParsed,
     options: RestfulOptions = {},
     many = true,
@@ -282,13 +282,13 @@ export class RepositoryService<T> extends RestfulService<T> {
       this.repo.metadata.connection.queryResultCache &&
       this.repo.metadata.connection.queryResultCache.remove
     ) {
-      const cacheId = this.getCacheId(query);
+      const cacheId = this.getCacheId(query, options);
       await this.repo.metadata.connection.queryResultCache.remove([cacheId]);
     }
 
     // set cache
     if (mergedOptions.cache) {
-      const cacheId = this.getCacheId(query);
+      const cacheId = this.getCacheId(query, options);
       builder.cache(cacheId, mergedOptions.cache);
     }
 
@@ -414,8 +414,8 @@ export class RepositoryService<T> extends RestfulService<T> {
     builder.orWhere(str, params);
   }
 
-  private getCacheId(query: RequestParamsParsed): string {
-    return JSON.stringify({ ...query, cache: undefined });
+  private getCacheId(query: RequestParamsParsed, options: RestfulOptions): string {
+    return JSON.stringify({ query, options, cache: undefined });
   }
 
   private getSelect(query: RequestParamsParsed, options: RestfulOptions): string[] {

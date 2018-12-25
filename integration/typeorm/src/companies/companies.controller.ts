@@ -1,24 +1,24 @@
 import { Controller } from '@nestjs/common';
 import { ApiUseTags } from '@nestjs/swagger';
-import { Crud, CrudController, RestfulOptions } from '@nestjsx/crud';
+import { Crud, CrudController } from '@nestjsx/crud';
 
 import { Company } from './company.entity';
 import { CompaniesService } from './companies.service';
 
-@Crud(Company)
+@Crud(Company, {
+  options: {
+    join: {
+      users: {
+        exclude: ['password'],
+      },
+    },
+    sort: [{ field: 'id', order: 'DESC' }],
+    maxLimit: 5,
+    cache: 3000,
+  },
+})
 @ApiUseTags('companies')
 @Controller('companies')
 export class CompaniesController implements CrudController<CompaniesService, Company> {
-  paramsFilter = [];
-
-  options: RestfulOptions = {
-    join: {
-      users: {},
-    },
-    sort: [{ field: 'id', order: 'DESC' }],
-    maxLimit: 10,
-    cache: 3000,
-  };
-
   constructor(public service: CompaniesService) {}
 }

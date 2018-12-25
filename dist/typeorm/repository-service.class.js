@@ -31,7 +31,7 @@ class RepositoryService extends restful_service_class_1.RestfulService {
     }
     getMany(query = {}, options = {}) {
         return __awaiter(this, void 0, void 0, function* () {
-            const builder = yield this.query(query, options);
+            const builder = yield this.buildQuery(query, options);
             return builder.getMany();
         });
     }
@@ -88,7 +88,7 @@ class RepositoryService extends restful_service_class_1.RestfulService {
     }
     getOneOrFail({ filter, fields, join, cache } = {}, options = {}) {
         return __awaiter(this, void 0, void 0, function* () {
-            const builder = yield this.query({ filter, fields, join, cache }, options, false);
+            const builder = yield this.buildQuery({ filter, fields, join, cache }, options, false);
             const found = yield builder.getOne();
             if (!found) {
                 this.throwNotFoundException(this.alias);
@@ -96,7 +96,7 @@ class RepositoryService extends restful_service_class_1.RestfulService {
             return found;
         });
     }
-    query(query, options = {}, many = true) {
+    buildQuery(query, options = {}, many = true) {
         return __awaiter(this, void 0, void 0, function* () {
             const mergedOptions = Object.assign({}, this.options, options);
             const select = this.getSelect(query, mergedOptions);
@@ -176,11 +176,11 @@ class RepositoryService extends restful_service_class_1.RestfulService {
             if (query.cache === 0 &&
                 this.repo.metadata.connection.queryResultCache &&
                 this.repo.metadata.connection.queryResultCache.remove) {
-                const cacheId = this.getCacheId(query);
+                const cacheId = this.getCacheId(query, options);
                 yield this.repo.metadata.connection.queryResultCache.remove([cacheId]);
             }
             if (mergedOptions.cache) {
-                const cacheId = this.getCacheId(query);
+                const cacheId = this.getCacheId(query, options);
                 builder.cache(cacheId, mergedOptions.cache);
             }
             return builder;
@@ -275,8 +275,8 @@ class RepositoryService extends restful_service_class_1.RestfulService {
         const { str, params } = this.mapOperatorsToQuery(cond, `orWhere${i}`);
         builder.orWhere(str, params);
     }
-    getCacheId(query) {
-        return JSON.stringify(Object.assign({}, query, { cache: undefined }));
+    getCacheId(query, options) {
+        return JSON.stringify({ query, options, cache: undefined });
     }
     getSelect(query, options) {
         const allowed = this.getAllowedColumns(this.entityColumns, options);

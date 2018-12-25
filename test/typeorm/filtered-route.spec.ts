@@ -7,27 +7,23 @@ import { UserProfile, User, Company, ormConfig } from '../../integration/typeorm
 import { Crud, CrudController, RestfulOptions, Feature, Action, Override } from '../../src';
 import { RepositoryService } from '../../src/typeorm';
 
-let serviceOptions: RestfulOptions = {
-  limit: 10,
-  maxLimit: 20,
-};
-
-let controllerOptions: RestfulOptions = {};
-
 @Injectable()
 class UsersService extends RepositoryService<User> {
-  protected options = serviceOptions;
+  protected options: RestfulOptions = {
+    limit: 10,
+    maxLimit: 20,
+  };
+
   constructor(@InjectRepository(User) repo) {
     super(repo);
   }
 }
 
-@Crud(User)
+@Crud(User, {
+  params: ['companyId'],
+})
 @Controller('/companies/:companyId/users')
 class UsersController implements CrudController<UsersService, User> {
-  options = controllerOptions;
-  paramsFilter = ['companyId'];
-
   constructor(public service: UsersService) {}
 }
 
