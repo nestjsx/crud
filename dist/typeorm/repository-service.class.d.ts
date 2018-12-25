@@ -19,7 +19,7 @@ export declare class RepositoryService<T> extends RestfulService<T> {
     updateOne(id: number, data: DeepPartial<T>, paramsFilter?: FilterParamParsed[]): Promise<T>;
     deleteOne(id: number, paramsFilter?: FilterParamParsed[]): Promise<void>;
     private getOneOrFail;
-    private query;
+    private buildQuery;
     private plainToClass;
     private onInitMapEntityColumns;
     private onInitMapRelations;

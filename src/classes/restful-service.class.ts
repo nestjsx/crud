@@ -18,8 +18,7 @@ export abstract class RestfulService<T> {
     throw new BadRequestException(msg);
   }
 
-  throwNotFoundException(name?: string): NotFoundException {
-    const msg = name ? `${name} not found` : `Not found`;
-    throw new NotFoundException(msg);
+  throwNotFoundException(name: string): NotFoundException {
+    throw new NotFoundException(`${name} not found`);
   }
 }

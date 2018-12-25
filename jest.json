@@ -18,6 +18,7 @@
     "!src/**/dto/*.ts",
     "!src/**/index.ts",
     "!src/**/enums/*.ts",
+    "!src/decorators/feature-action.decorator.ts",
     "!src/constants.ts",
     "!src/crud.module.ts",
     "!src/operators.list.ts",

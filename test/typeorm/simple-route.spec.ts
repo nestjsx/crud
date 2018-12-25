@@ -7,36 +7,34 @@ import { UserProfile, User, Company, ormConfig } from '../../integration/typeorm
 import { Crud, CrudController, RestfulOptions, Feature, Action, Override } from '../../src';
 import { RepositoryService } from '../../src/typeorm';
 
-let serviceOptions: RestfulOptions = {
-  persist: ['id'],
-  filter: [{ field: 'id', operator: 'notnull' }],
-  sort: [{ field: 'id', order: 'ASC' }],
-};
-
-let controllerOptions: RestfulOptions = {
-  cache: 1000,
-  filter: [{ field: 'id', operator: 'notnull' }],
-  join: {
-    users: {
-      persist: ['id'],
-      exclude: ['password'],
-    },
-  },
-};
-
 @Injectable()
 class CompaniesService extends RepositoryService<Company> {
-  protected options = serviceOptions;
+  protected options: RestfulOptions = {
+    persist: ['id'],
+    filter: [{ field: 'id', operator: 'notnull' }],
+    sort: [{ field: 'id', order: 'ASC' }],
+  };
+
   constructor(@InjectRepository(Company) repo) {
     super(repo);
   }
 }
 
 @Feature('Companies')
-@Crud(Company)
+@Crud(Company, {
+  options: {
+    cache: 1000,
+    filter: [{ field: 'id', operator: 'notnull' }],
+    join: {
+      users: {
+        persist: ['id'],
+        exclude: ['password'],
+      },
+    },
+  },
+})
 @Controller('companies')
 class CompaniesController implements CrudController<CompaniesService, Company> {
-  options = controllerOptions;
   constructor(public service: CompaniesService) {}
 
   @Action('test')
