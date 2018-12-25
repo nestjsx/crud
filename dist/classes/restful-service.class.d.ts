@@ -10,5 +10,5 @@ export declare abstract class RestfulService<T> {
     abstract updateOne(...args: any[]): Promise<T>;
     abstract deleteOne(...args: any[]): Promise<void>;
     throwBadRequestException(msg?: any): BadRequestException;
-    throwNotFoundException(name?: string): NotFoundException;
+    throwNotFoundException(name: string): NotFoundException;
 }

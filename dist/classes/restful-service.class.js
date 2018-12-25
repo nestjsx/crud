@@ -7,8 +7,7 @@ class RestfulService {
         throw new common_1.BadRequestException(msg);
     }
     throwNotFoundException(name) {
-        const msg = name ? `${name} not found` : `Not found`;
-        throw new common_1.NotFoundException(msg);
+        throw new common_1.NotFoundException(`${name} not found`);
     }
 }
 exports.RestfulService = RestfulService;

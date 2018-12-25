@@ -33,15 +33,16 @@
   - [Service](#service)
   - [Controller](#controller)
 - [API Endpoints](#api-endpoints)
+- [Swagger](#swagger)
 - [Query Parameters](#query-parameters)
 - [Repository Service](#repository-service)
   - [Restful Options](#restful-options)
 - [Crud Controller](#crud-controller)
+  - [Restful Options merge](#restful-options-merge)
+  - [Path Filter](#path-filter)
   - [Validation](#validation)
   - [IntelliSense](#intellisense)
   - [Method Override](#method-override)
-  - [Restful Options merge](#restful-options-merge)
-  - [Path Filter](#path-filter)
   - [Additional Decorators](#additional-decorators)
 - [Example Project](#example-project)
 - [Contribution](#contribution)
@@ -183,6 +184,10 @@ _Status codes:_ 200 | 400 | 404
 _Request Params:_ `:id` - entity id  
 _Result:_: empty | error object  
 _Status codes:_ 200 | 404
+
+## Swagger
+
+[Swagger](https://docs.nestjs.com/recipes/swagger) support is present out of the box, including [Query Parameters](#query-parameters) and [Path Filter](#path-filter).
 
 ## Query Parameters
 
@@ -533,7 +538,70 @@ Cache can be [reseted](#cache) by using the query parameter in your `GET` reques
 
 ## Crud Controller
 
-Our newly generated working horse. Let's dive in some details.
+Our newly generated working horse. `@Crud()` decorator accepts two arguments - Entity class and `CrudOptions` object. Let's dive in some details.
+
+### Restful Options merge
+
+```typescript
+...
+import { Crud } from '@nestjsx/crud';
+
+@Crud(Hero, {
+  options: {
+    // RestfulOptions goes here
+  }
+})
+@Controller('heroes')
+export class HeroesCrudController {
+  constructor(public service: HeroesService) {}
+}
+```
+
+`CrudOptions` object may have `options` parameter which is the same object as [Restful Options](#restful-options).
+
+**_Notice:_** If you have this options set up in your `RepositoryService`, in that case they will be **merged**.
+
+### Path Filter
+
+`CrudOptions` object may have `params` parameter that will be used for auto filtering by URL path parameters.
+
+Assume, you have an entity `User` that belongs to some `Company` and has a field `companyId`. And you whant to create `UsersController` so that an admin could access users from his own Company only. Let's do this:
+
+```typescript
+...
+import { Crud } from '@nestjsx/crud';
+
+@Crud(Hero, {
+  params: ['companyId']
+})
+@Controller('/company/:companyId/users')
+export class UsersCrud {
+  constructor(public service: UsersService) {}
+}
+```
+
+In this example you're URL param name `companyId` should match the name of `User.companyId` field. If not, you can do mapping, like this:
+
+```typescript
+...
+import { Crud } from '@nestjsx/crud';
+
+@Crud(Hero, {
+  params: {
+    company: 'companyId'
+  }
+})
+@Controller('/company/:company/users')
+export class UsersCrud {
+  constructor(public service: UsersService) {}
+}
+```
+
+Where `company` is the name of the URL param, and `companyId` is the name of the entity field.
+
+As you might guess, all request will add `companyId` to the DB queries alongside with the `:id` of `GET`, `PATCH`, `DELETE` requests. On `POST` (both: one and bulk) requests, `companyId` will be added to the `dto` automatically.
+
+When you done with the controller, you'll need to add some logic to your `AuthGuard` or any other interface, where you do the authorization of a requester. You will need to match `companyId` URL param with the `user.companyId` entity that has been validated from the DB.
 
 ### Validation
 
@@ -723,67 +791,6 @@ export class HeroesCrud implements CrudController<HeroesService, Hero> {
 }
 ```
 
-### Restful Options merge
-
-```typescript
-...
-import { Crud, CrudController, RestfulOptions } from '@nestjsx/crud';
-
-@Crud(Hero)
-@Controller('heroes')
-export class HeroesCrud implements CrudController<HeroesService, Hero> {
-  options: RestfulOptions = {};
-
-  constructor(public service: HeroesService) {}
-}
-```
-
-Controller can accept optioanl `options` parameter and it's the same object as [Restful Options](#restful-options). It's very useful when you have one `RepositoryService` and several controllers.
-
-**_Notice:_** If you have this options set up in your `RepositoryService`, in that case they will be **merged**.
-
-### Path Filter
-
-Assume, you have an entity `User` that belongs to some `Company` and has a field `companyId`. And you whant to create `UsersController` so that an admin could access users from his own Company only. Let's do this:
-
-```typescript
-...
-import { Crud, CrudController } from '@nestjsx/crud';
-
-@Crud(Hero)
-@Controller('/company/:companyId/users')
-export class UsersCrud implements CrudController<UsersService, User> {
-  paramsFilter = ['companyId'];
-
-  constructor(public service: UsersService) {}
-}
-```
-
-A property `paramsFilter` is designed fo that purpose.
-
-In this example you're URL param name `companyId` should match the name of `User.companyId` field. If not, you can do mapping, like this:
-
-```typescript
-...
-import { Crud, CrudController } from '@nestjsx/crud';
-
-@Crud(Hero)
-@Controller('/company/:company/users')
-export class UsersCrud implements CrudController<UsersService, User> {
-  paramsFilter = {
-    company: 'companyId'
-  };
-
-  constructor(public service: UsersService) {}
-}
-```
-
-Where `company` - name of the URL param, and `companyId` - name of the entity field.
-
-As you might guess, all request will add `companyId` to the DB queries alongside with the `:id` of `GET`, `PATCH`, `DELETE` requests. On `POST` (both: one and bulk) requests, `companyId` will be added to the `dto` automatically.
-
-When you done with the controller, you'll need to add some logic to your `AuthGuard` or any other interface, where you do the authorization of a requester. You will need to match `companyId` URL param with the `user.companyId` entity that has been validated from the DB.
-
 ### Additional Decorators
 
 There are two additional decorators that come out of the box: `@Feature()` and `@Action()`:
@@ -818,7 +825,7 @@ enum CrudActions {
 ```typescript
 import { Reflector } from '@nestjs/core';
 import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
-import { FEAUTURE_NAME_METADATA, ACTION_NAME_METADATA } from '@nestjsx/crud';
+import { getFeature, getAction } from '@nestjsx/crud';
 
 @Injectable()
 export class ACLGuard implements CanActivate {
@@ -828,8 +835,8 @@ export class ACLGuard implements CanActivate {
     const handler = ctx.getHandler();
     const controller = ctx.getClass();
 
-    const feature = this.reflector.get(FEAUTURE_NAME_METADATA, controller);
-    const action = this.reflector.get(ACTION_NAME_METADATA, handler);
+    const feature = getFeature(controller);
+    const action = getAction(handler);
 
     console.log(`${feature}-${action}`); // e.g. 'Heroes-Read-All'
 
