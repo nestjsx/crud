@@ -22,6 +22,7 @@
   "dependencies": {
     "@nestjs/common": "^5.5.0",
     "@nestjs/core": "^5.5.0",
+    "@nestjs/mongoose": "^5.2.2",
     "@nestjs/testing": "^5.5.0",
     "@nestjs/typeorm": "^5.2.2",
     "class-transformer": "^0.2.0",
