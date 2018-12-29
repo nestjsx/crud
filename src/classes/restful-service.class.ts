@@ -5,9 +5,9 @@ import { RestfulOptions } from '../interfaces';
 export abstract class RestfulService<T> {
   protected abstract options: RestfulOptions;
 
-  constructor() {}
+  constructor() { }
 
-  abstract getMany(...args: any[]): Promise<T[]>;
+  abstract getMany(...args: any[]): Promise<[T[], number]>;
   abstract getOne(...args: any[]): Promise<T>;
   abstract createOne(...args: any[]): Promise<T>;
   abstract createMany(...args: any[]): Promise<T[]>;

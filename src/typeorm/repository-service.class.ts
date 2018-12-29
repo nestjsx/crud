@@ -44,9 +44,9 @@ export class RepositoryService<T> extends RestfulService<T> {
   public async getMany(
     query: RequestParamsParsed = {},
     options: RestfulOptions = {},
-  ): Promise<T[]> {
+  ): Promise<[T[], number]> {
     const builder = await this.buildQuery(query, options);
-    return builder.getMany();
+    return builder.getManyAndCount();
   }
 
   /**
@@ -364,14 +364,14 @@ export class RepositoryService<T> extends RestfulService<T> {
       (!options.allow || !options.allow.length)
       ? columns
       : columns.filter(
-          (column) =>
-            (options.exclude && options.exclude.length
-              ? !options.exclude.some((col) => col === column)
-              : true) &&
-            (options.allow && options.allow.length
-              ? options.allow.some((col) => col === column)
-              : true),
-        );
+        (column) =>
+          (options.exclude && options.exclude.length
+            ? !options.exclude.some((col) => col === column)
+            : true) &&
+          (options.allow && options.allow.length
+            ? options.allow.some((col) => col === column)
+            : true),
+      );
   }
 
   private setJoin(cond: JoinParamParsed, joinOptions: JoinOptions, builder: SelectQueryBuilder<T>) {
@@ -463,8 +463,8 @@ export class RepositoryService<T> extends RestfulService<T> {
     return query.sort && query.sort.length
       ? this.mapSort(query.sort)
       : options.sort && options.sort.length
-      ? this.mapSort(options.sort)
-      : {};
+        ? this.mapSort(options.sort)
+        : {};
   }
 
   private mapSort(sort: ObjectLiteral[]) {

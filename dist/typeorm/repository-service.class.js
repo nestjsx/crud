@@ -32,7 +32,7 @@ class RepositoryService extends restful_service_class_1.RestfulService {
     getMany(query = {}, options = {}) {
         return __awaiter(this, void 0, void 0, function* () {
             const builder = yield this.buildQuery(query, options);
-            return builder.getMany();
+            return builder.getManyAndCount();
         });
     }
     getOne(id, { fields, join, cache } = {}, options = {}) {
