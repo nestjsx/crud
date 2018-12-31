@@ -6,9 +6,6 @@ import {
   IsEmail,
   IsBoolean,
   ValidateNested,
-  ArrayContains,
-  ArrayNotEmpty,
-  ArrayMinSize,
   IsInt,
   IsArray,
 } from 'class-validator';
