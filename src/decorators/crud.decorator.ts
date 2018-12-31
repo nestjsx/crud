@@ -275,7 +275,7 @@ function updateOneBaseInit(target: object, name: string, dto: any, crudOptions: 
 
   setParams(
     {
-      ...createParamMetadata(RouteParamtypes.PARAM, 0, [setParseIntPipe()], 'id'),
+      ...createParamMetadata(RouteParamtypes.PARAM, 0, [], 'id'),
       ...createParamMetadata(RouteParamtypes.PARAM, 1),
       ...createParamMetadata(RouteParamtypes.BODY, 2, [
         setValidationPipe(crudOptions, CrudValidate.UPDATE),
@@ -302,7 +302,7 @@ function deleteOneBaseInit(target: object, name: string, crudOptions: CrudOption
 
   setParams(
     {
-      ...createParamMetadata(RouteParamtypes.PARAM, 0, [setParseIntPipe()], 'id'),
+      ...createParamMetadata(RouteParamtypes.PARAM, 0, [], 'id'),
       ...createParamMetadata(RouteParamtypes.PARAM, 1),
     },
     target,
