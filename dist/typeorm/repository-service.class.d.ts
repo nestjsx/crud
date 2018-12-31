@@ -11,13 +11,13 @@ export declare class RepositoryService<T> extends RestfulService<T> {
     private readonly entityType;
     private readonly alias;
     getMany(query?: RequestParamsParsed, options?: RestfulOptions): Promise<T[]>;
-    getOne(id: number, { fields, join, cache }?: RequestParamsParsed, options?: RestfulOptions): Promise<T>;
+    getOne(id: string, { fields, join, cache }?: RequestParamsParsed, options?: RestfulOptions): Promise<T>;
     createOne(data: DeepPartial<T>, paramsFilter?: FilterParamParsed[]): Promise<T>;
     createMany(data: {
         bulk: DeepPartial<T>[];
     }, paramsFilter?: FilterParamParsed[]): Promise<T[]>;
-    updateOne(id: number, data: DeepPartial<T>, paramsFilter?: FilterParamParsed[]): Promise<T>;
-    deleteOne(id: number, paramsFilter?: FilterParamParsed[]): Promise<void>;
+    updateOne(id: string, data: DeepPartial<T>, paramsFilter?: FilterParamParsed[]): Promise<T>;
+    deleteOne(id: string, paramsFilter?: FilterParamParsed[]): Promise<void>;
     private getOneOrFail;
     private buildQuery;
     private plainToClass;

@@ -1,13 +1,10 @@
-import { PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
-import { Typegoose } from 'typegoose';
+import { Column } from '../../../src/mongoose/decorators/Column';
 
-export class BaseEntity extends Typegoose {
-  @PrimaryGeneratedColumn()
-  id: number;
-
-  @CreateDateColumn({ nullable: true })
+export class BaseEntity {
+  @Column()
+  id: string;
+  @Column()
   createdAt: Date;
-
-  @UpdateDateColumn({ nullable: true })
+  @Column()
   updatedAt: Date;
 }

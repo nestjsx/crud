@@ -11,7 +11,6 @@ import * as mongoose from 'mongoose';
 import { CREATE_UPDATE, CREATE, UPDATE } from '@nestjsx/crud';
 
 import { BaseEntity } from '../base-entity';
-import { prop } from 'typegoose';
 import { Column } from './../../../../src/mongoose/decorators/Column';
 
 export class User extends BaseEntity {

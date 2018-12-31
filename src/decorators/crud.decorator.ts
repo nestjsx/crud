@@ -167,7 +167,6 @@ function getManyBaseInit(target: object, name: string, dto: any, crudOptions: Cr
 
 function getOneBaseInit(target: object, name: string, dto: any, crudOptions: CrudOptions) {
   const prototype = (target as any).prototype;
-
   prototype[name] = function getOneBase(
     id: string,
     params: ObjectLiteral,
@@ -180,7 +179,7 @@ function getOneBaseInit(target: object, name: string, dto: any, crudOptions: Cru
 
   setParams(
     {
-      ...createParamMetadata(RouteParamtypes.PARAM, 0, [setParseIntPipe()], 'id'),
+      ...createParamMetadata(RouteParamtypes.PARAM, 0, [], 'id'),
       ...createParamMetadata(RouteParamtypes.PARAM, 1),
       ...createParamMetadata(RouteParamtypes.QUERY, 2),
     },

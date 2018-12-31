@@ -1,6 +1,6 @@
 import { Controller } from '@nestjs/common';
 import { ApiUseTags } from '@nestjs/swagger';
-import { Crud, CrudController, RestfulOptions } from '@nestjsx/crud';
+import { Crud } from '../../../../src';
 
 import { User } from './user.entity';
 import { UsersService } from './users.service';
