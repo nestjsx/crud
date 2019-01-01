@@ -91,7 +91,7 @@ function getManyBaseInit(target, name, dto, crudOptions) {
     };
     helpers_1.setParams(Object.assign({}, helpers_1.createParamMetadata(route_paramtypes_enum_1.RouteParamtypes.PARAM, 0), helpers_1.createParamMetadata(route_paramtypes_enum_1.RouteParamtypes.QUERY, 1)), target, name);
     helpers_1.setParamTypes([Object, dto_1.RestfulParamsDto], prototype, name);
-    helpers_1.setInterceptors([interceptors_1.RestfulQueryInterceptor], prototype[name]);
+    helpers_1.setInterceptors([interceptors_1.RestfulQueryInterceptor, interceptors_1.GetManyResponseInterceptor], prototype[name]);
     helpers_1.setAction(enums_1.CrudActions.ReadAll, prototype[name]);
     helpers_1.setSwaggerParams(prototype[name], crudOptions);
     helpers_1.setSwaggerQueryGetMany(prototype[name], dto.name);
