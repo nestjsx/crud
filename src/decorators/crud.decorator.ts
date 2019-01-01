@@ -3,7 +3,7 @@ import { RouteParamtypes } from '@nestjs/common/enums/route-paramtypes.enum';
 
 import { RestfulParamsDto } from '../dto';
 import { CrudActions, CrudValidate } from '../enums';
-import { RestfulQueryInterceptor } from '../interceptors';
+import { RestfulQueryInterceptor, GetManyResponseInterceptor } from '../interceptors';
 import { CrudOptions, FilterParamParsed, ObjectLiteral, EntitiesBulk } from '../interfaces';
 import { OVERRIDE_METHOD_METADATA } from '../constants';
 import { mockValidatorDecorator, mockTransformerDecorator, hasValidator } from '../utils';
@@ -155,7 +155,7 @@ function getManyBaseInit(target: object, name: string, dto: any, crudOptions: Cr
     name,
   );
   setParamTypes([Object, RestfulParamsDto], prototype, name);
-  setInterceptors([RestfulQueryInterceptor], prototype[name]);
+  setInterceptors([RestfulQueryInterceptor, GetManyResponseInterceptor], prototype[name]);
   setAction(CrudActions.ReadAll, prototype[name]);
   setSwaggerParams(prototype[name], crudOptions);
   setSwaggerQueryGetMany(prototype[name], dto.name);
