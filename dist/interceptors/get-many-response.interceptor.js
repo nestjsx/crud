@@ -11,7 +11,6 @@ const operators_1 = require("rxjs/operators");
 let GetManyResponseInterceptor = class GetManyResponseInterceptor {
     intercept(context, call$) {
         return call$.pipe(operators_1.map((data) => {
-            debugger;
             const query = context.switchToHttp().getRequest().query;
             const total = data[1];
             const limit = query.limit ? query.limit : total;

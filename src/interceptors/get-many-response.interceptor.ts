@@ -11,7 +11,6 @@ export class GetManyResponseInterceptor implements NestInterceptor {
     intercept(context: ExecutionContext, call$: Observable<any>) {
         return call$.pipe(
             map((data: Array<any>) => {
-                debugger
                 const query = context.switchToHttp().getRequest().query;
                 const total = data[1];
                 const limit = query.limit ? query.limit : total;
