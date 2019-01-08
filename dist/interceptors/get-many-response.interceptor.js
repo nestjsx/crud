@@ -16,8 +16,8 @@ let GetManyResponseInterceptor = class GetManyResponseInterceptor {
             const limit = query.limit ? query.limit : total;
             const page = query.page ? query.page : 1;
             const startRange = (page - 1) * limit;
-            const endRange = startRange + data[0].length;
-            context.switchToHttp().getResponse().set('Content-Range', `${startRange}-${endRange}/${total}`);
+            const lastRange = startRange + data[0].length - 1;
+            context.switchToHttp().getResponse().set('Content-Range', `${startRange}-${lastRange}/${total}`);
             return data[0];
         }));
     }
