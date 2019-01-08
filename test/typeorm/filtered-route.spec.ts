@@ -24,7 +24,7 @@ class UsersService extends RepositoryService<User> {
 })
 @Controller('/companies/:companyId/users')
 class UsersController implements CrudController<UsersService, User> {
-  constructor(public service: UsersService) {}
+  constructor(public service: UsersService) { }
 }
 
 describe('Filtered base routes', () => {
@@ -55,6 +55,7 @@ describe('Filtered base routes', () => {
     it('should return status 200', () => {
       return request(server)
         .get('/companies/1/users')
+        .expect('Content-Range', '0-9/10')
         .expect(200);
     });
   });

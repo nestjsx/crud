@@ -130,7 +130,8 @@ We pass our `Hero` entity as a `dto` for [Validation](#validation) purpose and i
 > `GET /heroes/:heroId/perks`
 
 _Result:_ array of entities | empty array  
-_Status Codes:_ 200
+_Status Codes:_ 200  
+_Response Header:_ Content-Range: startRange-lastRange/total
 
 ### Get One Entity
 
