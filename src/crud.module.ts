@@ -10,6 +10,11 @@ export class CrudModule {
       constructor(@Inject(service) public service) {}
     }
 
+    Object.defineProperty(CrudGeneratedController, 'name', {
+      value: `CrudGeneratedControllerFor${entity.name}`,
+      writable: false,
+    });
+
     return CrudGeneratedController;
   }
 }
