@@ -1,18 +1,13 @@
-import { Repository, SelectQueryBuilder, Brackets, FindOneOptions, DeepPartial } from 'typeorm';
+import { Brackets, DeepPartial, Repository, SelectQueryBuilder } from 'typeorm';
 import { isObject } from '@nestjs/common/utils/shared.utils';
 import { plainToClass } from 'class-transformer';
 import { ClassType } from 'class-transformer/ClassTransformer';
 
 import { RestfulService } from '../classes/restful-service.class';
-import {
-  RestfulOptions,
-  JoinOptions,
-  RequestParamsParsed,
-  FilterParamParsed,
-  JoinParamParsed,
-} from '../interfaces';
+import { FilterParamParsed, JoinOptions, JoinParamParsed, RequestParamsParsed, RestfulOptions } from '../interfaces';
 import { ObjectLiteral } from '../interfaces/object-literal.interface';
 import { isArrayFull } from '../utils';
+import { RelationMetadata } from 'typeorm/metadata/RelationMetadata';
 
 export class RepositoryService<T> extends RestfulService<T> {
   protected options: RestfulOptions = {};
@@ -301,7 +296,7 @@ export class RepositoryService<T> extends RestfulService<T> {
     }
 
     if (paramsFilter.length) {
-      for (let filter of paramsFilter) {
+      for (const filter of paramsFilter) {
         data[filter.field] = filter.value;
       }
     }
@@ -374,7 +369,48 @@ export class RepositoryService<T> extends RestfulService<T> {
         );
   }
 
+  private getRelationMetadata(field: string) {
+    try {
+      const fields = field.split('.');
+      const target = fields[fields.length - 1];
+      const paths = fields.slice(0, fields.length - 1);
+
+      let relations = this.repo.metadata.relations;
+
+      for (const propertyName of paths) {
+        relations = relations.find(o => o.propertyName === propertyName).inverseEntityMetadata.relations;
+      }
+
+      const relation: RelationMetadata & { nestedRelation?: string } = relations.find(o => o.propertyName === target);
+
+      relation.nestedRelation = `${fields[fields.length - 2]}.${target}`;
+
+      return relation;
+    } catch (e) {
+      return null;
+    }
+  }
+
   private setJoin(cond: JoinParamParsed, joinOptions: JoinOptions, builder: SelectQueryBuilder<T>) {
+    if (this.entityRelationsHash[cond.field] === undefined && cond.field.includes('.')) {
+      const curr = this.getRelationMetadata(cond.field);
+      if (!curr) {
+        this.entityRelationsHash[cond.field] = null;
+        return true;
+      }
+
+      this.entityRelationsHash[cond.field] = {
+        name: curr.propertyName,
+        type: this.getJoinType(curr.relationType),
+        columns: curr.inverseEntityMetadata.columns.map((col) => col.propertyName),
+        referencedColumn: (curr.joinColumns.length
+            ? curr.joinColumns[0]
+            : curr.inverseRelation.joinColumns[0]
+        ).referencedColumn.propertyName,
+        nestedRelation: curr.nestedRelation,
+      };
+    }
+
     if (cond.field && this.entityRelationsHash[cond.field] && joinOptions[cond.field]) {
       const relation = this.entityRelationsHash[cond.field];
       const options = joinOptions[cond.field];
@@ -395,7 +431,9 @@ export class RepositoryService<T> extends RestfulService<T> {
         ...columns,
       ].map((col) => `${relation.name}.${col}`);
 
-      builder[relation.type](`${this.alias}.${relation.name}`, relation.name);
+      const relationPath = relation.nestedRelation || `${this.alias}.${relation.name}`;
+
+      builder[relation.type](relationPath, relation.name);
       builder.addSelect(select);
     }
 
@@ -468,7 +506,7 @@ export class RepositoryService<T> extends RestfulService<T> {
   }
 
   private mapSort(sort: ObjectLiteral[]) {
-    let params: ObjectLiteral = {};
+    const params: ObjectLiteral = {};
 
     for (let i = 0; i < sort.length; i++) {
       this.validateHasColumn(sort[i].field);
@@ -556,7 +594,7 @@ export class RepositoryService<T> extends RestfulService<T> {
         break;
 
       case 'between':
-        if (!Array.isArray(cond.value) || !cond.value.length || cond.value.length != 2) {
+        if (!Array.isArray(cond.value) || !cond.value.length || cond.value.length !== 2) {
           this.throwBadRequestException(`Invalid column '${cond.field}' value`);
         }
         str = `${field} BETWEEN :${param}0 AND :${param}1`;

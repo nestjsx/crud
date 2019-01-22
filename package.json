@@ -35,9 +35,11 @@
     "typeorm": "^0.2.9"
   },
   "devDependencies": {
+    "@types/chai": "^4.1.7",
     "@types/jest": "^23.3.10",
     "@types/node": "^10.12.12",
     "@types/supertest": "^2.0.7",
+    "chai": "^4.2.0",
     "coveralls": "^3.0.2",
     "jest": "^23.6.0",
     "nodemon": "^1.18.7",
