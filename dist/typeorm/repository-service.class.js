@@ -191,7 +191,7 @@ class RepositoryService extends restful_service_class_1.RestfulService {
             return undefined;
         }
         if (paramsFilter.length) {
-            for (let filter of paramsFilter) {
+            for (const filter of paramsFilter) {
                 data[filter.field] = filter.value;
             }
         }
@@ -244,7 +244,40 @@ class RepositoryService extends restful_service_class_1.RestfulService {
                     ? options.allow.some((col) => col === column)
                     : true));
     }
+    getRelationMetadata(field) {
+        try {
+            const fields = field.split('.');
+            const target = fields[fields.length - 1];
+            const paths = fields.slice(0, fields.length - 1);
+            let relations = this.repo.metadata.relations;
+            for (const propertyName of paths) {
+                relations = relations.find(o => o.propertyName === propertyName).inverseEntityMetadata.relations;
+            }
+            const relation = relations.find(o => o.propertyName === target);
+            relation.nestedRelation = `${fields[fields.length - 2]}.${target}`;
+            return relation;
+        }
+        catch (e) {
+            return null;
+        }
+    }
     setJoin(cond, joinOptions, builder) {
+        if (this.entityRelationsHash[cond.field] === undefined && cond.field.includes('.')) {
+            const curr = this.getRelationMetadata(cond.field);
+            if (!curr) {
+                this.entityRelationsHash[cond.field] = null;
+                return true;
+            }
+            this.entityRelationsHash[cond.field] = {
+                name: curr.propertyName,
+                type: this.getJoinType(curr.relationType),
+                columns: curr.inverseEntityMetadata.columns.map((col) => col.propertyName),
+                referencedColumn: (curr.joinColumns.length
+                    ? curr.joinColumns[0]
+                    : curr.inverseRelation.joinColumns[0]).referencedColumn.propertyName,
+                nestedRelation: curr.nestedRelation,
+            };
+        }
         if (cond.field && this.entityRelationsHash[cond.field] && joinOptions[cond.field]) {
             const relation = this.entityRelationsHash[cond.field];
             const options = joinOptions[cond.field];
@@ -260,7 +293,8 @@ class RepositoryService extends restful_service_class_1.RestfulService {
                 ...(options.persist && options.persist.length ? options.persist : []),
                 ...columns,
             ].map((col) => `${relation.name}.${col}`);
-            builder[relation.type](`${this.alias}.${relation.name}`, relation.name);
+            const relationPath = relation.nestedRelation || `${this.alias}.${relation.name}`;
+            builder[relation.type](relationPath, relation.name);
             builder.addSelect(select);
         }
         return true;
@@ -318,7 +352,7 @@ class RepositoryService extends restful_service_class_1.RestfulService {
                 : {};
     }
     mapSort(sort) {
-        let params = {};
+        const params = {};
         for (let i = 0; i < sort.length; i++) {
             this.validateHasColumn(sort[i].field);
             params[`${this.alias}.${sort[i].field}`] = sort[i].order;
@@ -385,7 +419,7 @@ class RepositoryService extends restful_service_class_1.RestfulService {
                 params = {};
                 break;
             case 'between':
-                if (!Array.isArray(cond.value) || !cond.value.length || cond.value.length != 2) {
+                if (!Array.isArray(cond.value) || !cond.value.length || cond.value.length !== 2) {
                     this.throwBadRequestException(`Invalid column '${cond.field}' value`);
                 }
                 str = `${field} BETWEEN :${param}0 AND :${param}1`;
