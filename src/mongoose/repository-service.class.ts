@@ -127,7 +127,15 @@ export class RepositoryService<T> extends RestfulService<T> {
     const item: any = await this.getOneOrFail({
       filter: [{ field: 'id', operator: 'eq', value: id }, ...paramsFilter],
     });
-
+    if (data.$push) {
+      Object.keys( data.$push )
+      .map((key) => {
+          if(!item[key]) {
+              item[key] = [];
+          }
+          item[key].push(data.$push[key]);
+      });
+    }
     const entity = this.plainToClass(data, paramsFilter);
     Object.assign(item, entity);
     // we use save and not update because
@@ -250,7 +258,7 @@ export class RepositoryService<T> extends RestfulService<T> {
   }
 
   private validateHasColumn(column: string) {
-    if (!this.hasColumn(column)) {
+    if (!this.hasColumn(column.split('.')[0])) {
       this.throwBadRequestException(`Invalid column name '${column}'`);
     }
   }
