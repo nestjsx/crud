@@ -17,7 +17,7 @@ export declare class RepositoryService<T> extends RestfulService<T> {
         bulk: any[];
     }, paramsFilter?: FilterParamParsed[]): Promise<T[]>;
     updateOne(id: string, data: any, paramsFilter?: FilterParamParsed[]): Promise<T>;
-    deleteOne(id: number, paramsFilter?: FilterParamParsed[]): Promise<void>;
+    deleteOne(id: string, paramsFilter?: FilterParamParsed[]): Promise<void>;
     private getOneOrFail;
     private buildQuery;
     private plainToClass;
