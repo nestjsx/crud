@@ -30,4 +30,8 @@ exports.mockValidatorDecorator = (name) => classValidatorPkg && classValidatorPk
 exports.mockTransformerDecorator = (name) => classTransformerPkg && classTransformerPkg[name]
     ? classTransformerPkg[name]
     : (...args) => (target, key) => { };
+exports.toObjectId = (id) => {
+    const mongoose = require('mongoose');
+    return mongoose.Types.ObjectId(id);
+};
 //# sourceMappingURL=utils.js.map
