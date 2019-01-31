@@ -102,7 +102,7 @@ function getOneBaseInit(target, name, dto, crudOptions) {
         const mergedOptions = this.getMergedOptions(params);
         return this.service.getOne(id, query, mergedOptions);
     };
-    helpers_1.setParams(Object.assign({}, helpers_1.createParamMetadata(route_paramtypes_enum_1.RouteParamtypes.PARAM, 0, [helpers_1.setParseIntPipe()], 'id'), helpers_1.createParamMetadata(route_paramtypes_enum_1.RouteParamtypes.PARAM, 1), helpers_1.createParamMetadata(route_paramtypes_enum_1.RouteParamtypes.QUERY, 2)), target, name);
+    helpers_1.setParams(Object.assign({}, helpers_1.createParamMetadata(route_paramtypes_enum_1.RouteParamtypes.PARAM, 0, [], 'id'), helpers_1.createParamMetadata(route_paramtypes_enum_1.RouteParamtypes.PARAM, 1), helpers_1.createParamMetadata(route_paramtypes_enum_1.RouteParamtypes.QUERY, 2)), target, name);
     helpers_1.setParamTypes([Number, Object, dto_1.RestfulParamsDto], prototype, name);
     helpers_1.setInterceptors([interceptors_1.RestfulQueryInterceptor], prototype[name]);
     helpers_1.setAction(enums_1.CrudActions.ReadOne, prototype[name]);
@@ -154,7 +154,7 @@ function updateOneBaseInit(target, name, dto, crudOptions) {
         const paramsFilter = this.getParamsFilter(params);
         return this.service.updateOne(id, body, paramsFilter);
     };
-    helpers_1.setParams(Object.assign({}, helpers_1.createParamMetadata(route_paramtypes_enum_1.RouteParamtypes.PARAM, 0, [helpers_1.setParseIntPipe()], 'id'), helpers_1.createParamMetadata(route_paramtypes_enum_1.RouteParamtypes.PARAM, 1), helpers_1.createParamMetadata(route_paramtypes_enum_1.RouteParamtypes.BODY, 2, [
+    helpers_1.setParams(Object.assign({}, helpers_1.createParamMetadata(route_paramtypes_enum_1.RouteParamtypes.PARAM, 0, [], 'id'), helpers_1.createParamMetadata(route_paramtypes_enum_1.RouteParamtypes.PARAM, 1), helpers_1.createParamMetadata(route_paramtypes_enum_1.RouteParamtypes.BODY, 2, [
         helpers_1.setValidationPipe(crudOptions, enums_1.CrudValidate.UPDATE),
     ])), target, name);
     helpers_1.setParamTypes([Number, Object, dto], prototype, name);
@@ -167,7 +167,7 @@ function deleteOneBaseInit(target, name, crudOptions) {
         const paramsFilter = this.getParamsFilter(params);
         return this.service.deleteOne(id, paramsFilter);
     };
-    helpers_1.setParams(Object.assign({}, helpers_1.createParamMetadata(route_paramtypes_enum_1.RouteParamtypes.PARAM, 0, [helpers_1.setParseIntPipe()], 'id'), helpers_1.createParamMetadata(route_paramtypes_enum_1.RouteParamtypes.PARAM, 1)), target, name);
+    helpers_1.setParams(Object.assign({}, helpers_1.createParamMetadata(route_paramtypes_enum_1.RouteParamtypes.PARAM, 0, [], 'id'), helpers_1.createParamMetadata(route_paramtypes_enum_1.RouteParamtypes.PARAM, 1)), target, name);
     helpers_1.setParamTypes([Number, Object], prototype, name);
     helpers_1.setAction(enums_1.CrudActions.DeleteOne, prototype[name]);
     helpers_1.setSwaggerParams(prototype[name], crudOptions);

@@ -148,7 +148,7 @@ export class RepositoryService<T> extends RestfulService<T> {
    * @param id
    * @param paramsFilter
    */
-  public async deleteOne(id: number, paramsFilter: FilterParamParsed[] = []): Promise<void> {
+  public async deleteOne(id: string, paramsFilter: FilterParamParsed[] = []): Promise<void> {
     const found = await this.getOneOrFail({
       filter: [{ field: 'id', operator: 'eq', value: id }, ...paramsFilter],
     });
