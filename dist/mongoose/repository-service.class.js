@@ -76,6 +76,15 @@ class RepositoryService extends restful_service_class_1.RestfulService {
             const item = yield this.getOneOrFail({
                 filter: [{ field: 'id', operator: 'eq', value: id }, ...paramsFilter],
             });
+            if (data.$push) {
+                Object.keys(data.$push)
+                    .map((key) => {
+                    if (!item[key]) {
+                        item[key] = [];
+                    }
+                    item[key].push(data.$push[key]);
+                });
+            }
             const entity = this.plainToClass(data, paramsFilter);
             Object.assign(item, entity);
             return item.save();
@@ -160,7 +169,7 @@ class RepositoryService extends restful_service_class_1.RestfulService {
         return this.entityColumnsHash[column];
     }
     validateHasColumn(column) {
-        if (!this.hasColumn(column)) {
+        if (!this.hasColumn(column.split('.')[0])) {
             this.throwBadRequestException(`Invalid column name '${column}'`);
         }
     }
