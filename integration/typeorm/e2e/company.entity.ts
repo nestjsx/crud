@@ -4,6 +4,8 @@ import { CrudValidate } from '../../../src/';
 
 import { BaseEntity } from '../src/base-entity';
 import { User } from './user.entity';
+import { Project } from './project.entity';
+import { Task } from './task.entity';
 
 const { CREATE, UPDATE } = CrudValidate;
 
@@ -34,4 +36,10 @@ export class Company extends BaseEntity {
 
   @OneToMany((type) => User, (u) => u.company)
   users: User[];
+
+  @OneToMany((type) => Project, (p) => p.company)
+  projects: Project[];
+
+  @OneToMany((type) => Task, (t) => t.company)
+  tasks: Task[];
 }

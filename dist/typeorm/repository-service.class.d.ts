@@ -1,6 +1,6 @@
-import { Repository, DeepPartial } from 'typeorm';
+import { DeepPartial, Repository } from 'typeorm';
 import { RestfulService } from '../classes/restful-service.class';
-import { RestfulOptions, RequestParamsParsed, FilterParamParsed } from '../interfaces';
+import { FilterParamParsed, RequestParamsParsed, RestfulOptions } from '../interfaces';
 export declare class RepositoryService<T> extends RestfulService<T> {
     protected repo: Repository<T>;
     protected options: RestfulOptions;
@@ -27,6 +27,7 @@ export declare class RepositoryService<T> extends RestfulService<T> {
     private hasColumn;
     private validateHasColumn;
     private getAllowedColumns;
+    private getRelationMetadata;
     private setJoin;
     private setAndWhere;
     private setOrWhere;

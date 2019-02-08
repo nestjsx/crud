@@ -21,7 +21,7 @@
 - Composition of controller methods instead of inheritance (no tight coupling and less surprises)
 - Overriding controller methods with ease.
 - Request validation.
-- Query parameters parsing with filters, pagination, sorting, etc.
+- Query parameters parsing with filters, pagination, sorting, joins, nested joins, etc.
 - Super fast DB query building.
 - Additional handy decorators.
 
@@ -314,6 +314,8 @@ _Syntax:_
 
 > ?join=**relation**||**field1**,**field2**,...
 
+> ?join=**relation1**||**field11**,**field12**,...&join=**relation1**.**nested**||**field21**,**field22**,...&join=...
+
 _Examples:_
 
 > ?join=**profile**
@@ -322,7 +324,9 @@ _Examples:_
 
 > ?join=**profile**||**firstName**,**email**&join=**notifications**||**content**&join=**tasks**
 
-**_Notice:_** `id` field always persists in relational objects.
+> ?join=**relation1**&join=**relation1**.**nested**&join=**relation1**.**nested**.**deepnested**
+
+**_Notice:_** `id` field always persists in relational objects. To use nested relations, the parent level **MUST** be set before the child level like example above.
 
 _Alias:_ `join[]`
 
@@ -476,7 +480,8 @@ An Object of [relations](http://typeorm.io/#/relations) that allowed to be fetch
     notifications: {
       exclude: ['token']
     },
-    company: {}
+    company: {},
+    'company.projects': {}
   }
 }
 ```

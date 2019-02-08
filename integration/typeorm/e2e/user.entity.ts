@@ -1,4 +1,4 @@
-import { Entity, Column, JoinColumn, OneToOne, ManyToOne } from 'typeorm';
+import { Entity, Column, JoinColumn, OneToOne, ManyToOne, ManyToMany, OneToMany } from 'typeorm';
 import {
   IsOptional,
   IsString,
@@ -11,9 +11,11 @@ import {
 import { Type } from '../../../node_modules/class-transformer';
 import { CrudValidate } from '../../../src/';
 
-import { BaseEntity } from '../src//base-entity';
+import { BaseEntity } from '../src/base-entity';
 import { UserProfile } from './user-profile.entity';
 import { Company } from './company.entity';
+import { Project } from './project.entity';
+import { Task } from './task.entity';
 
 const { UPDATE, CREATE } = CrudValidate;
 
@@ -60,4 +62,10 @@ export class User extends BaseEntity {
 
   @ManyToOne((type) => Company, (c) => c.users)
   company: Company;
+
+  @ManyToMany((type) => Project, (c) => c.users)
+  projects: Project[];
+
+  @OneToMany((type) => Task, (t) => t.user)
+  tasks: Task[];
 }
