@@ -370,9 +370,30 @@ export class RepositoryService<T> extends RestfulService<T> {
     return this.entityColumnsHash[column];
   }
 
+  private hasRelation(column: string): boolean {
+    return this.entityRelationsHash[column];
+  }
+
   private validateHasColumn(column: string) {
-    if (!this.hasColumn(column)) {
-      this.throwBadRequestException(`Invalid column name '${column}'`);
+    if (column.indexOf('.') !== -1) {
+      const nests = column.split('.');
+      if (nests.length > 2) {
+        this.throwBadRequestException('Too many nested levels! ' +
+          `Usage: '[join=<other-relation>&]join=[<other-relation>.]<relation>&filter=<relation>.<field>||op||val'`);
+      }
+      let relation;
+      [relation, column] = nests;
+      if (!this.hasRelation(relation)) {
+        this.throwBadRequestException(`Invalid relation name '${relation}'`);
+      }
+      const noColumn = !(this.entityRelationsHash[relation].columns as string[]).find(o => o === column);
+      if (noColumn) {
+        this.throwBadRequestException(`Invalid column name '${column}' for relation '${relation}'`);
+      }
+    } else {
+      if (!this.hasColumn(column)) {
+        this.throwBadRequestException(`Invalid column name '${column}'`);
+      }
     }
   }
 
@@ -545,7 +566,7 @@ export class RepositoryService<T> extends RestfulService<T> {
     cond: FilterParamParsed,
     param: any,
   ): { str: string; params: ObjectLiteral } {
-    const field = `${this.alias}.${cond.field}`;
+    const field = cond.field.indexOf('.') === -1 ? `${this.alias}.${cond.field}` : cond.field;
     let str: string;
     let params: ObjectLiteral;
 

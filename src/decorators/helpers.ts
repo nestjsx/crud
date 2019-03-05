@@ -36,6 +36,27 @@ export function setAction(action: CrudActions, func: Function) {
   Reflect.defineMetadata(ACTION_NAME_METADATA, action, func);
 }
 
+export function setSwaggerOkResponse(func: Function, dto: any, isArray?: boolean) {
+  if (swagger) {
+    const responses = Reflect.getMetadata(swagger.DECORATORS.API_RESPONSE, func) || {};
+    const groupedMetadata = {
+      [200]: {
+        type: dto,
+        isArray,
+        description: '',
+      },
+    };
+    Reflect.defineMetadata(swagger.DECORATORS.API_RESPONSE, { ...responses, ...groupedMetadata }, func);
+  }
+}
+
+export function setSwaggerOperation(func: Function, summary: string = '') {
+  if (swagger) {
+    const meta = Reflect.getMetadata(swagger.DECORATORS.API_OPERATION, func) || {};
+    Reflect.defineMetadata(swagger.DECORATORS.API_OPERATION, Object.assign(meta, { summary }), func);
+  }
+}
+
 export function setSwaggerParams(func: Function, crudOptions: CrudOptions) {
   if (swagger) {
     const params = Object.keys(crudOptions.params).map((key) => ({
@@ -210,6 +231,7 @@ export function setValidationPipe(crudOptions: CrudOptions, group: CrudValidate)
     : undefined;
 }
 
+// FIXME Due to issue https://github.com/nestjs/nest/issues/1604, someone can't use global parser pipe without modify ParseIntPipe
 export function setParseIntPipe() {
   return hasTypeorm ? new ParseIntPipe() : undefined;
 }

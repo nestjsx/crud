@@ -25,6 +25,8 @@ import {
   setParamTypes,
   setParams,
   setRoute,
+  setSwaggerOkResponse,
+  setSwaggerOperation,
   setSwaggerQueryGetMany,
   setSwaggerQueryGetOne,
   setSwaggerParams,
@@ -76,6 +78,8 @@ const baseRoutesInit = {
     setAction(CrudActions.ReadAll, prototype[name]);
     setSwaggerParams(prototype[name], crudOptions);
     setSwaggerQueryGetMany(prototype[name], dto.name);
+    setSwaggerOperation(prototype[name], `Retrieve many ${dto.name}`);
+    setSwaggerOkResponse(prototype[name], dto, true);
   },
 
   /**
@@ -108,6 +112,8 @@ const baseRoutesInit = {
     setAction(CrudActions.ReadOne, prototype[name]);
     setSwaggerParams(prototype[name], crudOptions);
     setSwaggerQueryGetOne(prototype[name], dto.name);
+    setSwaggerOperation(prototype[name], `Retrieve one ${dto.name}`);
+    setSwaggerOkResponse(prototype[name], dto);
   },
 
   /**
@@ -140,6 +146,8 @@ const baseRoutesInit = {
     );
     setAction(CrudActions.CreateOne, prototype[name]);
     setSwaggerParams(prototype[name], crudOptions);
+    setSwaggerOperation(prototype[name], `Create one ${dto.name}`);
+    setSwaggerOkResponse(prototype[name], dto);
   },
 
   /**
@@ -185,6 +193,8 @@ const baseRoutesInit = {
     );
     setAction(CrudActions.CreateMany, prototype[name]);
     setSwaggerParams(prototype[name], crudOptions);
+    setSwaggerOperation(prototype[name], `Create many ${dto.name}`);
+    setSwaggerOkResponse(prototype[name], dto, false);
   },
 
   /**
@@ -217,12 +227,14 @@ const baseRoutesInit = {
     );
     setAction(CrudActions.UpdateOne, prototype[name]);
     setSwaggerParams(prototype[name], crudOptions);
+    setSwaggerOperation(prototype[name], `Update one ${dto.name}`);
+    setSwaggerOkResponse(prototype[name], dto);
   },
 
   /**
    * Delete one entity route base
    */
-  deleteOneBase(target: object, name: string, crudOptions: CrudOptions) {
+  deleteOneBase(target: object, name: string, dto: any, crudOptions: CrudOptions) {
     const prototype = (target as any).prototype;
 
     prototype[name] = function deleteOneBase(params: FilterParamParsed[]) {
@@ -246,6 +258,7 @@ const baseRoutesInit = {
     );
     setAction(CrudActions.DeleteOne, prototype[name]);
     setSwaggerParams(prototype[name], crudOptions);
+    setSwaggerOperation(prototype[name], `Delete one ${dto.name}`);
   },
 };
 
@@ -322,7 +335,7 @@ export const Crud = (dto: any, crudOptions: CrudOptions = {}) => (target: object
       // create routes
       route.name !== 'deleteOneBase'
         ? baseRoutesInit[route.name](target, route.name, dto, crudOptions)
-        : baseRoutesInit[route.name](target, route.name, crudOptions);
+        : baseRoutesInit[route.name](target, route.name, dto, crudOptions);
       route.enable = true;
     }
   });
