@@ -175,6 +175,19 @@ function setParseIntPipe() {
     return utils_1.hasTypeorm ? new common_1.ParseIntPipe() : undefined;
 }
 exports.setParseIntPipe = setParseIntPipe;
+function enableRoute(name, crudOptions) {
+    if (!crudOptions.routes) {
+        return true;
+    }
+    if (crudOptions.routes.only && crudOptions.routes.only.length) {
+        return crudOptions.routes.only.some((only) => only === name);
+    }
+    if (crudOptions.routes.exclude && crudOptions.routes.exclude.length) {
+        return !crudOptions.routes.exclude.some((exclude) => exclude === name);
+    }
+    return true;
+}
+exports.enableRoute = enableRoute;
 function setSwagger(params, func) {
     const metadata = Reflect.getMetadata(utils_1.swagger.DECORATORS.API_PARAMETERS, func) || [];
     Reflect.defineMetadata(utils_1.swagger.DECORATORS.API_PARAMETERS, [...metadata, ...params], func);

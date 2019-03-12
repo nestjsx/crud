@@ -6,6 +6,9 @@ import { User } from './user.entity';
 import { UsersService } from './users.service';
 
 @Crud(User, {
+  routes: {
+    only: ['getManyBase'],
+  },
   options: {
     exclude: ['password'],
     join: {

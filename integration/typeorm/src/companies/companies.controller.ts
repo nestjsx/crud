@@ -6,6 +6,9 @@ import { Company } from './company.entity';
 import { CompaniesService } from './companies.service';
 
 @Crud(Company, {
+  routes: {
+    exclude: ['deleteOneBase'],
+  },
   options: {
     join: {
       users: {

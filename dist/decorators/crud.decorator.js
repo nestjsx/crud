@@ -17,52 +17,159 @@ const interceptors_1 = require("../interceptors");
 const constants_1 = require("../constants");
 const utils_1 = require("../utils");
 const helpers_1 = require("./helpers");
+const baseRoutesInit = {
+    getManyBase(target, name, dto, crudOptions) {
+        const prototype = target.prototype;
+        prototype[name] = function getManyBase(params, query) {
+            const mergedOptions = this.getMergedOptions(params);
+            return this.service.getMany(query, mergedOptions);
+        };
+        helpers_1.setParams(Object.assign({}, helpers_1.createParamMetadata(route_paramtypes_enum_1.RouteParamtypes.PARAM, 0), helpers_1.createParamMetadata(route_paramtypes_enum_1.RouteParamtypes.QUERY, 1)), target, name);
+        helpers_1.setParamTypes([Object, dto_1.RestfulParamsDto], prototype, name);
+        helpers_1.setInterceptors([interceptors_1.RestfulQueryInterceptor], prototype[name]);
+        helpers_1.setAction(enums_1.CrudActions.ReadAll, prototype[name]);
+        helpers_1.setSwaggerParams(prototype[name], crudOptions);
+        helpers_1.setSwaggerQueryGetMany(prototype[name], dto.name);
+    },
+    getOneBase(target, name, dto, crudOptions) {
+        const prototype = target.prototype;
+        prototype[name] = function getOneBase(id, params, query) {
+            const mergedOptions = this.getMergedOptions(params);
+            return this.service.getOne(id, query, mergedOptions);
+        };
+        helpers_1.setParams(Object.assign({}, helpers_1.createParamMetadata(route_paramtypes_enum_1.RouteParamtypes.PARAM, 0, [helpers_1.setParseIntPipe()], 'id'), helpers_1.createParamMetadata(route_paramtypes_enum_1.RouteParamtypes.PARAM, 1), helpers_1.createParamMetadata(route_paramtypes_enum_1.RouteParamtypes.QUERY, 2)), target, name);
+        helpers_1.setParamTypes([Number, Object, dto_1.RestfulParamsDto], prototype, name);
+        helpers_1.setInterceptors([interceptors_1.RestfulQueryInterceptor], prototype[name]);
+        helpers_1.setAction(enums_1.CrudActions.ReadOne, prototype[name]);
+        helpers_1.setSwaggerParams(prototype[name], crudOptions);
+        helpers_1.setSwaggerQueryGetOne(prototype[name], dto.name);
+    },
+    createOneBase(target, name, dto, crudOptions) {
+        const prototype = target.prototype;
+        prototype[name] = function createOneBase(params, body) {
+            const paramsFilter = this.getParamsFilter(params);
+            return this.service.createOne(body, paramsFilter);
+        };
+        helpers_1.setParams(Object.assign({}, helpers_1.createParamMetadata(route_paramtypes_enum_1.RouteParamtypes.PARAM, 0), helpers_1.createParamMetadata(route_paramtypes_enum_1.RouteParamtypes.BODY, 1, [
+            helpers_1.setValidationPipe(crudOptions, enums_1.CrudValidate.CREATE),
+        ])), target, name);
+        helpers_1.setParamTypes([Object, dto], prototype, name);
+        helpers_1.setAction(enums_1.CrudActions.CreateOne, prototype[name]);
+        helpers_1.setSwaggerParams(prototype[name], crudOptions);
+    },
+    createManyBase(target, name, dto, crudOptions) {
+        const prototype = target.prototype;
+        prototype[name] = function createManyBase(params, body) {
+            const paramsFilter = this.getParamsFilter(params);
+            return this.service.createMany(body, paramsFilter);
+        };
+        const isArray = utils_1.mockValidatorDecorator('isArray');
+        const ValidateNested = utils_1.mockValidatorDecorator('ValidateNested');
+        const IsNotEmpty = utils_1.mockValidatorDecorator('IsNotEmpty');
+        const Type = utils_1.mockTransformerDecorator('Type');
+        class BulkDto {
+        }
+        __decorate([
+            isArray({ each: true, groups: [enums_1.CrudValidate.CREATE] }),
+            IsNotEmpty({ groups: [enums_1.CrudValidate.CREATE] }),
+            ValidateNested({ each: true, groups: [enums_1.CrudValidate.CREATE] }),
+            Type((t) => dto),
+            __metadata("design:type", Array)
+        ], BulkDto.prototype, "bulk", void 0);
+        helpers_1.setParams(Object.assign({}, helpers_1.createParamMetadata(route_paramtypes_enum_1.RouteParamtypes.PARAM, 0), helpers_1.createParamMetadata(route_paramtypes_enum_1.RouteParamtypes.BODY, 1, [
+            helpers_1.setValidationPipe(crudOptions, enums_1.CrudValidate.CREATE),
+        ])), target, name);
+        helpers_1.setParamTypes([Object, utils_1.hasValidator ? BulkDto : {}], prototype, name);
+        helpers_1.setAction(enums_1.CrudActions.CreateMany, prototype[name]);
+        helpers_1.setSwaggerParams(prototype[name], crudOptions);
+    },
+    updateOneBase(target, name, dto, crudOptions) {
+        const prototype = target.prototype;
+        prototype[name] = function updateOneBase(id, params, body) {
+            const paramsFilter = this.getParamsFilter(params);
+            return this.service.updateOne(id, body, paramsFilter);
+        };
+        helpers_1.setParams(Object.assign({}, helpers_1.createParamMetadata(route_paramtypes_enum_1.RouteParamtypes.PARAM, 0, [helpers_1.setParseIntPipe()], 'id'), helpers_1.createParamMetadata(route_paramtypes_enum_1.RouteParamtypes.PARAM, 1), helpers_1.createParamMetadata(route_paramtypes_enum_1.RouteParamtypes.BODY, 2, [
+            helpers_1.setValidationPipe(crudOptions, enums_1.CrudValidate.UPDATE),
+        ])), target, name);
+        helpers_1.setParamTypes([Number, Object, dto], prototype, name);
+        helpers_1.setAction(enums_1.CrudActions.UpdateOne, prototype[name]);
+        helpers_1.setSwaggerParams(prototype[name], crudOptions);
+    },
+    deleteOneBase(target, name, crudOptions) {
+        const prototype = target.prototype;
+        prototype[name] = function deleteOneBase(id, params) {
+            const paramsFilter = this.getParamsFilter(params);
+            return this.service.deleteOne(id, paramsFilter);
+        };
+        helpers_1.setParams(Object.assign({}, helpers_1.createParamMetadata(route_paramtypes_enum_1.RouteParamtypes.PARAM, 0, [helpers_1.setParseIntPipe()], 'id'), helpers_1.createParamMetadata(route_paramtypes_enum_1.RouteParamtypes.PARAM, 1)), target, name);
+        helpers_1.setParamTypes([Number, Object], prototype, name);
+        helpers_1.setAction(enums_1.CrudActions.DeleteOne, prototype[name]);
+        helpers_1.setSwaggerParams(prototype[name], crudOptions);
+    },
+};
+const getBaseRoutesSchema = () => ({
+    getManyBase: {
+        name: 'getManyBase',
+        path: '/',
+        method: common_1.RequestMethod.GET,
+        enable: false,
+        override: false,
+    },
+    getOneBase: {
+        name: 'getOneBase',
+        path: '/:id',
+        method: common_1.RequestMethod.GET,
+        enable: false,
+        override: false,
+    },
+    createOneBase: {
+        name: 'createOneBase',
+        path: '/',
+        method: common_1.RequestMethod.POST,
+        enable: false,
+        override: false,
+    },
+    createManyBase: {
+        name: 'createManyBase',
+        path: '/bulk',
+        method: common_1.RequestMethod.POST,
+        enable: false,
+        override: false,
+    },
+    updateOneBase: {
+        name: 'updateOneBase',
+        path: '/:id',
+        method: common_1.RequestMethod.PATCH,
+        enable: false,
+        override: false,
+    },
+    deleteOneBase: {
+        name: 'deleteOneBase',
+        path: '/:id',
+        method: common_1.RequestMethod.DELETE,
+        enable: false,
+        override: false,
+    },
+});
 exports.Crud = (dto, crudOptions = {}) => (target) => {
     const prototype = target.prototype;
-    const baseRoutes = {
-        getManyBase: {
-            name: 'getManyBase',
-            path: '/',
-            method: common_1.RequestMethod.GET,
-        },
-        getOneBase: {
-            name: 'getOneBase',
-            path: '/:id',
-            method: common_1.RequestMethod.GET,
-        },
-        createOneBase: {
-            name: 'createOneBase',
-            path: '/',
-            method: common_1.RequestMethod.POST,
-        },
-        createManyBase: {
-            name: 'createManyBase',
-            path: '/bulk',
-            method: common_1.RequestMethod.POST,
-        },
-        updateOneBase: {
-            name: 'updateOneBase',
-            path: '/:id',
-            method: common_1.RequestMethod.PATCH,
-        },
-        deleteOneBase: {
-            name: 'deleteOneBase',
-            path: '/:id',
-            method: common_1.RequestMethod.DELETE,
-        },
-    };
+    const baseRoutes = getBaseRoutesSchema();
     getParamsFilterInit(prototype, crudOptions);
     getMergedOptionsInit(prototype, crudOptions);
-    getManyBaseInit(target, baseRoutes.getManyBase.name, dto, crudOptions);
-    getOneBaseInit(target, baseRoutes.getOneBase.name, dto, crudOptions);
-    createOneBaseInit(target, baseRoutes.createOneBase.name, dto, crudOptions);
-    createManyBaseInit(target, baseRoutes.createManyBase.name, dto, crudOptions);
-    updateOneBaseInit(target, baseRoutes.updateOneBase.name, dto, crudOptions);
-    deleteOneBaseInit(target, baseRoutes.deleteOneBase.name, crudOptions);
+    Object.keys(baseRoutes).forEach((name) => {
+        const route = baseRoutes[name];
+        if (helpers_1.enableRoute(route.name, crudOptions)) {
+            route.name !== 'deleteOneBase'
+                ? baseRoutesInit[route.name](target, route.name, dto, crudOptions)
+                : baseRoutesInit[route.name](target, route.name, crudOptions);
+            route.enable = true;
+        }
+    });
     Object.getOwnPropertyNames(prototype).forEach((name) => {
         const overrided = helpers_1.getOverrideMetadata(prototype[name]);
         const route = baseRoutes[overrided];
-        if (overrided && route) {
+        if (overrided && route && route.enable) {
             const interceptors = helpers_1.getInterceptors(prototype[name]) || [];
             const baseInterceptors = helpers_1.getInterceptors(prototype[overrided]) || [];
             const baseAction = helpers_1.getAction(prototype[overrided]);
@@ -74,7 +181,7 @@ exports.Crud = (dto, crudOptions = {}) => (target) => {
     });
     Object.keys(baseRoutes).forEach((name) => {
         const route = baseRoutes[name];
-        if (!route.override) {
+        if (!route.override && route.enable) {
             helpers_1.setRoute(route.path, route.method, prototype[route.name]);
         }
     });
@@ -83,95 +190,6 @@ exports.Override = (name) => (target, key, descriptor) => {
     Reflect.defineMetadata(constants_1.OVERRIDE_METHOD_METADATA, name || `${key}Base`, target[key]);
     return descriptor;
 };
-function getManyBaseInit(target, name, dto, crudOptions) {
-    const prototype = target.prototype;
-    prototype[name] = function getManyBase(params, query) {
-        const mergedOptions = this.getMergedOptions(params);
-        return this.service.getMany(query, mergedOptions);
-    };
-    helpers_1.setParams(Object.assign({}, helpers_1.createParamMetadata(route_paramtypes_enum_1.RouteParamtypes.PARAM, 0), helpers_1.createParamMetadata(route_paramtypes_enum_1.RouteParamtypes.QUERY, 1)), target, name);
-    helpers_1.setParamTypes([Object, dto_1.RestfulParamsDto], prototype, name);
-    helpers_1.setInterceptors([interceptors_1.RestfulQueryInterceptor], prototype[name]);
-    helpers_1.setAction(enums_1.CrudActions.ReadAll, prototype[name]);
-    helpers_1.setSwaggerParams(prototype[name], crudOptions);
-    helpers_1.setSwaggerQueryGetMany(prototype[name], dto.name);
-}
-function getOneBaseInit(target, name, dto, crudOptions) {
-    const prototype = target.prototype;
-    prototype[name] = function getOneBase(id, params, query) {
-        const mergedOptions = this.getMergedOptions(params);
-        return this.service.getOne(id, query, mergedOptions);
-    };
-    helpers_1.setParams(Object.assign({}, helpers_1.createParamMetadata(route_paramtypes_enum_1.RouteParamtypes.PARAM, 0, [helpers_1.setParseIntPipe()], 'id'), helpers_1.createParamMetadata(route_paramtypes_enum_1.RouteParamtypes.PARAM, 1), helpers_1.createParamMetadata(route_paramtypes_enum_1.RouteParamtypes.QUERY, 2)), target, name);
-    helpers_1.setParamTypes([Number, Object, dto_1.RestfulParamsDto], prototype, name);
-    helpers_1.setInterceptors([interceptors_1.RestfulQueryInterceptor], prototype[name]);
-    helpers_1.setAction(enums_1.CrudActions.ReadOne, prototype[name]);
-    helpers_1.setSwaggerParams(prototype[name], crudOptions);
-    helpers_1.setSwaggerQueryGetOne(prototype[name], dto.name);
-}
-function createOneBaseInit(target, name, dto, crudOptions) {
-    const prototype = target.prototype;
-    prototype[name] = function createOneBase(params, body) {
-        const paramsFilter = this.getParamsFilter(params);
-        return this.service.createOne(body, paramsFilter);
-    };
-    helpers_1.setParams(Object.assign({}, helpers_1.createParamMetadata(route_paramtypes_enum_1.RouteParamtypes.PARAM, 0), helpers_1.createParamMetadata(route_paramtypes_enum_1.RouteParamtypes.BODY, 1, [
-        helpers_1.setValidationPipe(crudOptions, enums_1.CrudValidate.CREATE),
-    ])), target, name);
-    helpers_1.setParamTypes([Object, dto], prototype, name);
-    helpers_1.setAction(enums_1.CrudActions.CreateOne, prototype[name]);
-    helpers_1.setSwaggerParams(prototype[name], crudOptions);
-}
-function createManyBaseInit(target, name, dto, crudOptions) {
-    const prototype = target.prototype;
-    prototype[name] = function createManyBase(params, body) {
-        const paramsFilter = this.getParamsFilter(params);
-        return this.service.createMany(body, paramsFilter);
-    };
-    const isArray = utils_1.mockValidatorDecorator('isArray');
-    const ValidateNested = utils_1.mockValidatorDecorator('ValidateNested');
-    const IsNotEmpty = utils_1.mockValidatorDecorator('IsNotEmpty');
-    const Type = utils_1.mockTransformerDecorator('Type');
-    class BulkDto {
-    }
-    __decorate([
-        isArray({ each: true, groups: [enums_1.CrudValidate.CREATE] }),
-        IsNotEmpty({ groups: [enums_1.CrudValidate.CREATE] }),
-        ValidateNested({ each: true, groups: [enums_1.CrudValidate.CREATE] }),
-        Type((t) => dto),
-        __metadata("design:type", Array)
-    ], BulkDto.prototype, "bulk", void 0);
-    helpers_1.setParams(Object.assign({}, helpers_1.createParamMetadata(route_paramtypes_enum_1.RouteParamtypes.PARAM, 0), helpers_1.createParamMetadata(route_paramtypes_enum_1.RouteParamtypes.BODY, 1, [
-        helpers_1.setValidationPipe(crudOptions, enums_1.CrudValidate.CREATE),
-    ])), target, name);
-    helpers_1.setParamTypes([Object, utils_1.hasValidator ? BulkDto : {}], prototype, name);
-    helpers_1.setAction(enums_1.CrudActions.CreateMany, prototype[name]);
-    helpers_1.setSwaggerParams(prototype[name], crudOptions);
-}
-function updateOneBaseInit(target, name, dto, crudOptions) {
-    const prototype = target.prototype;
-    prototype[name] = function updateOneBase(id, params, body) {
-        const paramsFilter = this.getParamsFilter(params);
-        return this.service.updateOne(id, body, paramsFilter);
-    };
-    helpers_1.setParams(Object.assign({}, helpers_1.createParamMetadata(route_paramtypes_enum_1.RouteParamtypes.PARAM, 0, [helpers_1.setParseIntPipe()], 'id'), helpers_1.createParamMetadata(route_paramtypes_enum_1.RouteParamtypes.PARAM, 1), helpers_1.createParamMetadata(route_paramtypes_enum_1.RouteParamtypes.BODY, 2, [
-        helpers_1.setValidationPipe(crudOptions, enums_1.CrudValidate.UPDATE),
-    ])), target, name);
-    helpers_1.setParamTypes([Number, Object, dto], prototype, name);
-    helpers_1.setAction(enums_1.CrudActions.UpdateOne, prototype[name]);
-    helpers_1.setSwaggerParams(prototype[name], crudOptions);
-}
-function deleteOneBaseInit(target, name, crudOptions) {
-    const prototype = target.prototype;
-    prototype[name] = function deleteOneBase(id, params) {
-        const paramsFilter = this.getParamsFilter(params);
-        return this.service.deleteOne(id, paramsFilter);
-    };
-    helpers_1.setParams(Object.assign({}, helpers_1.createParamMetadata(route_paramtypes_enum_1.RouteParamtypes.PARAM, 0, [helpers_1.setParseIntPipe()], 'id'), helpers_1.createParamMetadata(route_paramtypes_enum_1.RouteParamtypes.PARAM, 1)), target, name);
-    helpers_1.setParamTypes([Number, Object], prototype, name);
-    helpers_1.setAction(enums_1.CrudActions.DeleteOne, prototype[name]);
-    helpers_1.setSwaggerParams(prototype[name], crudOptions);
-}
 function getParamsFilterInit(prototype, crudOptions) {
     prototype['getParamsFilter'] = function getParamsFilter(params) {
         if (!crudOptions.params || !params) {

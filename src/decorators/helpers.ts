@@ -10,6 +10,7 @@ import {
 
 import { CrudActions, CrudValidate } from '../enums';
 import { CrudOptions } from '../interfaces';
+import { BaseRouteName } from '../types';
 import { ACTION_NAME_METADATA, OVERRIDE_METHOD_METADATA } from '../constants';
 import { swagger, hasValidator, hasTypeorm } from '../utils';
 
@@ -196,6 +197,22 @@ export function setValidationPipe(crudOptions: CrudOptions, group: CrudValidate)
 
 export function setParseIntPipe() {
   return hasTypeorm ? new ParseIntPipe() : undefined;
+}
+
+export function enableRoute(name: BaseRouteName, crudOptions: CrudOptions) {
+  if (!crudOptions.routes) {
+    return true;
+  }
+
+  if (crudOptions.routes.only && crudOptions.routes.only.length) {
+    return crudOptions.routes.only.some((only) => only === name);
+  }
+
+  if (crudOptions.routes.exclude && crudOptions.routes.exclude.length) {
+    return !crudOptions.routes.exclude.some((exclude) => exclude === name);
+  }
+
+  return true;
 }
 
 function setSwagger(params: any[], func: Function) {

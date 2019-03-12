@@ -9,7 +9,7 @@ import {
   JoinParamParsed,
 } from '../interfaces';
 import { RequestQueryParams } from '../interfaces/request-query-params.interface';
-import { ComparisonOperator } from '../operators.list';
+import { ComparisonOperator } from '../types';
 
 @Injectable()
 export class RestfulQueryInterceptor implements NestInterceptor {
