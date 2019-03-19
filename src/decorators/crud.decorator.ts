@@ -1,5 +1,6 @@
 import { RequestMethod } from '@nestjs/common';
 import { RouteParamtypes } from '@nestjs/common/enums/route-paramtypes.enum';
+import { isNil } from '@nestjs/common/utils/shared.utils';
 
 import { RestfulParamsDto } from '../dto';
 import { CrudActions, CrudValidate } from '../enums';
@@ -46,9 +47,8 @@ const baseRoutesInit = {
     const prototype = (target as any).prototype;
 
     prototype[name] = function getManyBase(params: ObjectLiteral, query: RestfulParamsDto) {
-      const mergedOptions = this.getMergedOptions(params);
-
-      return this.service.getMany(query, mergedOptions);
+      const options = this.getOptions(params);
+      return this.service.getMany(query, options);
     };
 
     setParams(
@@ -72,21 +72,16 @@ const baseRoutesInit = {
   getOneBase(target: object, name: string, dto: any, crudOptions: CrudOptions) {
     const prototype = (target as any).prototype;
 
-    prototype[name] = function getOneBase(
-      id: string,
-      params: ObjectLiteral,
-      query: RestfulParamsDto,
-    ) {
-      const mergedOptions = this.getMergedOptions(params);
-
-      return this.service.getOne(id, query, mergedOptions);
+    prototype[name] = function getOneBase(params: ObjectLiteral, query: RestfulParamsDto) {
+      const options = this.getOptions(params);
+      return this.service.getOne(query, options);
     };
 
     setParams(
       {
-        ...createParamMetadata(RouteParamtypes.PARAM, 0, [setParseIntPipe()], 'id'),
-        ...createParamMetadata(RouteParamtypes.PARAM, 1),
-        ...createParamMetadata(RouteParamtypes.QUERY, 2),
+        // ...createParamMetadata(RouteParamtypes.PARAM, 0, [setParseIntPipe()], 'id'),
+        ...createParamMetadata(RouteParamtypes.PARAM, 0),
+        ...createParamMetadata(RouteParamtypes.QUERY, 1),
       },
       target,
       name,
@@ -272,9 +267,14 @@ export const Crud = (dto: any, crudOptions: CrudOptions = {}) => (target: object
   const prototype = (target as any).prototype;
   const baseRoutes = getBaseRoutesSchema();
 
+  // set slug
+  if (!crudOptions.slug) {
+    crudOptions.slug = { field: 'id', type: 'number' };
+  }
+
   // set helpers
   getParamsFilterInit(prototype, crudOptions);
-  getMergedOptionsInit(prototype, crudOptions);
+  getOptionsInit(prototype, crudOptions);
 
   // set routes
   Object.keys(baseRoutes).forEach((name) => {
@@ -329,31 +329,46 @@ export const Override = (name?: BaseRouteName) => (target, key, descriptor: Prop
 };
 
 // Helpers
+
 function getParamsFilterInit(prototype: any, crudOptions: CrudOptions) {
   prototype['getParamsFilter'] = function getParamsFilter(
     params: ObjectLiteral,
   ): FilterParamParsed[] {
-    if (!crudOptions.params || !params) {
+    if (!params || !Object.keys(params).length) {
       return [];
     }
 
+    // set params filter
     const isArray = Array.isArray(crudOptions.params);
+    const paramsFilter = !isNil(crudOptions.params)
+      ? (isArray ? crudOptions.params : Object.keys(crudOptions.params))
+          .filter((field) => !!params[field])
+          .map(
+            (field) =>
+              ({
+                field: isArray ? field : crudOptions.params[field],
+                operator: 'eq',
+                value: params[field],
+              } as FilterParamParsed),
+          )
+      : [];
 
-    return (isArray ? crudOptions.params : Object.keys(crudOptions.params))
-      .filter((field) => !!params[field])
-      .map(
-        (field) =>
-          ({
-            field: isArray ? field : crudOptions.params[field],
+    // return with added slug filter if exists
+    return !isNil(params[crudOptions.slug.field])
+      ? [
+          {
+            field: crudOptions.slug.field,
             operator: 'eq',
-            value: params[field],
-          } as FilterParamParsed),
-      );
+            value: params[crudOptions.slug.field],
+          },
+          ...paramsFilter,
+        ]
+      : paramsFilter;
   };
 }
 
-function getMergedOptionsInit(prototype: any, crudOptions: CrudOptions) {
-  prototype['getMergedOptions'] = function getMergedOptions(params: ObjectLiteral) {
+function getOptionsInit(prototype: any, crudOptions: CrudOptions) {
+  prototype['getOptions'] = function getOptions(params: ObjectLiteral) {
     const paramsFilter = this.getParamsFilter(params);
     const options = Object.assign({}, crudOptions.options || {});
     const optionsFilter = options.filter || [];

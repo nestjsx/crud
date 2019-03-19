@@ -11,7 +11,7 @@ export declare class RepositoryService<T> extends RestfulService<T> {
     private readonly entityType;
     private readonly alias;
     getMany(query?: RequestParamsParsed, options?: RestfulOptions): Promise<T[]>;
-    getOne(id: number, { fields, join, cache }?: RequestParamsParsed, options?: RestfulOptions): Promise<T>;
+    getOne({ fields, join, cache }?: RequestParamsParsed, options?: RestfulOptions): Promise<T>;
     createOne(data: DeepPartial<T>, paramsFilter?: FilterParamParsed[]): Promise<T>;
     createMany(data: {
         bulk: DeepPartial<T>[];

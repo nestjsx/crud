@@ -35,10 +35,9 @@ class RepositoryService extends restful_service_class_1.RestfulService {
             return builder.getMany();
         });
     }
-    getOne(id, { fields, join, cache } = {}, options = {}) {
+    getOne({ fields, join, cache } = {}, options = {}) {
         return __awaiter(this, void 0, void 0, function* () {
             return this.getOneOrFail({
-                filter: [{ field: 'id', operator: 'eq', value: id }],
                 fields,
                 join,
                 cache,
@@ -86,9 +85,9 @@ class RepositoryService extends restful_service_class_1.RestfulService {
             const deleted = yield this.repo.remove(found);
         });
     }
-    getOneOrFail({ filter, fields, join, cache } = {}, options = {}) {
+    getOneOrFail({ fields, join, cache } = {}, options = {}) {
         return __awaiter(this, void 0, void 0, function* () {
-            const builder = yield this.buildQuery({ filter, fields, join, cache }, options, false);
+            const builder = yield this.buildQuery({ fields, join, cache }, options, false);
             const found = yield builder.getOne();
             if (!found) {
                 this.throwNotFoundException(this.alias);
@@ -251,9 +250,10 @@ class RepositoryService extends restful_service_class_1.RestfulService {
             const paths = fields.slice(0, fields.length - 1);
             let relations = this.repo.metadata.relations;
             for (const propertyName of paths) {
-                relations = relations.find(o => o.propertyName === propertyName).inverseEntityMetadata.relations;
+                relations = relations.find((o) => o.propertyName === propertyName).inverseEntityMetadata
+                    .relations;
             }
-            const relation = relations.find(o => o.propertyName === target);
+            const relation = relations.find((o) => o.propertyName === target);
             relation.nestedRelation = `${fields[fields.length - 2]}.${target}`;
             return relation;
         }

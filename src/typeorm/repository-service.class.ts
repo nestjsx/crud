@@ -4,7 +4,13 @@ import { plainToClass } from 'class-transformer';
 import { ClassType } from 'class-transformer/ClassTransformer';
 
 import { RestfulService } from '../classes/restful-service.class';
-import { FilterParamParsed, JoinOptions, JoinParamParsed, RequestParamsParsed, RestfulOptions } from '../interfaces';
+import {
+  FilterParamParsed,
+  JoinOptions,
+  JoinParamParsed,
+  RequestParamsParsed,
+  RestfulOptions,
+} from '../interfaces';
 import { ObjectLiteral } from '../interfaces/object-literal.interface';
 import { isArrayFull } from '../utils';
 import { RelationMetadata } from 'typeorm/metadata/RelationMetadata';
@@ -51,13 +57,11 @@ export class RepositoryService<T> extends RestfulService<T> {
    * @param options
    */
   public async getOne(
-    id: number,
     { fields, join, cache }: RequestParamsParsed = {},
     options: RestfulOptions = {},
   ): Promise<T> {
     return this.getOneOrFail(
       {
-        filter: [{ field: 'id', operator: 'eq', value: id }],
         fields,
         join,
         cache,
@@ -143,10 +147,10 @@ export class RepositoryService<T> extends RestfulService<T> {
   }
 
   private async getOneOrFail(
-    { filter, fields, join, cache }: RequestParamsParsed = {},
+    { fields, join, cache }: RequestParamsParsed = {},
     options: RestfulOptions = {},
   ): Promise<T> {
-    const builder = await this.buildQuery({ filter, fields, join, cache }, options, false);
+    const builder = await this.buildQuery({ fields, join, cache }, options, false);
     const found = await builder.getOne();
 
     if (!found) {
@@ -378,10 +382,13 @@ export class RepositoryService<T> extends RestfulService<T> {
       let relations = this.repo.metadata.relations;
 
       for (const propertyName of paths) {
-        relations = relations.find(o => o.propertyName === propertyName).inverseEntityMetadata.relations;
+        relations = relations.find((o) => o.propertyName === propertyName).inverseEntityMetadata
+          .relations;
       }
 
-      const relation: RelationMetadata & { nestedRelation?: string } = relations.find(o => o.propertyName === target);
+      const relation: RelationMetadata & { nestedRelation?: string } = relations.find(
+        (o) => o.propertyName === target,
+      );
 
       relation.nestedRelation = `${fields[fields.length - 2]}.${target}`;
 
@@ -404,8 +411,8 @@ export class RepositoryService<T> extends RestfulService<T> {
         type: this.getJoinType(curr.relationType),
         columns: curr.inverseEntityMetadata.columns.map((col) => col.propertyName),
         referencedColumn: (curr.joinColumns.length
-            ? curr.joinColumns[0]
-            : curr.inverseRelation.joinColumns[0]
+          ? curr.joinColumns[0]
+          : curr.inverseRelation.joinColumns[0]
         ).referencedColumn.propertyName,
         nestedRelation: curr.nestedRelation,
       };

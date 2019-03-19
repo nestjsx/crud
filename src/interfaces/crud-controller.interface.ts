@@ -5,11 +5,11 @@ import { RestfulService } from '../classes/restful-service.class';
 export interface CrudController<S extends RestfulService<T>, T> {
   service: S;
   getManyBase?(params: ObjectLiteral, query: RestfulParamsDto): Promise<T[]>;
-  getOneBase?(id: number, params: ObjectLiteral, query: RestfulParamsDto): Promise<T>;
+  getOneBase?(params: ObjectLiteral, query: RestfulParamsDto): Promise<T>;
   createOneBase?(params: ObjectLiteral, dto: T): Promise<T>;
   createManyBase?(params: ObjectLiteral, dto: EntitiesBulk<T>): Promise<T[]>;
-  updateOneBase?(id: number, params: ObjectLiteral, dto: T): Promise<T>;
-  deleteOneBase?(id: number, params: ObjectLiteral): Promise<void>;
+  updateOneBase?(id: number | string, params: ObjectLiteral, dto: T): Promise<T>;
+  deleteOneBase?(id: number | string, params: ObjectLiteral): Promise<void>;
 }
 
 export interface EntitiesBulk<T> {
