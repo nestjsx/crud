@@ -124,8 +124,10 @@ export class RepositoryService<T> extends RestfulService<T> {
     paramsFilter: FilterParamParsed[] = [],
   ): Promise<T> {
     // we need this, because TypeOrm will try to insert if no data found by id
+    console.log(paramsFilter, data);
     const item: any = await this.getOneOrFail({
       filter: [{ field: 'id', operator: 'eq', value: id }, ...paramsFilter],
+      fields: [...Object.keys(data.$push), ...(data.fields || [])],
     });
     if (data.$push) {
       Object.keys( data.$push )

@@ -268,6 +268,7 @@ function updateOneBaseInit(target: object, name: string, dto: any, crudOptions: 
   const prototype = (target as any).prototype;
 
   prototype[name] = function updateOneBase(id: string, params: ObjectLiteral, body) {
+    console.log('obj', params);
     const paramsFilter = this.getParamsFilter(params);
 
     return this.service.updateOne(id, body, paramsFilter);
