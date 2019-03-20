@@ -129,7 +129,7 @@ export class RepositoryService<T> extends RestfulService<T> {
   public async updateOne(
     data: DeepPartial<T>,
     params: FilterParamParsed[] = [],
-    routesOptions: RoutesOptions,
+    routesOptions: RoutesOptions = {},
   ): Promise<T> {
     const found = await this.getOneOrFail({}, { filter: params });
 
@@ -149,7 +149,7 @@ export class RepositoryService<T> extends RestfulService<T> {
    */
   public async deleteOne(
     params: FilterParamParsed[],
-    routesOptions: RoutesOptions,
+    routesOptions: RoutesOptions = {},
   ): Promise<void | T> {
     const found = await this.getOneOrFail({}, { filter: params });
     const deleted = await this.repo.remove(found);
