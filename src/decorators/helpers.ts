@@ -6,6 +6,7 @@ import {
   INTERCEPTORS_METADATA,
   ROUTE_ARGS_METADATA,
   PARAMTYPES_METADATA,
+  CUSTOM_ROUTE_AGRS_METADATA,
 } from '@nestjs/common/constants';
 
 import { CrudActions, CrudValidate } from '../enums';
@@ -36,21 +37,15 @@ export function setAction(action: CrudActions, func: Function) {
 }
 
 export function setSwaggerParams(func: Function, crudOptions: CrudOptions) {
-  if (swagger && crudOptions.params) {
-    const list = Array.isArray(crudOptions.params)
-      ? crudOptions.params
-      : Object.keys(crudOptions.params);
+  if (swagger) {
+    const params = Object.keys(crudOptions.params).map((key) => ({
+      name: key,
+      required: true,
+      in: 'path',
+      type: crudOptions.params[key] === 'number' ? Number : String,
+    }));
 
-    if (list.length) {
-      const params = list.map((name: string) => ({
-        name,
-        required: true,
-        in: 'path',
-        type: Number,
-      }));
-
-      setSwagger(params, func);
-    }
+    setSwagger(params, func);
   }
 }
 
@@ -171,6 +166,22 @@ export function createParamMetadata(
   };
 }
 
+export function createCustomRequestParamMetadata(
+  paramtype: string,
+  index: number,
+  pipes: any[] = [],
+  data = undefined,
+): any {
+  return {
+    [`${paramtype}${CUSTOM_ROUTE_AGRS_METADATA}:${index}`]: {
+      index,
+      factory: (data, req) => req[paramtype],
+      data,
+      pipes,
+    },
+  };
+}
+
 export function getOverrideMetadata(func: Function): string {
   return Reflect.getMetadata(OVERRIDE_METHOD_METADATA, func);
 }
@@ -181,6 +192,10 @@ export function getInterceptors(func: Function): any[] {
 
 export function getAction(func: Function): CrudActions {
   return Reflect.getMetadata(ACTION_NAME_METADATA, func);
+}
+
+export function getControllerPath(target): string {
+  return Reflect.getMetadata(PATH_METADATA, target);
 }
 
 export function setValidationPipe(crudOptions: CrudOptions, group: CrudValidate) {

@@ -10,6 +10,8 @@ import {
   JoinParamParsed,
   RequestParamsParsed,
   RestfulOptions,
+  RoutesOptions,
+  GetManyDefaultResponse,
 } from '../interfaces';
 import { ObjectLiteral } from '../interfaces/object-literal.interface';
 import { isArrayFull } from '../utils';
@@ -45,9 +47,19 @@ export class RepositoryService<T> extends RestfulService<T> {
   public async getMany(
     query: RequestParamsParsed = {},
     options: RestfulOptions = {},
-  ): Promise<T[]> {
+  ): Promise<GetManyDefaultResponse<T>> {
     const builder = await this.buildQuery(query, options);
-    return builder.getMany();
+    const [data, total] = await Promise.all([builder.getMany(), builder.getCount()]);
+    const mergedOptions = Object.assign({}, this.options, options);
+    const limit = this.getTake(query, mergedOptions);
+
+    return {
+      data,
+      count: data.length,
+      total,
+      page: query.page || 1,
+      pageCount: limit && total ? Math.round(total / limit) : undefined,
+    };
   }
 
   /**
@@ -73,10 +85,10 @@ export class RepositoryService<T> extends RestfulService<T> {
   /**
    * Create one entity
    * @param data
-   * @param paramsFilter
+   * @param params
    */
-  public async createOne(data: DeepPartial<T>, paramsFilter: FilterParamParsed[] = []): Promise<T> {
-    const entity = this.plainToClass(data, paramsFilter);
+  public async createOne(data: T, params: FilterParamParsed[]): Promise<T> {
+    const entity = this.plainToClass(data, params);
 
     if (!entity) {
       this.throwBadRequestException(`Empty data. Nothing to save.`);
@@ -92,14 +104,14 @@ export class RepositoryService<T> extends RestfulService<T> {
    */
   public async createMany(
     data: { bulk: DeepPartial<T>[] },
-    paramsFilter: FilterParamParsed[] = [],
+    params: FilterParamParsed[] = [],
   ): Promise<T[]> {
     if (!data || !data.bulk || !data.bulk.length) {
       this.throwBadRequestException(`Empty data. Nothing to save.`);
     }
 
     const bulk = data.bulk
-      .map((one) => this.plainToClass(one, paramsFilter))
+      .map((one) => this.plainToClass(<any>one, params))
       .filter((d) => isObject(d));
 
     if (!bulk.length) {
@@ -111,39 +123,45 @@ export class RepositoryService<T> extends RestfulService<T> {
 
   /**
    * Update one entity
-   * @param id
    * @param data
-   * @param paramsFilter
+   * @param params
    */
   public async updateOne(
-    id: number,
     data: DeepPartial<T>,
-    paramsFilter: FilterParamParsed[] = [],
+    params: FilterParamParsed[] = [],
+    routesOptions: RoutesOptions,
   ): Promise<T> {
-    // we need this, because TypeOrm will try to insert if no data found by id
-    const found = await this.getOneOrFail({
-      filter: [{ field: 'id', operator: 'eq', value: id }, ...paramsFilter],
-    });
+    const found = await this.getOneOrFail({}, { filter: params });
 
-    data['id'] = id;
-    const entity = this.plainToClass(data, paramsFilter);
+    // make sure params not override
+    if (params.length && !routesOptions.updateOneBase.allowParamsOverride) {
+      for (const filter of params) {
+        data[filter.field] = filter.value;
+      }
+    }
 
-    // we use save and not update because
-    // we might want to update relational entities
-    return this.repo.save<any>(entity);
+    return this.repo.save<any>({ ...found, ...data });
   }
 
   /**
    * Delete one entity
-   * @param id
-   * @param paramsFilter
+   * @param params
    */
-  public async deleteOne(id: number, paramsFilter: FilterParamParsed[] = []): Promise<void> {
-    const found = await this.getOneOrFail({
-      filter: [{ field: 'id', operator: 'eq', value: id }, ...paramsFilter],
-    });
-
+  public async deleteOne(
+    params: FilterParamParsed[],
+    routesOptions: RoutesOptions,
+  ): Promise<void | T> {
+    const found = await this.getOneOrFail({}, { filter: params });
     const deleted = await this.repo.remove(found);
+
+    if (routesOptions.deleteOneBase.returnDeleted) {
+      // set params, because id is undefined
+      for (const filter of params) {
+        deleted[filter.field] = filter.value;
+      }
+
+      return deleted;
+    }
   }
 
   private async getOneOrFail(
@@ -294,13 +312,13 @@ export class RepositoryService<T> extends RestfulService<T> {
     return builder;
   }
 
-  private plainToClass(data: DeepPartial<T>, paramsFilter: FilterParamParsed[] = []): T {
+  private plainToClass(data: T, params: FilterParamParsed[] = []): T {
     if (!isObject(data)) {
       return undefined;
     }
 
-    if (paramsFilter.length) {
-      for (const filter of paramsFilter) {
+    if (params.length) {
+      for (const filter of params) {
         data[filter.field] = filter.value;
       }
     }

@@ -1,14 +1,13 @@
-import { Controller } from '@nestjs/common';
+import { Controller, Param } from '@nestjs/common';
 import { ApiUseTags } from '@nestjs/swagger';
-import { Crud, CrudController } from '@nestjsx/crud';
+import { Crud, CrudController, Override, ParsedQuery, ParsedOptions } from '@nestjsx/crud';
 
 import { Company } from './company.entity';
 import { CompaniesService } from './companies.service';
 
 @Crud(Company, {
-  routes: {
-    exclude: ['deleteOneBase'],
-  },
+  params: {},
+  routes: {},
   options: {
     join: {
       users: {
@@ -22,6 +21,15 @@ import { CompaniesService } from './companies.service';
 })
 @ApiUseTags('companies')
 @Controller('companies')
-export class CompaniesController implements CrudController<CompaniesService, Company> {
+export class CompaniesController {
   constructor(public service: CompaniesService) {}
+
+  get base(): CrudController<CompaniesService, Company> {
+    return this;
+  }
+
+  @Override()
+  async getOne(@ParsedQuery() query, @ParsedOptions() options) {
+    return this.base.getOneBase(query, options);
+  }
 }

@@ -1,6 +1,6 @@
 import { DeepPartial, Repository } from 'typeorm';
 import { RestfulService } from '../classes/restful-service.class';
-import { FilterParamParsed, RequestParamsParsed, RestfulOptions } from '../interfaces';
+import { FilterParamParsed, RequestParamsParsed, RestfulOptions, RoutesOptions, GetManyDefaultResponse } from '../interfaces';
 export declare class RepositoryService<T> extends RestfulService<T> {
     protected repo: Repository<T>;
     protected options: RestfulOptions;
@@ -10,14 +10,14 @@ export declare class RepositoryService<T> extends RestfulService<T> {
     constructor(repo: Repository<T>);
     private readonly entityType;
     private readonly alias;
-    getMany(query?: RequestParamsParsed, options?: RestfulOptions): Promise<T[]>;
+    getMany(query?: RequestParamsParsed, options?: RestfulOptions): Promise<GetManyDefaultResponse<T>>;
     getOne({ fields, join, cache }?: RequestParamsParsed, options?: RestfulOptions): Promise<T>;
-    createOne(data: DeepPartial<T>, paramsFilter?: FilterParamParsed[]): Promise<T>;
+    createOne(data: T, params: FilterParamParsed[]): Promise<T>;
     createMany(data: {
         bulk: DeepPartial<T>[];
-    }, paramsFilter?: FilterParamParsed[]): Promise<T[]>;
-    updateOne(id: number, data: DeepPartial<T>, paramsFilter?: FilterParamParsed[]): Promise<T>;
-    deleteOne(id: number, paramsFilter?: FilterParamParsed[]): Promise<void>;
+    }, params?: FilterParamParsed[]): Promise<T[]>;
+    updateOne(data: DeepPartial<T>, params: FilterParamParsed[], routesOptions: RoutesOptions): Promise<T>;
+    deleteOne(params: FilterParamParsed[], routesOptions: RoutesOptions): Promise<void | T>;
     private getOneOrFail;
     private buildQuery;
     private plainToClass;

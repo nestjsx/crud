@@ -26,19 +26,14 @@ function setAction(action, func) {
 }
 exports.setAction = setAction;
 function setSwaggerParams(func, crudOptions) {
-    if (utils_1.swagger && crudOptions.params) {
-        const list = Array.isArray(crudOptions.params)
-            ? crudOptions.params
-            : Object.keys(crudOptions.params);
-        if (list.length) {
-            const params = list.map((name) => ({
-                name,
-                required: true,
-                in: 'path',
-                type: Number,
-            }));
-            setSwagger(params, func);
-        }
+    if (utils_1.swagger) {
+        const params = Object.keys(crudOptions.params).map((key) => ({
+            name: key,
+            required: true,
+            in: 'path',
+            type: crudOptions.params[key] === 'number' ? Number : String,
+        }));
+        setSwagger(params, func);
     }
 }
 exports.setSwaggerParams = setSwaggerParams;
@@ -152,6 +147,17 @@ function createParamMetadata(paramtype, index, pipes = [], data = undefined) {
     };
 }
 exports.createParamMetadata = createParamMetadata;
+function createCustomRequestParamMetadata(paramtype, index, pipes = [], data = undefined) {
+    return {
+        [`${paramtype}${constants_1.CUSTOM_ROUTE_AGRS_METADATA}:${index}`]: {
+            index,
+            factory: (data, req) => req[paramtype],
+            data,
+            pipes,
+        },
+    };
+}
+exports.createCustomRequestParamMetadata = createCustomRequestParamMetadata;
 function getOverrideMetadata(func) {
     return Reflect.getMetadata(constants_2.OVERRIDE_METHOD_METADATA, func);
 }
@@ -164,6 +170,10 @@ function getAction(func) {
     return Reflect.getMetadata(constants_2.ACTION_NAME_METADATA, func);
 }
 exports.getAction = getAction;
+function getControllerPath(target) {
+    return Reflect.getMetadata(constants_1.PATH_METADATA, target);
+}
+exports.getControllerPath = getControllerPath;
 function setValidationPipe(crudOptions, group) {
     const options = crudOptions.validation || {};
     return utils_1.hasValidator

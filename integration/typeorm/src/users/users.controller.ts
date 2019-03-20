@@ -7,11 +7,20 @@ import { UsersService } from './users.service';
 
 @Crud(User, {
   routes: {
-    only: ['getManyBase'],
+    exclude: ['createManyBase'],
+    getManyBase: {
+      interceptors: [],
+    },
+    updateOneBase: {
+      allowParamsOverride: false,
+    },
+    deleteOneBase: {
+      returnDeleted: true,
+    },
   },
-  slug: {
-    field: 'id',
-    type: 'number',
+  params: {
+    companyId: 'number',
+    id: 'number',
   },
   options: {
     exclude: ['password'],
@@ -23,7 +32,6 @@ import { UsersService } from './users.service';
     maxLimit: 10,
     cache: 3000,
   },
-  params: ['companyId'],
   validation: {
     validationError: {
       target: false,
@@ -33,6 +41,6 @@ import { UsersService } from './users.service';
 })
 @ApiUseTags('company users')
 @Controller('/companies/:companyId/users')
-export class UsersController implements CrudController<UsersService, User> {
+export class UsersController {
   constructor(public service: UsersService) {}
 }

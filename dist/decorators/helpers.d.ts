@@ -12,9 +12,11 @@ export declare function setSwaggerParams(func: Function, crudOptions: CrudOption
 export declare function setSwaggerQueryGetOne(func: Function, name: string): void;
 export declare function setSwaggerQueryGetMany(func: Function, name: string): void;
 export declare function createParamMetadata(paramtype: RouteParamtypes, index: number, pipes?: any[], data?: any): any;
+export declare function createCustomRequestParamMetadata(paramtype: string, index: number, pipes?: any[], data?: any): any;
 export declare function getOverrideMetadata(func: Function): string;
 export declare function getInterceptors(func: Function): any[];
 export declare function getAction(func: Function): CrudActions;
+export declare function getControllerPath(target: any): string;
 export declare function setValidationPipe(crudOptions: CrudOptions, group: CrudValidate): ValidationPipe;
 export declare function setParseIntPipe(): ParseIntPipe;
 export declare function enableRoute(name: BaseRouteName, crudOptions: CrudOptions): boolean;

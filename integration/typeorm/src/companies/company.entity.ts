@@ -1,5 +1,6 @@
 import { Entity, Column, OneToMany } from 'typeorm';
 import { IsOptional, IsString, MaxLength, IsNotEmpty } from 'class-validator';
+import { Type } from 'class-transformer';
 import { CREATE_UPDATE, CrudValidate } from '@nestjsx/crud';
 
 import { BaseEntity } from '../base-entity';
@@ -35,6 +36,7 @@ export class Company extends BaseEntity {
    */
 
   @OneToMany((type) => User, (u) => u.company)
+  @Type((t) => User)
   users: User[];
 
   @OneToMany((type) => Project, (p) => p.company)

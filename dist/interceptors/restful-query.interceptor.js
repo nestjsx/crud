@@ -8,6 +8,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", { value: true });
 const common_1 = require("@nestjs/common");
 const shared_utils_1 = require("@nestjs/common/utils/shared.utils");
+const constants_1 = require("../constants");
 let RestfulQueryInterceptor = class RestfulQueryInterceptor {
     constructor() {
         this.delim = '||';
@@ -31,7 +32,7 @@ let RestfulQueryInterceptor = class RestfulQueryInterceptor {
     }
     intercept(context, call$) {
         const req = context.switchToHttp().getRequest();
-        req.query = this.transform(req.query);
+        req[constants_1.PARSED_QUERY_REQUEST_KEY] = this.transform(req.query);
         return call$;
     }
     transform(query) {

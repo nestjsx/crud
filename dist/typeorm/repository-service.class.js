@@ -32,7 +32,16 @@ class RepositoryService extends restful_service_class_1.RestfulService {
     getMany(query = {}, options = {}) {
         return __awaiter(this, void 0, void 0, function* () {
             const builder = yield this.buildQuery(query, options);
-            return builder.getMany();
+            const [data, total] = yield Promise.all([builder.getMany(), builder.getCount()]);
+            const mergedOptions = Object.assign({}, this.options, options);
+            const limit = this.getTake(query, mergedOptions);
+            return {
+                data,
+                count: data.length,
+                total,
+                page: query.page || 1,
+                pageCount: limit && total ? Math.round(total / limit) : undefined,
+            };
         });
     }
     getOne({ fields, join, cache } = {}, options = {}) {
@@ -44,22 +53,22 @@ class RepositoryService extends restful_service_class_1.RestfulService {
             }, options);
         });
     }
-    createOne(data, paramsFilter = []) {
+    createOne(data, params) {
         return __awaiter(this, void 0, void 0, function* () {
-            const entity = this.plainToClass(data, paramsFilter);
+            const entity = this.plainToClass(data, params);
             if (!entity) {
                 this.throwBadRequestException(`Empty data. Nothing to save.`);
             }
             return this.repo.save(entity);
         });
     }
-    createMany(data, paramsFilter = []) {
+    createMany(data, params = []) {
         return __awaiter(this, void 0, void 0, function* () {
             if (!data || !data.bulk || !data.bulk.length) {
                 this.throwBadRequestException(`Empty data. Nothing to save.`);
             }
             const bulk = data.bulk
-                .map((one) => this.plainToClass(one, paramsFilter))
+                .map((one) => this.plainToClass(one, params))
                 .filter((d) => shared_utils_1.isObject(d));
             if (!bulk.length) {
                 this.throwBadRequestException(`Empty data. Nothing to save.`);
@@ -67,22 +76,27 @@ class RepositoryService extends restful_service_class_1.RestfulService {
             return this.repo.save(bulk, { chunk: 50 });
         });
     }
-    updateOne(id, data, paramsFilter = []) {
+    updateOne(data, params = [], routesOptions) {
         return __awaiter(this, void 0, void 0, function* () {
-            const found = yield this.getOneOrFail({
-                filter: [{ field: 'id', operator: 'eq', value: id }, ...paramsFilter],
-            });
-            data['id'] = id;
-            const entity = this.plainToClass(data, paramsFilter);
-            return this.repo.save(entity);
+            const found = yield this.getOneOrFail({}, { filter: params });
+            if (params.length && !routesOptions.updateOneBase.allowParamsOverride) {
+                for (const filter of params) {
+                    data[filter.field] = filter.value;
+                }
+            }
+            return this.repo.save(Object.assign({}, found, data));
         });
     }
-    deleteOne(id, paramsFilter = []) {
+    deleteOne(params, routesOptions) {
         return __awaiter(this, void 0, void 0, function* () {
-            const found = yield this.getOneOrFail({
-                filter: [{ field: 'id', operator: 'eq', value: id }, ...paramsFilter],
-            });
+            const found = yield this.getOneOrFail({}, { filter: params });
             const deleted = yield this.repo.remove(found);
+            if (routesOptions.deleteOneBase.returnDeleted) {
+                for (const filter of params) {
+                    deleted[filter.field] = filter.value;
+                }
+                return deleted;
+            }
         });
     }
     getOneOrFail({ fields, join, cache } = {}, options = {}) {
@@ -185,12 +199,12 @@ class RepositoryService extends restful_service_class_1.RestfulService {
             return builder;
         });
     }
-    plainToClass(data, paramsFilter = []) {
+    plainToClass(data, params = []) {
         if (!shared_utils_1.isObject(data)) {
             return undefined;
         }
-        if (paramsFilter.length) {
-            for (const filter of paramsFilter) {
+        if (params.length) {
+            for (const filter of params) {
                 data[filter.field] = filter.value;
             }
         }

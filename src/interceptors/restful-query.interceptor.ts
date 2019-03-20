@@ -10,6 +10,7 @@ import {
 } from '../interfaces';
 import { RequestQueryParams } from '../interfaces/request-query-params.interface';
 import { ComparisonOperator } from '../types';
+import { PARSED_QUERY_REQUEST_KEY } from '../constants';
 
 @Injectable()
 export class RestfulQueryInterceptor implements NestInterceptor {
@@ -35,7 +36,7 @@ export class RestfulQueryInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, call$: Observable<any>) {
     const req = context.switchToHttp().getRequest();
 
-    req.query = this.transform(req.query);
+    req[PARSED_QUERY_REQUEST_KEY] = this.transform(req.query);
 
     return call$;
   }
