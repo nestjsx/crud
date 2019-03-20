@@ -16,8 +16,8 @@ export declare class RepositoryService<T> extends RestfulService<T> {
     createMany(data: {
         bulk: DeepPartial<T>[];
     }, params?: FilterParamParsed[]): Promise<T[]>;
-    updateOne(data: DeepPartial<T>, params: FilterParamParsed[], routesOptions: RoutesOptions): Promise<T>;
-    deleteOne(params: FilterParamParsed[], routesOptions: RoutesOptions): Promise<void | T>;
+    updateOne(data: DeepPartial<T>, params?: FilterParamParsed[], routesOptions?: RoutesOptions): Promise<T>;
+    deleteOne(params: FilterParamParsed[], routesOptions?: RoutesOptions): Promise<void | T>;
     private getOneOrFail;
     private buildQuery;
     private plainToClass;
