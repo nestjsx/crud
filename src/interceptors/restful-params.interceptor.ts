@@ -86,7 +86,7 @@ export function RestfulParamsInterceptorFactory(crudOptions: CrudOptions): Funct
      * Parse options
      * @param parsedParams
      */
-    private parseOptions(parsedParams: FilterParamParsed[]): RestfulOptions {
+    private parseOptions(parsedParams: FilterParamParsed[]): CrudOptions {
       const options = <RestfulOptions>Object.assign({}, crudOptions.options || {});
       const optionsFilter = options.filter || [];
       const filter = [...optionsFilter, ...parsedParams];
@@ -95,7 +95,7 @@ export function RestfulParamsInterceptorFactory(crudOptions: CrudOptions): Funct
         options.filter = filter;
       }
 
-      return options;
+      return { ...crudOptions, options };
     }
   }
 

@@ -16,7 +16,7 @@
     "@nestjs/swagger": "^2.5.1",
     "@nestjs/testing": "^5.5.0",
     "@nestjs/typeorm": "^5.2.2",
-    "@nestjsx/crud": "^2.0.0",
+    "@nestjsx/crud": "^3.0.0-rc.1",
     "class-transformer": "^0.2.0",
     "class-validator": "^0.9.1",
     "fastify": "^1.13.1",

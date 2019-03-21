@@ -12,6 +12,8 @@ import {
   RestfulOptions,
   RoutesOptions,
   GetManyDefaultResponse,
+  UpdateOneRouteOptions,
+  DeleteOneRouteOptions,
 } from '../interfaces';
 import { ObjectLiteral } from '../interfaces/object-literal.interface';
 import { isArrayFull } from '../utils';
@@ -129,12 +131,12 @@ export class RepositoryService<T> extends RestfulService<T> {
   public async updateOne(
     data: DeepPartial<T>,
     params: FilterParamParsed[] = [],
-    routesOptions: RoutesOptions = {},
+    routeOptions: UpdateOneRouteOptions = {},
   ): Promise<T> {
     const found = await this.getOneOrFail({}, { filter: params });
 
     // make sure params not override
-    if (params.length && !routesOptions.updateOneBase.allowParamsOverride) {
+    if (params.length && !routeOptions.allowParamsOverride) {
       for (const filter of params) {
         data[filter.field] = filter.value;
       }
@@ -149,12 +151,12 @@ export class RepositoryService<T> extends RestfulService<T> {
    */
   public async deleteOne(
     params: FilterParamParsed[],
-    routesOptions: RoutesOptions = {},
+    routeOptions: DeleteOneRouteOptions = {},
   ): Promise<void | T> {
     const found = await this.getOneOrFail({}, { filter: params });
     const deleted = await this.repo.remove(found);
 
-    if (routesOptions.deleteOneBase.returnDeleted) {
+    if (routeOptions.returnDeleted) {
       // set params, because id is undefined
       for (const filter of params) {
         deleted[filter.field] = filter.value;

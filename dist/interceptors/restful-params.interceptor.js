@@ -71,7 +71,7 @@ function RestfulParamsInterceptorFactory(crudOptions) {
             if (filter.length) {
                 options.filter = filter;
             }
-            return options;
+            return Object.assign({}, crudOptions, { options });
         }
     };
     RestfulParamsInterceptor = __decorate([
