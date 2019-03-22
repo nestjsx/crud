@@ -3,17 +3,8 @@ import { isObject } from '@nestjs/common/utils/shared.utils';
 import { plainToClass } from 'class-transformer';
 import { ClassType } from 'class-transformer/ClassTransformer';
 
-import { RestfulService } from '../classes/restful-service.class';
-import {
-  FilterParamParsed,
-  JoinOptions,
-  JoinParamParsed,
-  RequestParamsParsed,
-  RestfulOptions,
-  RoutesOptions,
-  GetManyDefaultResponse,
-} from '../interfaces';
-import { ObjectLiteral } from '../interfaces/object-literal.interface';
+import { RestfulService } from '../classes';
+import { FilterParamParsed, JoinOptions, JoinParamParsed, ObjectLiteral, RequestParamsParsed, RestfulOptions, RoutesOptions } from '../interfaces';
 import { isArrayFull } from '../utils';
 import { RelationMetadata } from 'typeorm/metadata/RelationMetadata';
 
@@ -39,6 +30,10 @@ export class RepositoryService<T> extends RestfulService<T> {
     return this.repo.metadata.targetName;
   }
 
+  public decidePagination(query: RequestParamsParsed, mergedOptions: RestfulOptions) {
+    return (isFinite(query.page) || isFinite(query.offset)) && !!this.getTake(query, mergedOptions);
+  }
+
   /**
    * Get many entities
    * @param query
@@ -47,25 +42,21 @@ export class RepositoryService<T> extends RestfulService<T> {
   public async getMany(
     query: RequestParamsParsed = {},
     options: RestfulOptions = {},
-  ): Promise<GetManyDefaultResponse<T>> {
+  ) {
     const builder = await this.buildQuery(query, options);
-    const [data, total] = await Promise.all([builder.getMany(), builder.getCount()]);
     const mergedOptions = Object.assign({}, this.options, options);
-    const limit = this.getTake(query, mergedOptions);
-
-    return {
-      data,
-      count: data.length,
-      total,
-      page: query.page || 1,
-      pageCount: limit && total ? Math.round(total / limit) : undefined,
-    };
+    if (this.decidePagination(query, mergedOptions)) {
+      const [data, total] = await builder.getManyAndCount();
+      const limit = builder.expressionMap.take;
+      const offset = builder.expressionMap.skip;
+      return this.createPageInfo(data, total, limit, offset);
+    }
+    return builder.getMany();
   }
 
   /**
    * Get one entity by id
    * @param id
-   * @param param1
    * @param options
    */
   public async getOne(
@@ -100,7 +91,7 @@ export class RepositoryService<T> extends RestfulService<T> {
   /**
    * Create many
    * @param data
-   * @param paramsFilter
+   * @param params
    */
   public async createMany(
     data: { bulk: DeepPartial<T>[] },
@@ -111,7 +102,7 @@ export class RepositoryService<T> extends RestfulService<T> {
     }
 
     const bulk = data.bulk
-      .map((one) => this.plainToClass(<any>one, params))
+      .map((one) => this.plainToClass(one as any, params))
       .filter((d) => isObject(d));
 
     if (!bulk.length) {
@@ -125,6 +116,7 @@ export class RepositoryService<T> extends RestfulService<T> {
    * Update one entity
    * @param data
    * @param params
+   * @param routesOptions
    */
   public async updateOne(
     data: DeepPartial<T>,
@@ -146,6 +138,7 @@ export class RepositoryService<T> extends RestfulService<T> {
   /**
    * Delete one entity
    * @param params
+   * @param routesOptions
    */
   public async deleteOne(
     params: FilterParamParsed[],
@@ -263,10 +256,7 @@ export class RepositoryService<T> extends RestfulService<T> {
 
     // set joins
     if (isArrayFull(query.join)) {
-      const joinOptions = {
-        ...(this.options.join ? this.options.join : {}),
-        ...(options.join ? options.join : {}),
-      };
+      const joinOptions = mergedOptions.join || {};
 
       if (Object.keys(joinOptions).length) {
         for (let i = 0; i < query.join.length; i++) {
@@ -282,13 +272,13 @@ export class RepositoryService<T> extends RestfulService<T> {
 
       // set take
       const take = this.getTake(query, mergedOptions);
-      if (take) {
+      if (isFinite(take)) {
         builder.take(take);
       }
 
       // set skip
       const skip = this.getSkip(query, take);
-      if (skip) {
+      if (isFinite(skip)) {
         builder.skip(skip);
       }
     }
@@ -346,8 +336,8 @@ export class RepositoryService<T> extends RestfulService<T> {
           type: this.getJoinType(curr.relationType),
           columns: curr.inverseEntityMetadata.columns.map((col) => col.propertyName),
           referencedColumn: (curr.joinColumns.length
-            ? curr.joinColumns[0]
-            : curr.inverseRelation.joinColumns[0]
+              ? curr.joinColumns[0]
+              : curr.inverseRelation.joinColumns[0]
           ).referencedColumn.propertyName,
         },
       }),
@@ -399,17 +389,17 @@ export class RepositoryService<T> extends RestfulService<T> {
 
   private getAllowedColumns(columns: string[], options: ObjectLiteral): string[] {
     return (!options.exclude || !options.exclude.length) &&
-      (!options.allow || !options.allow.length)
+    (!options.allow || !options.allow.length)
       ? columns
       : columns.filter(
-          (column) =>
-            (options.exclude && options.exclude.length
-              ? !options.exclude.some((col) => col === column)
-              : true) &&
-            (options.allow && options.allow.length
-              ? options.allow.some((col) => col === column)
-              : true),
-        );
+        (column) =>
+          (options.exclude && options.exclude.length
+            ? !options.exclude.some((col) => col === column)
+            : true) &&
+          (options.allow && options.allow.length
+            ? options.allow.some((col) => col === column)
+            : true),
+      );
   }
 
   private getRelationMetadata(field: string) {
@@ -450,8 +440,8 @@ export class RepositoryService<T> extends RestfulService<T> {
         type: this.getJoinType(curr.relationType),
         columns: curr.inverseEntityMetadata.columns.map((col) => col.propertyName),
         referencedColumn: (curr.joinColumns.length
-          ? curr.joinColumns[0]
-          : curr.inverseRelation.joinColumns[0]
+            ? curr.joinColumns[0]
+            : curr.inverseRelation.joinColumns[0]
         ).referencedColumn.propertyName,
         nestedRelation: curr.nestedRelation,
       };
@@ -519,11 +509,11 @@ export class RepositoryService<T> extends RestfulService<T> {
     return select;
   }
 
-  private getSkip(query: RequestParamsParsed, take: number): number {
-    return query.page && take ? take * (query.page - 1) : query.offset ? query.offset : 0;
+  private getSkip(query: RequestParamsParsed, take: number): number | null {
+    return query.page && take ? take * (query.page - 1) : query.offset ? query.offset : null;
   }
 
-  private getTake(query: RequestParamsParsed, options: RestfulOptions): number {
+  private getTake(query: RequestParamsParsed, options: RestfulOptions): number | null {
     if (query.limit) {
       return options.maxLimit
         ? query.limit <= options.maxLimit
@@ -540,15 +530,15 @@ export class RepositoryService<T> extends RestfulService<T> {
         : options.limit;
     }
 
-    return options.maxLimit ? options.maxLimit : 0;
+    return options.maxLimit ? options.maxLimit : null;
   }
 
   private getSort(query: RequestParamsParsed, options: RestfulOptions) {
     return query.sort && query.sort.length
       ? this.mapSort(query.sort)
       : options.sort && options.sort.length
-      ? this.mapSort(options.sort)
-      : {};
+        ? this.mapSort(options.sort)
+        : {};
   }
 
   private mapSort(sort: ObjectLiteral[]) {
