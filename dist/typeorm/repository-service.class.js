@@ -250,7 +250,7 @@ class RepositoryService extends classes_1.RestfulService {
             if (!this.hasRelation(relation)) {
                 this.throwBadRequestException(`Invalid relation name '${relation}'`);
             }
-            const noColumn = !this.entityRelationsHash[relation].columns.find(o => o === column);
+            const noColumn = !this.entityRelationsHash[relation].columns.find((o) => o === column);
             if (noColumn) {
                 this.throwBadRequestException(`Invalid column name '${column}' for relation '${relation}'`);
             }

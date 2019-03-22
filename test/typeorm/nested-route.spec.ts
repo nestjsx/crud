@@ -5,7 +5,7 @@ import { InjectRepository, TypeOrmModule } from '@nestjs/typeorm';
 import { Controller, Get, INestApplication, Inject, Injectable, Param } from '@nestjs/common';
 
 import { Company, ormConfig, Task, User, UserProfile } from '../../integration/typeorm/e2e';
-import { Action, Crud, CrudController, Feature, Override, RestfulOptions } from '../../src';
+import { Crud, Feature, RestfulOptions } from '../../src';
 import { RepositoryService } from '../../src/typeorm';
 
 @Injectable()
@@ -27,7 +27,7 @@ class CompaniesService extends RepositoryService<Company> {
     cache: 1000,
     filter: [{ field: 'id', operator: 'notnull' }],
     join: {
-      'users': {
+      users: {
         persist: ['id'],
         exclude: ['password'],
       },
@@ -41,20 +41,8 @@ class CompaniesService extends RepositoryService<Company> {
   },
 })
 @Controller('companies')
-class CompaniesController implements CrudController<CompaniesService, Company> {
-  constructor(public service: CompaniesService) {
-  }
-
-  @Action('test')
-  @Get('test')
-  test() {
-    return 'ok';
-  }
-
-  @Override()
-  deleteOne(@Param('id') id, @Param() params) {
-    return (this as any).deleteOneBase(id, params);
-  }
+class CompaniesController {
+  constructor(public service: CompaniesService) {}
 }
 
 @Injectable()
@@ -105,7 +93,7 @@ describe('Nested query routes', () => {
     return request(server)
       .get('/companies/1?join=users||email&join=users.projects&join=users.projects.tasks')
       .expect(200)
-      .expect(res => {
+      .expect((res) => {
         expect(res.body).to.have.nested.property('users[0].projects[0].tasks[0].name');
       });
   });
@@ -145,5 +133,4 @@ describe('Nested query routes', () => {
       .get('/companies?join=users&join=users.projects&filter=projects.name1||starts||project')
       .expect(400);
   });
-
 });

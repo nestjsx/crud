@@ -11,7 +11,7 @@ import {
   ObjectLiteral,
   RequestParamsParsed,
   RestfulOptions,
-  RoutesOptions,
+  GetManyDefaultResponse,
   UpdateOneRouteOptions,
   DeleteOneRouteOptions,
 } from '../interfaces';
@@ -52,7 +52,7 @@ export class RepositoryService<T> extends RestfulService<T> {
   public async getMany(
     query: RequestParamsParsed = {},
     options: RestfulOptions = {},
-  ) {
+  ): Promise<GetManyDefaultResponse<T> | T[]> {
     const builder = await this.buildQuery(query, options);
     const mergedOptions = Object.assign({}, this.options, options);
     if (this.decidePagination(query, mergedOptions)) {
@@ -344,8 +344,8 @@ export class RepositoryService<T> extends RestfulService<T> {
           type: this.getJoinType(curr.relationType),
           columns: curr.inverseEntityMetadata.columns.map((col) => col.propertyName),
           referencedColumn: (curr.joinColumns.length
-              ? curr.joinColumns[0]
-              : curr.inverseRelation.joinColumns[0]
+            ? curr.joinColumns[0]
+            : curr.inverseRelation.joinColumns[0]
           ).referencedColumn.propertyName,
         },
       }),
@@ -376,15 +376,19 @@ export class RepositoryService<T> extends RestfulService<T> {
     if (column.indexOf('.') !== -1) {
       const nests = column.split('.');
       if (nests.length > 2) {
-        this.throwBadRequestException('Too many nested levels! ' +
-          `Usage: '[join=<other-relation>&]join=[<other-relation>.]<relation>&filter=<relation>.<field>||op||val'`);
+        this.throwBadRequestException(
+          'Too many nested levels! ' +
+            `Usage: '[join=<other-relation>&]join=[<other-relation>.]<relation>&filter=<relation>.<field>||op||val'`,
+        );
       }
       let relation;
       [relation, column] = nests;
       if (!this.hasRelation(relation)) {
         this.throwBadRequestException(`Invalid relation name '${relation}'`);
       }
-      const noColumn = !(this.entityRelationsHash[relation].columns as string[]).find(o => o === column);
+      const noColumn = !(this.entityRelationsHash[relation].columns as string[]).find(
+        (o) => o === column,
+      );
       if (noColumn) {
         this.throwBadRequestException(`Invalid column name '${column}' for relation '${relation}'`);
       }
@@ -397,17 +401,17 @@ export class RepositoryService<T> extends RestfulService<T> {
 
   private getAllowedColumns(columns: string[], options: ObjectLiteral): string[] {
     return (!options.exclude || !options.exclude.length) &&
-    (!options.allow || !options.allow.length)
+      (!options.allow || !options.allow.length)
       ? columns
       : columns.filter(
-        (column) =>
-          (options.exclude && options.exclude.length
-            ? !options.exclude.some((col) => col === column)
-            : true) &&
-          (options.allow && options.allow.length
-            ? options.allow.some((col) => col === column)
-            : true),
-      );
+          (column) =>
+            (options.exclude && options.exclude.length
+              ? !options.exclude.some((col) => col === column)
+              : true) &&
+            (options.allow && options.allow.length
+              ? options.allow.some((col) => col === column)
+              : true),
+        );
   }
 
   private getRelationMetadata(field: string) {
@@ -448,8 +452,8 @@ export class RepositoryService<T> extends RestfulService<T> {
         type: this.getJoinType(curr.relationType),
         columns: curr.inverseEntityMetadata.columns.map((col) => col.propertyName),
         referencedColumn: (curr.joinColumns.length
-            ? curr.joinColumns[0]
-            : curr.inverseRelation.joinColumns[0]
+          ? curr.joinColumns[0]
+          : curr.inverseRelation.joinColumns[0]
         ).referencedColumn.propertyName,
         nestedRelation: curr.nestedRelation,
       };
@@ -545,8 +549,8 @@ export class RepositoryService<T> extends RestfulService<T> {
     return query.sort && query.sort.length
       ? this.mapSort(query.sort)
       : options.sort && options.sort.length
-        ? this.mapSort(options.sort)
-        : {};
+      ? this.mapSort(options.sort)
+      : {};
   }
 
   private mapSort(sort: ObjectLiteral[]) {

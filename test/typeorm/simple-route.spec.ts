@@ -5,7 +5,7 @@ import { InjectRepository, TypeOrmModule } from '@nestjs/typeorm';
 import { Controller, Get, INestApplication, Injectable, Param } from '@nestjs/common';
 
 import { Company, ormConfig, User, UserProfile } from '../../integration/typeorm/e2e';
-import { Action, Crud, CrudController, Feature, Override, RestfulOptions } from '../../src';
+import { Action, Crud, Feature, RestfulOptions } from '../../src';
 import { RepositoryService } from '../../src/typeorm';
 
 @Injectable()
@@ -41,7 +41,7 @@ class CompaniesService extends RepositoryService<Company> {
   },
 })
 @Controller('companies')
-class CompaniesController implements CrudController<CompaniesService, Company> {
+class CompaniesController {
   constructor(public service: CompaniesService) {}
 
   @Action('test')

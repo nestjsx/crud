@@ -18,10 +18,10 @@ import { UsersService } from './users.service';
       returnDeleted: true,
     },
   },
-  params: {
-    companyId: 'number',
-    id: 'number',
-  },
+  // params: {
+  //   companyId: 'number',
+  //   id: 'number',
+  // },
   options: {
     exclude: ['password'],
     join: {
