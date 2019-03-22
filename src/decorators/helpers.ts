@@ -284,16 +284,7 @@ export function setValidationPipe(crudOptions: CrudOptions, group: CrudValidate)
     : undefined;
 }
 
-// FIXME Due to issue https://github.com/nestjs/nest/issues/1604, someone can't use global parser pipe without modify ParseIntPipe
-export function setParseIntPipe() {
-  return hasTypeorm ? new ParseIntPipe() : undefined;
-}
-
 export function enableRoute(name: BaseRouteName, crudOptions: CrudOptions) {
-  if (!crudOptions.routes) {
-    return true;
-  }
-
   if (crudOptions.routes.only && crudOptions.routes.only.length) {
     return crudOptions.routes.only.some((only) => only === name);
   }

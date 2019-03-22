@@ -249,14 +249,7 @@ function setValidationPipe(crudOptions, group) {
         : undefined;
 }
 exports.setValidationPipe = setValidationPipe;
-function setParseIntPipe() {
-    return utils_1.hasTypeorm ? new common_1.ParseIntPipe() : undefined;
-}
-exports.setParseIntPipe = setParseIntPipe;
 function enableRoute(name, crudOptions) {
-    if (!crudOptions.routes) {
-        return true;
-    }
     if (crudOptions.routes.only && crudOptions.routes.only.length) {
         return crudOptions.routes.only.some((only) => only === name);
     }

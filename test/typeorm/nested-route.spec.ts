@@ -23,6 +23,9 @@ class CompaniesService extends RepositoryService<Company> {
 
 @Feature('Companies')
 @Crud(Company, {
+  routes: {
+    only: ['getManyBase', 'getOneBase'],
+  },
   options: {
     cache: 1000,
     filter: [{ field: 'id', operator: 'notnull' }],

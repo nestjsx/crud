@@ -1,4 +1,4 @@
-import { RequestMethod, ParseIntPipe, ValidationPipe } from '@nestjs/common';
+import { RequestMethod, ValidationPipe } from '@nestjs/common';
 import { RouteParamtypes } from '@nestjs/common/enums/route-paramtypes.enum';
 import { CrudActions, CrudValidate } from '../enums';
 import { CrudOptions } from '../interfaces';
@@ -26,7 +26,6 @@ export declare function getSwaggerParams(func: Function): any[];
 export declare function getSwaggeOkResponse(func: Function): any;
 export declare function getSwaggerOperation(func: Function): any;
 export declare function setValidationPipe(crudOptions: CrudOptions, group: CrudValidate): ValidationPipe;
-export declare function setParseIntPipe(): ParseIntPipe;
 export declare function enableRoute(name: BaseRouteName, crudOptions: CrudOptions): boolean;
 export declare function paramsOptionsInit(crudOptions: CrudOptions): void;
 export declare function getRoutesSlugName(crudOptions: CrudOptions, path: string): string;

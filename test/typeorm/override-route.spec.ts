@@ -4,7 +4,15 @@ import { TypeOrmModule, InjectRepository } from '@nestjs/typeorm';
 import { INestApplication, Injectable, Controller } from '@nestjs/common';
 
 import { UserProfile, User, Company, ormConfig } from '../../integration/typeorm/e2e';
-import { Crud, Override, ParsedOptions, ParsedQuery, CrudOptions, CrudController } from '../../src';
+import {
+  Crud,
+  Override,
+  ParsedOptions,
+  ParsedQuery,
+  ParsedParams,
+  CrudOptions,
+  CrudController,
+} from '../../src';
 import { RepositoryService } from '../../src/typeorm';
 
 Injectable();
@@ -14,7 +22,14 @@ class UsersService extends RepositoryService<User> {
   }
 }
 
-@Crud(User, {})
+@Crud(User, {
+  params: {
+    companyId: 'number',
+  },
+  routes: {
+    exclude: ['createManyBase'],
+  },
+})
 @Controller('/companies/:companyId/users')
 class UsersController {
   constructor(public service: UsersService) {}
@@ -29,8 +44,13 @@ class UsersController {
   }
 
   @Override()
-  async getOne(@ParsedQuery() query, @ParsedOptions() crudOptions: CrudOptions) {
+  getOne(@ParsedQuery() query, @ParsedOptions() crudOptions: CrudOptions) {
     return this.base.getOneBase(query, crudOptions);
+  }
+
+  @Override('deleteOneBase')
+  deleteThisUser(@ParsedParams() params) {
+    return this.base.deleteOneBase(params);
   }
 }
 
@@ -76,6 +96,14 @@ describe('Override base routes', () => {
     it('should return status 404', () => {
       return request(server)
         .get('/companies/1/users/1806')
+        .expect(404);
+    });
+  });
+
+  describe('delete one', () => {
+    it('should return status 404', () => {
+      return request(server)
+        .delete('/companies/2/users/2343')
         .expect(404);
     });
   });
