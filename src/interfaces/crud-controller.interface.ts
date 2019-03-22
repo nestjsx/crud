@@ -14,7 +14,7 @@ export interface CrudController<S extends RestfulService<T>, T> {
   createOneBase?(parsedParams: FilterParamParsed[], dto: T): Promise<T>;
   createManyBase?(parsedParams: FilterParamParsed[], dto: EntitiesBulk<T>): Promise<T[]>;
   updateOneBase?(parsedParams: FilterParamParsed[], dto: T): Promise<T>;
-  deleteOneBase?(parsedParams: FilterParamParsed[]): Promise<void>;
+  deleteOneBase?(parsedParams: FilterParamParsed[]): Promise<void | T>;
 }
 
 export interface EntitiesBulk<T> {

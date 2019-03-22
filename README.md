@@ -5,8 +5,8 @@
   A set of opinionated <a href="https://github.com/nestjs/nest" target="blank">NestJS</a> extensions and modules
 </p>
 <p align="center">
-  <a href="https://coveralls.io/github/nestjsx/crud?branch=master"><img src="https://travis-ci.org/nestjsx/crud.svg?branch=master" alt="Coverage" /></a>
-  <a href="https://travis-ci.org/nestjsx/crud"><img src="https://coveralls.io/repos/github/nestjsx/crud/badge.svg?branch=master" alt="Build" /></a>
+  <a href="https://coveralls.io/github/nestjsx/crud?branch=master"><img src="https://coveralls.io/repos/github/nestjsx/crud/badge.svg?branch=master" alt="Build" /></a>
+  <a href="https://travis-ci.org/nestjsx/crud"><img src="https://travis-ci.org/nestjsx/crud.svg?branch=master" alt="Coverage" /></a>
   <a href="https://github.com/nestjsx/crud/blob/master/LICENSE"><img src="https://img.shields.io/github/license/nestjsx/crud.svg" alt="License" /></a>
 </p>
 
@@ -38,9 +38,10 @@
 - [Repository Service](#repository-service)
   - [Restful Options](#restful-options)
 - [Crud Controller](#crud-controller)
-  - [Restful Options merge](#restful-options-merge)
-  - [Path Filter](#path-filter)
-  - [Validation](#validation)
+  - [Restful Options](#options-restful)
+  - [Routes Options](#routes-options)
+  - [Params Options](#params-options)
+  - [Validation Options](#validation-options)
   - [IntelliSense](#intellisense)
   - [Method Override](#method-override)
   - [Additional Decorators](#additional-decorators)
@@ -129,7 +130,7 @@ We pass our `Hero` entity as a `dto` for [Validation](#validation) purpose and i
 > `GET /heroes`  
 > `GET /heroes/:heroId/perks`
 
-_Result:_ array of entities | empty array  
+_Result:_ array of entities | pagination object with data
 _Status Codes:_ 200
 
 ### Get One Entity
@@ -137,7 +138,7 @@ _Status Codes:_ 200
 > `GET /heroes/:id`  
 > `GET /heroes/:heroId/perks:id`
 
-_Request Params:_ `:id` - entity id  
+_Request Params:_ `:id` - some entity field (slug)  
 _Result:_ entity object | error object  
 _Status Codes:_ 200 | 404
 
@@ -169,9 +170,9 @@ _Status codes:_ 201 | 400
 ### Update One Entity
 
 > `PATCH /heroes/:id`  
-> `PATCH /heroes/:heroId/perks:id`
+> `PATCH /heroes/:heroId/perks/:id`
 
-_Request Params:_ `:id` - entity id  
+_Request Params:_ `:id` - some entity field (slug)  
 _Request Body:_ entity object (or partial) | entity object with nested (relational) objects (or partial)  
 _Result:_: updated partial entity object | error object  
 _Status codes:_ 200 | 400 | 404
@@ -179,9 +180,9 @@ _Status codes:_ 200 | 400 | 404
 ### Delete One Entity
 
 > `DELETE /heroes/:id`  
-> `DELETE /heroes/:heroId/perks:id`
+> `DELETE /heroes/:heroId/perks/:id`
 
-_Request Params:_ `:id` - entity id  
+_Request Params:_ `:id` - some entity field (slug)  
 _Result:_: empty | error object  
 _Status codes:_ 200 | 404
 
@@ -485,7 +486,12 @@ An Object of [relations](http://typeorm.io/#/relations) that allowed to be fetch
       exclude: ['token']
     },
     company: {},
-    'company.projects': {}
+    'company.projects': {
+      persist: ['status']
+    },
+    'users.projects.tasks': {
+      exclude: ['description'],
+    },
   }
 }
 ```
@@ -547,18 +553,14 @@ Cache can be [reseted](#cache) by using the query parameter in your `GET` reques
 
 ## Crud Controller
 
-Our newly generated working horse. `@Crud()` decorator accepts two arguments - Entity class and `CrudOptions` object. Let's dive in some details.
-
-### Restful Options merge
+Our newly generated working horse.
 
 ```typescript
 ...
 import { Crud } from '@nestjsx/crud';
 
 @Crud(Hero, {
-  options: {
-    // RestfulOptions goes here
-  }
+  // CrudOptions goes here
 })
 @Controller('heroes')
 export class HeroesCrudController {
@@ -566,13 +568,79 @@ export class HeroesCrudController {
 }
 ```
 
-`CrudOptions` object may have `options` parameter which is the same object as [Restful Options](#restful-options).
+`@Crud()` decorator accepts two arguments - Entity class and `CrudOptions` object. All fields here are optional as well. Let's dive in some details.
+
+### Crud Options
+
+- [**`options`**](#options-restful)
+- [**`routes`**](#routes-options)
+- [**`params`**](#params-options)
+- [**`validation`**](#validaton-options)
+
+### Options (restful)
+
+This option has the same structure as as [Restful Options](#restful-options).
 
 **_Notice:_** If you have this options set up in your `RepositoryService`, in that case they will be **merged**.
 
-### Path Filter
+### Routes Options
 
-`CrudOptions` object may have `params` parameter that will be used for auto filtering by URL path parameters.
+This object may have `exclude` and `only` arrays of route names which must be excluded or only which ones must be created accordingly.
+
+```typescript
+{
+  routes: {
+    only: ['getManyBase'];
+  }
+}
+```
+
+```typescript
+{
+  routes: {
+    exclude: ['createManyBase'];
+  }
+}
+```
+
+**_Notice:_** If both are present, then `exclude` will be ignored.
+
+Also, routes options object may have some options for each particular route:
+
+```typescript
+{
+  routes: {
+    getManyBase: {
+      interceptors: [],
+    },
+    getOneBase: {
+      interceptors: [],
+    },
+    createOneBase: {
+      interceptors: [],
+    },
+    createManyBase: {
+      interceptors: [],
+    },
+    updateOneBase: {
+      interceptors: [],
+      allowParamsOverride: true
+    },
+    deleteOneBase: {
+      interceptors: [],
+      returnDeleted: true
+    },
+  }
+}
+```
+
+`interceptors` - an array of your custom interceptors  
+`allowParamsOverride` - whether or not to allow body data be overriten by the URL params on PATH request. Default: `false`  
+`returnDeleted` - whether or not an entity object should be returned in the response body on DELETE request. Default: `false`
+
+### Params Options
+
+`CrudOptions` object may have `params` parameter that will be used for validation sake of you URL params and for defining a slug param (if it differs from `id` that is used by default).
 
 Assume, you have an entity `User` that belongs to some `Company` and has a field `companyId`. And you whant to create `UsersController` so that an admin could access users from his own Company only. Let's do this:
 
@@ -581,7 +649,9 @@ Assume, you have an entity `User` that belongs to some `Company` and has a field
 import { Crud } from '@nestjsx/crud';
 
 @Crud(Hero, {
-  params: ['companyId']
+  params: {
+    companyId: 'number'
+  }
 })
 @Controller('/company/:companyId/users')
 export class UsersCrud {
@@ -589,30 +659,33 @@ export class UsersCrud {
 }
 ```
 
-In this example you're URL param name `companyId` should match the name of `User.companyId` field. If not, you can do mapping, like this:
+In this example you're URL param name `companyId` should match the name of `User.companyId` field.
+
+If you don't want to use numeric `id` (by default) and, say, you use some unique field, e.g. it's called `slug` and it's a UUID string - in that case need to add this:
 
 ```typescript
-...
-import { Crud } from '@nestjsx/crud';
-
-@Crud(Hero, {
+{
   params: {
-    company: 'companyId'
+    slug: 'uuid';
   }
-})
-@Controller('/company/:company/users')
-export class UsersCrud {
-  constructor(public service: UsersService) {}
 }
 ```
 
-Where `company` is the name of the URL param, and `companyId` is the name of the entity field.
+Or if your slug/id is just another random unique string, then:
 
-As you might guess, all request will add `companyId` to the DB queries alongside with the `:id` of `GET`, `PATCH`, `DELETE` requests. On `POST` (both: one and bulk) requests, `companyId` will be added to the `dto` automatically.
+```typescript
+{
+  params: {
+    id: 'string';
+  }
+}
+```
+
+As you might guess, all request will add `companyId` to the DB queries alongside with the `:id` (or another field that you defined) of `GET`, `PATCH`, `DELETE` requests. On `POST` (both: one and bulk) requests, `companyId` will be added to the `dto` automatically.
 
 When you done with the controller, you'll need to add some logic to your `AuthGuard` or any other interface, where you do the authorization of a requester. You will need to match `companyId` URL param with the `user.companyId` entity that has been validated from the DB.
 
-### Validation
+### Validation Options
 
 Request data validation is performed by using [class-validator](https://github.com/typestack/class-validator) package and [ValidationPipe](https://docs.nestjs.com/techniques/validation). If you don't use this approach in your project, then you can implementat request data validation on your own.
 
@@ -658,7 +731,7 @@ export class User extends BaseEntity {
   @Column({ nullable: true })
   profileId: number;
 
-  // validate relations, that could be saved/updated as nested objects
+  // validate relations
   @IsOptional({ groups: [UPDATE] })
   @IsNotEmpty({ groups: [CREATE] })
   @ValidateNested({ always: true })
@@ -700,7 +773,7 @@ import { Crud, CrudController } from '@nestjsx/crud';
 
 @Crud(Hero)
 @Controller('heroes')
-export class HeroesCrud implements CrudController<HeroesService, Hero> {
+export class HeroesCrud {
   constructor(public service: HeroesService) {}
 }
 ```
@@ -715,7 +788,7 @@ import { Crud, CrudController } from '@nestjsx/crud';
 
 @Crud(Hero)
 @Controller('heroes')
-export class HeroesCrud implements CrudController<HeroesService, Hero> {
+export class HeroesCrud {
   constructor(public service: HeroesService) {}
 
   get base(): CrudController<HeroesService, Hero> {
@@ -730,14 +803,13 @@ List of composed base methods:
 
 ```typescript
 getManyBase(
-  @Param() params: ObjectLiteral,
-  @Query() query: RestfulParamsDto,
-): Promise<T[]>;
+  @ParsedQuery() query: RestfulParamsDto,
+  @ParsedOptions() options: CrudOptions,
+): Promise<GetManyDefaultResponse<T> | T[]>;
 
 getOneBase(
-  @Param('id') id: number,
-  @Param() params: ObjectLiteral,
-  @Query() query: RestfulParamsDto,
+  @ParsedQuery() query: RestfulParamsDto,
+  @ParsedOptions() options: CrudOptions,
 ): Promise<T>;
 
 createOneBase(
@@ -746,20 +818,18 @@ createOneBase(
 ): Promise<T>;
 
 createManyBase(
-  @Param() params: ObjectLiteral,
+  @ParsedParams() params: FilterParamParsed[],
   @Body() dto: EntitiesBulk<T>,
 ): Promise<T[]>;
 
 updateOneBase(
-  @Param('id') id: number,
-  @Param() params: ObjectLiteral,
+  @ParsedParams() params: FilterParamParsed[]
   @Body() dto: T,
 ): Promise<T>;
 
 deleteOneBase(
-  @Param('id') id: number,
-  @Param() params: ObjectLiteral,
-): Promise<void>;
+  @ParsedParams() params: FilterParamParsed[]
+): Promise<void | T>;
 ```
 
 Since all composed methods have `Base` ending in their names, overriding those endpoints could be done in two ways:
@@ -774,12 +844,15 @@ import {
   Crud,
   CrudController,
   Override,
-  RestfulParamsDto
+  RestfulParamsDto,
+  ParsedQuery,
+  ParsedParams,
+  ParsedOptions
 } from '@nestjsx/crud';
 
-@Crud(Hero)
+@Crud(Hero, {})
 @Controller('heroes')
-export class HeroesCrud implements CrudController<HeroesService, Hero> {
+export class HeroesCrud {
   constructor(public service: HeroesService) {}
 
   get base(): CrudController<HeroesService, Hero> {
@@ -787,18 +860,28 @@ export class HeroesCrud implements CrudController<HeroesService, Hero> {
   }
 
   @Override()
-  getMany(@Param() params, @Query() query: RestfulParamsDto) {
+  getMany(
+    @ParsedQuery() query: RestfulParamsDto,
+    @ParsedOptions() options: CrudOptions,
+  ) {
     // do some stuff
-    return this.base.getManyBase(params, query);
+    return this.base.getManyBase(query, options);
   }
 
   @Override('getOneBase')
-  getOneAndDoStuff() {
+  getOneAndDoStuff(
+    @ParsedQuery() query: RestfulParamsDto,
+    @ParsedOptions() options: CrudOptions,
+  ) {
     // do some stuff
   }
 
+  ...
+
 }
 ```
+
+**_Notice:_** new custom route decorators were created to simplify process: `@ParsedQuery()`, `@ParsedParams`, and `@ParsedOptions()`. But you still can add your param decorators to any of the methods, e.g. `@Param()`, `@Session()`, etc. Or any of your own cutom route decorators.
 
 ### Additional Decorators
 
