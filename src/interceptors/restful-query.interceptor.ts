@@ -1,6 +1,5 @@
-import { Injectable, NestInterceptor, ExecutionContext } from '@nestjs/common';
+import { Injectable, NestInterceptor, ExecutionContext, CallHandler } from '@nestjs/common';
 import { isObject } from '@nestjs/common/utils/shared.utils';
-import { Observable } from 'rxjs';
 
 import {
   RequestParamsParsed,
@@ -33,12 +32,12 @@ export class RestfulQueryInterceptor implements NestInterceptor {
     'cache',
   ];
 
-  intercept(context: ExecutionContext, call$: Observable<any>) {
+  intercept(context: ExecutionContext, next: CallHandler) {
     const req = context.switchToHttp().getRequest();
 
     req[PARSED_QUERY_REQUEST_KEY] = this.transform(req.query);
 
-    return call$;
+    return next.handle();
   }
 
   private transform(query: RequestQueryParams): RequestParamsParsed {

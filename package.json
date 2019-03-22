@@ -5,6 +5,7 @@
   "scripts": {
     "docker:up": "docker-compose up -d",
     "docker:down": "docker-compose down",
+    "check": "npx npm-check",
     "test:e2e": "jest --verbose --coverage",
     "pretest:e2e": "npm run test:e2e:typeorm:prepare",
     "posttest:e2e": "npm run test:e2e:typeorm:clean",
@@ -21,33 +22,33 @@
     "postbuild": "npm run clean:typeorm && npm run update:typeorm"
   },
   "dependencies": {
-    "@nestjs/common": "^5.5.0",
-    "@nestjs/core": "^5.5.0",
-    "@nestjs/testing": "^5.5.0",
-    "@nestjs/typeorm": "^5.2.2",
+    "@nestjs/common": "^6.0.2",
+    "@nestjs/core": "^6.0.2",
+    "@nestjs/testing": "^6.0.2",
+    "@nestjs/typeorm": "^6.0.0",
     "class-transformer": "^0.2.0",
     "class-validator": "^0.9.1",
     "js-yaml": "^3.13.0",
-    "pg": "^7.7.1",
+    "pg": "^7.9.0",
     "redis": "^2.8.0",
-    "reflect-metadata": "^0.1.12",
-    "rxjs": "^6.3.3",
-    "tsconfig-paths": "^3.7.0",
-    "typeorm": "^0.2.9"
+    "reflect-metadata": "^0.1.13",
+    "rxjs": "^6.4.0",
+    "tsconfig-paths": "^3.8.0",
+    "typeorm": "^0.2.15"
   },
   "devDependencies": {
     "@types/chai": "^4.1.7",
-    "@types/jest": "^23.3.10",
-    "@types/node": "^10.12.12",
+    "@types/jest": "^24.0.11",
+    "@types/node": "^11.11.4",
     "@types/supertest": "^2.0.7",
     "chai": "^4.2.0",
-    "coveralls": "^3.0.2",
-    "jest": "^23.6.0",
-    "nodemon": "^1.18.7",
-    "supertest": "^3.3.0",
-    "ts-jest": "^23.10.5",
-    "ts-node": "^7.0.1",
-    "tslint": "^5.11.0",
-    "typescript": "^3.2.2"
+    "coveralls": "^3.0.3",
+    "jest": "^24.5.0",
+    "nodemon": "^1.18.10",
+    "supertest": "^4.0.2",
+    "ts-jest": "^24.0.0",
+    "ts-node": "^8.0.3",
+    "tslint": "^5.14.0",
+    "typescript": "^3.3.4000"
   }
 }

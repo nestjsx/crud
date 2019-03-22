@@ -1,9 +1,11 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common';
-import { RestfulOptions, GetManyDefaultResponse } from '../interfaces';
+import { GetManyDefaultResponse, RequestParamsParsed, RestfulOptions } from '../interfaces';
 export declare abstract class RestfulService<T> {
     protected abstract options: RestfulOptions;
     constructor();
-    abstract getMany(...args: any[]): Promise<GetManyDefaultResponse<T>>;
+    createPageInfo(data: T[], total: number, limit: number, offset: number): GetManyDefaultResponse<T>;
+    abstract decidePagination(query: RequestParamsParsed, mergedOptions: RestfulOptions): any;
+    abstract getMany(...args: any[]): Promise<GetManyDefaultResponse<T> | T[]>;
     abstract getOne(...args: any[]): Promise<T>;
     abstract createOne(...args: any[]): Promise<T>;
     abstract createMany(...args: any[]): Promise<T[]>;

@@ -30,10 +30,10 @@ let RestfulQueryInterceptor = class RestfulQueryInterceptor {
             'cache',
         ];
     }
-    intercept(context, call$) {
+    intercept(context, next) {
         const req = context.switchToHttp().getRequest();
         req[constants_1.PARSED_QUERY_REQUEST_KEY] = this.transform(req.query);
-        return call$;
+        return next.handle();
     }
     transform(query) {
         if (!shared_utils_1.isObject(query) || !Object.keys(query).length) {
@@ -123,7 +123,7 @@ let RestfulQueryInterceptor = class RestfulQueryInterceptor {
         }
         if (Array.isArray(param) && param.length) {
             const result = [];
-            for (let item of param) {
+            for (const item of param) {
                 result.push(parser.call(this, item));
             }
             return result;

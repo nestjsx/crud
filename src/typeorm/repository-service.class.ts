@@ -294,19 +294,17 @@ export class RepositoryService<T> extends RestfulService<T> {
     }
 
     // remove cache if nedeed
-    if (
-      query.cache === 0 &&
-      this.repo.metadata.connection.queryResultCache &&
-      this.repo.metadata.connection.queryResultCache.remove
-    ) {
-      const cacheId = this.getCacheId(query, options);
-      await this.repo.metadata.connection.queryResultCache.remove([cacheId]);
-    }
+    // if (
+    //   query.cache === 0 &&
+    //   this.repo.metadata.connection.queryResultCache &&
+    //   this.repo.metadata.connection.queryResultCache.remove
+    // ) {
+    //   await this.repo.metadata.connection.queryResultCache.remove(['vvv']);
+    // }
 
     // set cache
-    if (mergedOptions.cache) {
-      const cacheId = this.getCacheId(query, options);
-      builder.cache(cacheId, mergedOptions.cache);
+    if (mergedOptions.cache && query.cache !== 0) {
+      builder.cache(builder.getQueryAndParameters(), mergedOptions.cache);
     }
 
     return builder;

@@ -11,9 +11,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const typeorm_1 = require("typeorm");
 const shared_utils_1 = require("@nestjs/common/utils/shared.utils");
 const class_transformer_1 = require("class-transformer");
-const restful_service_class_1 = require("../classes/restful-service.class");
+const classes_1 = require("../classes");
 const utils_1 = require("../utils");
-class RepositoryService extends restful_service_class_1.RestfulService {
+class RepositoryService extends classes_1.RestfulService {
     constructor(repo) {
         super();
         this.repo = repo;
@@ -29,19 +29,20 @@ class RepositoryService extends restful_service_class_1.RestfulService {
     get alias() {
         return this.repo.metadata.targetName;
     }
+    decidePagination(query, mergedOptions) {
+        return (isFinite(query.page) || isFinite(query.offset)) && !!this.getTake(query, mergedOptions);
+    }
     getMany(query = {}, options = {}) {
         return __awaiter(this, void 0, void 0, function* () {
             const builder = yield this.buildQuery(query, options);
-            const [data, total] = yield Promise.all([builder.getMany(), builder.getCount()]);
             const mergedOptions = Object.assign({}, this.options, options);
-            const limit = this.getTake(query, mergedOptions);
-            return {
-                data,
-                count: data.length,
-                total,
-                page: query.page || 1,
-                pageCount: limit && total ? Math.round(total / limit) : undefined,
-            };
+            if (this.decidePagination(query, mergedOptions)) {
+                const [data, total] = yield builder.getManyAndCount();
+                const limit = builder.expressionMap.take;
+                const offset = builder.expressionMap.skip;
+                return this.createPageInfo(data, total, limit, offset);
+            }
+            return builder.getMany();
         });
     }
     getOne({ fields, join, cache } = {}, options = {}) {
@@ -167,7 +168,7 @@ class RepositoryService extends restful_service_class_1.RestfulService {
                 }
             }
             if (utils_1.isArrayFull(query.join)) {
-                const joinOptions = Object.assign({}, (this.options.join ? this.options.join : {}), (options.join ? options.join : {}));
+                const joinOptions = mergedOptions.join || {};
                 if (Object.keys(joinOptions).length) {
                     for (let i = 0; i < query.join.length; i++) {
                         this.setJoin(query.join[i], joinOptions, builder);
@@ -178,23 +179,16 @@ class RepositoryService extends restful_service_class_1.RestfulService {
                 const sort = this.getSort(query, mergedOptions);
                 builder.orderBy(sort);
                 const take = this.getTake(query, mergedOptions);
-                if (take) {
+                if (isFinite(take)) {
                     builder.take(take);
                 }
                 const skip = this.getSkip(query, take);
-                if (skip) {
+                if (isFinite(skip)) {
                     builder.skip(skip);
                 }
             }
-            if (query.cache === 0 &&
-                this.repo.metadata.connection.queryResultCache &&
-                this.repo.metadata.connection.queryResultCache.remove) {
-                const cacheId = this.getCacheId(query, options);
-                yield this.repo.metadata.connection.queryResultCache.remove([cacheId]);
-            }
-            if (mergedOptions.cache) {
-                const cacheId = this.getCacheId(query, options);
-                builder.cache(cacheId, mergedOptions.cache);
+            if (mergedOptions.cache && query.cache !== 0) {
+                builder.cache(builder.getQueryAndParameters(), mergedOptions.cache);
             }
             return builder;
         });
@@ -241,9 +235,30 @@ class RepositoryService extends restful_service_class_1.RestfulService {
     hasColumn(column) {
         return this.entityColumnsHash[column];
     }
+    hasRelation(column) {
+        return this.entityRelationsHash[column];
+    }
     validateHasColumn(column) {
-        if (!this.hasColumn(column)) {
-            this.throwBadRequestException(`Invalid column name '${column}'`);
+        if (column.indexOf('.') !== -1) {
+            const nests = column.split('.');
+            if (nests.length > 2) {
+                this.throwBadRequestException('Too many nested levels! ' +
+                    `Usage: '[join=<other-relation>&]join=[<other-relation>.]<relation>&filter=<relation>.<field>||op||val'`);
+            }
+            let relation;
+            [relation, column] = nests;
+            if (!this.hasRelation(relation)) {
+                this.throwBadRequestException(`Invalid relation name '${relation}'`);
+            }
+            const noColumn = !this.entityRelationsHash[relation].columns.find(o => o === column);
+            if (noColumn) {
+                this.throwBadRequestException(`Invalid column name '${column}' for relation '${relation}'`);
+            }
+        }
+        else {
+            if (!this.hasColumn(column)) {
+                this.throwBadRequestException(`Invalid column name '${column}'`);
+            }
         }
     }
     getAllowedColumns(columns, options) {
@@ -339,7 +354,7 @@ class RepositoryService extends restful_service_class_1.RestfulService {
         return select;
     }
     getSkip(query, take) {
-        return query.page && take ? take * (query.page - 1) : query.offset ? query.offset : 0;
+        return query.page && take ? take * (query.page - 1) : query.offset ? query.offset : null;
     }
     getTake(query, options) {
         if (query.limit) {
@@ -356,7 +371,7 @@ class RepositoryService extends restful_service_class_1.RestfulService {
                     : options.maxLimit
                 : options.limit;
         }
-        return options.maxLimit ? options.maxLimit : 0;
+        return options.maxLimit ? options.maxLimit : null;
     }
     getSort(query, options) {
         return query.sort && query.sort.length
@@ -374,7 +389,7 @@ class RepositoryService extends restful_service_class_1.RestfulService {
         return params;
     }
     mapOperatorsToQuery(cond, param) {
-        const field = `${this.alias}.${cond.field}`;
+        const field = cond.field.indexOf('.') === -1 ? `${this.alias}.${cond.field}` : cond.field;
         let str;
         let params;
         switch (cond.operator) {

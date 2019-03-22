@@ -6,28 +6,36 @@ import { CrudActions, CrudValidate } from '../enums';
 import { RestfulQueryInterceptor, RestfulParamsInterceptorFactory } from '../interceptors';
 import { CrudOptions, FilterParamParsed, EntitiesBulk, RoutesOptions } from '../interfaces';
 import { BaseRouteName } from '../types';
-import { OVERRIDE_METHOD_METADATA, PARSED_OPTIONS_METADATA, PARSED_PARAMS_REQUEST_KEY, PARSED_QUERY_REQUEST_KEY } from '../constants';
+import {
+  OVERRIDE_METHOD_METADATA,
+  PARSED_OPTIONS_METADATA,
+  PARSED_PARAMS_REQUEST_KEY,
+  PARSED_QUERY_REQUEST_KEY,
+} from '../constants';
 import { hasValidator, mockTransformerDecorator, mockValidatorDecorator } from '../utils';
-// import { CrudConfigService } from '../module/crud-config.service';
 import {
   getOverrideMetadata,
   getInterceptors,
   getRouteInterceptors,
   getAction,
   getControllerPath,
-  getSwagger,
+  getSwaggerParams,
+  getSwaggeOkResponse,
+  getSwaggerOperation,
   getRoutesSlugName,
   setAction,
   setInterceptors,
   setParamTypes,
   setParams,
   setRoute,
-  setSwagger,
   setSwaggerQueryGetMany,
   setSwaggerQueryGetOne,
   setSwaggerOkResponse,
   setSwaggerOperation,
   setSwaggerParams,
+  setSwaggerOkResponseMeta,
+  setSwaggerOperationMeta,
+  setSwaggerParamsMeta,
   setValidationPipe,
   createParamMetadata,
   createCustomRequestParamMetadata,
@@ -117,7 +125,7 @@ const baseRoutesInit = {
     );
     setAction(CrudActions.ReadOne, prototype[name]);
     setSwaggerParams(prototype[name], crudOptions);
-    setSwaggerQueryGetOne(prototype[name], dto.name);
+    setSwaggerQueryGetOne(prototype[name]);
     setSwaggerOperation(prototype[name], `Retrieve one ${dto.name}`);
     setSwaggerOkResponse(prototype[name], dto);
   },
@@ -354,12 +362,16 @@ export const Crud = (dto: any, crudOptions: CrudOptions = {}) => (target: object
       const interceptors = getInterceptors(prototype[name]) || [];
       const baseInterceptors = getInterceptors(prototype[overrided]) || [];
       const baseAction = getAction(prototype[overrided]);
-      const baseSwagger = getSwagger(prototype[overrided]);
+      const baseSwaggerParams = getSwaggerParams(prototype[overrided]);
+      const baseSwaggerOkResponse = getSwaggeOkResponse(prototype[overrided]);
+      const baseSwaggerOperation = getSwaggerOperation(prototype[overrided]);
 
       // set metadata
       setInterceptors([...baseInterceptors, ...interceptors], prototype[name]);
       setAction(baseAction, prototype[name]);
-      setSwagger(baseSwagger, prototype[name]);
+      setSwaggerParamsMeta(baseSwaggerParams, prototype[name]);
+      setSwaggerOkResponseMeta(baseSwaggerOkResponse, prototype[name]);
+      setSwaggerOperationMeta(baseSwaggerOperation, prototype[name]);
 
       // set route
       setRoute(route.path, route.method, prototype[name]);

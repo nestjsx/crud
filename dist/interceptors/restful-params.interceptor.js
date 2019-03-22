@@ -17,15 +17,16 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const common_1 = require("@nestjs/common");
 const shared_utils_1 = require("@nestjs/common/utils/shared.utils");
 const constants_1 = require("../constants");
+let counter = 0;
 function RestfulParamsInterceptorFactory(crudOptions) {
     let RestfulParamsInterceptor = class RestfulParamsInterceptor {
-        intercept(context, call$) {
+        intercept(context, next) {
             return __awaiter(this, void 0, void 0, function* () {
                 const req = context.switchToHttp().getRequest();
                 const { parsedParams, options } = yield this.transform(req.params);
                 req[constants_1.PARSED_PARAMS_REQUEST_KEY] = parsedParams;
                 req[constants_1.PARSED_OPTIONS_METADATA] = options;
-                return call$;
+                return next.handle();
             });
         }
         transform(params) {
@@ -77,6 +78,10 @@ function RestfulParamsInterceptorFactory(crudOptions) {
     RestfulParamsInterceptor = __decorate([
         common_1.Injectable()
     ], RestfulParamsInterceptor);
+    Object.defineProperty(RestfulParamsInterceptor, 'name', {
+        value: `RestfulParamsInterceptor${counter++}`,
+        writable: false,
+    });
     return RestfulParamsInterceptor;
 }
 exports.RestfulParamsInterceptorFactory = RestfulParamsInterceptorFactory;

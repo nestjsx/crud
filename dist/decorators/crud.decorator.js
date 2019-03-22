@@ -33,6 +33,8 @@ const baseRoutesInit = {
         helpers_1.setAction(enums_1.CrudActions.ReadAll, prototype[name]);
         helpers_1.setSwaggerParams(prototype[name], crudOptions);
         helpers_1.setSwaggerQueryGetMany(prototype[name], dto.name);
+        helpers_1.setSwaggerOperation(prototype[name], `Retrieve many ${dto.name}`);
+        helpers_1.setSwaggerOkResponse(prototype[name], dto, true);
     },
     getOneBase(target, name, dto, crudOptions) {
         const prototype = target.prototype;
@@ -48,7 +50,9 @@ const baseRoutesInit = {
         ], prototype[name]);
         helpers_1.setAction(enums_1.CrudActions.ReadOne, prototype[name]);
         helpers_1.setSwaggerParams(prototype[name], crudOptions);
-        helpers_1.setSwaggerQueryGetOne(prototype[name], dto.name);
+        helpers_1.setSwaggerQueryGetOne(prototype[name]);
+        helpers_1.setSwaggerOperation(prototype[name], `Retrieve one ${dto.name}`);
+        helpers_1.setSwaggerOkResponse(prototype[name], dto);
     },
     createOneBase(target, name, dto, crudOptions) {
         const prototype = target.prototype;
@@ -65,6 +69,8 @@ const baseRoutesInit = {
         ], prototype[name]);
         helpers_1.setAction(enums_1.CrudActions.CreateOne, prototype[name]);
         helpers_1.setSwaggerParams(prototype[name], crudOptions);
+        helpers_1.setSwaggerOperation(prototype[name], `Create one ${dto.name}`);
+        helpers_1.setSwaggerOkResponse(prototype[name], dto);
     },
     createManyBase(target, name, dto, crudOptions) {
         const prototype = target.prototype;
@@ -94,6 +100,8 @@ const baseRoutesInit = {
         ], prototype[name]);
         helpers_1.setAction(enums_1.CrudActions.CreateMany, prototype[name]);
         helpers_1.setSwaggerParams(prototype[name], crudOptions);
+        helpers_1.setSwaggerOperation(prototype[name], `Create many ${dto.name}`);
+        helpers_1.setSwaggerOkResponse(prototype[name], dto, false);
     },
     updateOneBase(target, name, dto, crudOptions) {
         const prototype = target.prototype;
@@ -110,8 +118,10 @@ const baseRoutesInit = {
         ], prototype[name]);
         helpers_1.setAction(enums_1.CrudActions.UpdateOne, prototype[name]);
         helpers_1.setSwaggerParams(prototype[name], crudOptions);
+        helpers_1.setSwaggerOperation(prototype[name], `Update one ${dto.name}`);
+        helpers_1.setSwaggerOkResponse(prototype[name], dto);
     },
-    deleteOneBase(target, name, crudOptions) {
+    deleteOneBase(target, name, dto, crudOptions) {
         const prototype = target.prototype;
         prototype[name] = function deleteOneBase(parsedParams) {
             return this.service.deleteOne(parsedParams, crudOptions.routes);
@@ -124,6 +134,7 @@ const baseRoutesInit = {
         ], prototype[name]);
         helpers_1.setAction(enums_1.CrudActions.DeleteOne, prototype[name]);
         helpers_1.setSwaggerParams(prototype[name], crudOptions);
+        helpers_1.setSwaggerOperation(prototype[name], `Delete one ${dto.name}`);
     },
 };
 const getBaseRoutesSchema = () => ({
@@ -182,9 +193,7 @@ exports.Crud = (dto, crudOptions = {}) => (target) => {
             if (!route.path.length) {
                 route.path = `/:${slug}`;
             }
-            route.name !== 'deleteOneBase'
-                ? baseRoutesInit[route.name](target, route.name, dto, crudOptions)
-                : baseRoutesInit[route.name](target, route.name, crudOptions);
+            baseRoutesInit[route.name](target, route.name, dto, crudOptions);
             route.enable = true;
         }
     });
@@ -195,10 +204,14 @@ exports.Crud = (dto, crudOptions = {}) => (target) => {
             const interceptors = helpers_1.getInterceptors(prototype[name]) || [];
             const baseInterceptors = helpers_1.getInterceptors(prototype[overrided]) || [];
             const baseAction = helpers_1.getAction(prototype[overrided]);
-            const baseSwagger = helpers_1.getSwagger(prototype[overrided]);
+            const baseSwaggerParams = helpers_1.getSwaggerParams(prototype[overrided]);
+            const baseSwaggerOkResponse = helpers_1.getSwaggeOkResponse(prototype[overrided]);
+            const baseSwaggerOperation = helpers_1.getSwaggerOperation(prototype[overrided]);
             helpers_1.setInterceptors([...baseInterceptors, ...interceptors], prototype[name]);
             helpers_1.setAction(baseAction, prototype[name]);
-            helpers_1.setSwagger(baseSwagger, prototype[name]);
+            helpers_1.setSwaggerParamsMeta(baseSwaggerParams, prototype[name]);
+            helpers_1.setSwaggerOkResponseMeta(baseSwaggerOkResponse, prototype[name]);
+            helpers_1.setSwaggerOperationMeta(baseSwaggerOperation, prototype[name]);
             helpers_1.setRoute(route.path, route.method, prototype[name]);
             route.override = true;
         }

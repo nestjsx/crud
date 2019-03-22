@@ -1,5 +1,10 @@
-import { BadRequestException, ExecutionContext, Injectable, NestInterceptor } from '@nestjs/common';
-import { Observable } from 'rxjs';
+import {
+  Injectable,
+  NestInterceptor,
+  ExecutionContext,
+  CallHandler,
+  BadRequestException,
+} from '@nestjs/common';
 import { isObject } from '@nestjs/common/utils/shared.utils';
 
 import { CrudOptions, FilterParamParsed, ObjectLiteral, RestfulOptions } from '../interfaces';
@@ -10,7 +15,7 @@ let counter = 0;
 export function RestfulParamsInterceptorFactory(crudOptions: CrudOptions): Function {
   @Injectable()
   class RestfulParamsInterceptor implements NestInterceptor {
-    async intercept(context: ExecutionContext, call$: Observable<any>) {
+    async intercept(context: ExecutionContext, next: CallHandler) {
       const req = context.switchToHttp().getRequest();
 
       const { parsedParams, options } = await this.transform(req.params);
@@ -18,7 +23,7 @@ export function RestfulParamsInterceptorFactory(crudOptions: CrudOptions): Funct
       req[PARSED_PARAMS_REQUEST_KEY] = parsedParams;
       req[PARSED_OPTIONS_METADATA] = options;
 
-      return call$;
+      return next.handle();
     }
 
     private async transform(

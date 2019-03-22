@@ -37,10 +37,28 @@ export function setAction(action: CrudActions, func: Function) {
   Reflect.defineMetadata(ACTION_NAME_METADATA, action, func);
 }
 
+export function setSwaggerOkResponseMeta(meta: any, func: Function) {
+  if (swagger) {
+    Reflect.defineMetadata(swagger.DECORATORS.API_RESPONSE, meta, func);
+  }
+}
+
+export function setSwaggerOperationMeta(meta: any, func: Function) {
+  if (swagger) {
+    Reflect.defineMetadata(swagger.DECORATORS.API_OPERATION, meta, func);
+  }
+}
+
+export function setSwaggerParamsMeta(meta: any, func: Function) {
+  if (swagger) {
+    Reflect.defineMetadata(swagger.DECORATORS.API_PARAMETERS, meta, func);
+  }
+}
 
 export function setSwaggerOkResponse(func: Function, dto: any, isArray?: boolean) {
   if (swagger) {
-    const responses = Reflect.getMetadata(swagger.DECORATORS.API_RESPONSE, func) || {};
+    const metadata = getSwaggeOkResponse(func);
+
     const groupedMetadata = {
       [200]: {
         type: dto,
@@ -48,24 +66,23 @@ export function setSwaggerOkResponse(func: Function, dto: any, isArray?: boolean
         description: '',
       },
     };
-    Reflect.defineMetadata(swagger.DECORATORS.API_RESPONSE, { ...responses, ...groupedMetadata }, func);
+
+    setSwaggerOkResponseMeta({ ...metadata, ...groupedMetadata }, func);
   }
 }
 
 export function setSwaggerOperation(func: Function, summary: string = '') {
   if (swagger) {
-    const meta = Reflect.getMetadata(swagger.DECORATORS.API_OPERATION, func) || {};
-    Reflect.defineMetadata(swagger.DECORATORS.API_OPERATION, Object.assign(meta, { summary }), func);
-  }
-}
+    const metadata = getSwaggerOperation(func);
 
-export function setSwagger(params: any[], func: Function) {
-  // const metadata = Reflect.getMetadata(swagger.DECORATORS.API_PARAMETERS, func) || [];
-  Reflect.defineMetadata(swagger.DECORATORS.API_PARAMETERS, params, func);
+    setSwaggerOperationMeta(Object.assign(metadata, { summary }), func);
+  }
 }
 
 export function setSwaggerParams(func: Function, crudOptions: CrudOptions) {
   if (swagger) {
+    const metadata = getSwaggerParams(func);
+
     const params = Object.keys(crudOptions.params).map((key) => ({
       name: key,
       required: true,
@@ -73,13 +90,14 @@ export function setSwaggerParams(func: Function, crudOptions: CrudOptions) {
       type: crudOptions.params[key] === 'number' ? Number : String,
     }));
 
-    const metadata = getSwagger(func);
-    setSwagger([...metadata, ...params], func);
+    setSwaggerParamsMeta([...metadata, ...params], func);
   }
 }
 
-export function setSwaggerQueryGetOne(func: Function, name: string) {
+export function setSwaggerQueryGetOne(func: Function) {
   if (swagger) {
+    const metadata = getSwaggerParams(func);
+
     const params = [
       {
         name: 'fields',
@@ -104,13 +122,14 @@ export function setSwaggerQueryGetOne(func: Function, name: string) {
       },
     ];
 
-    const metadata = getSwagger(func);
-    setSwagger([...metadata, ...params], func);
+    setSwaggerParamsMeta([...metadata, ...params], func);
   }
 }
 
 export function setSwaggerQueryGetMany(func: Function, name: string) {
   if (swagger) {
+    const metadata = getSwaggerParams(func);
+
     const params = [
       {
         name: 'fields',
@@ -184,8 +203,7 @@ export function setSwaggerQueryGetMany(func: Function, name: string) {
       },
     ];
 
-    const metadata = getSwagger(func);
-    setSwagger([...metadata, ...params], func);
+    setSwaggerParamsMeta([...metadata, ...params], func);
   }
 }
 
@@ -236,8 +254,22 @@ export function getControllerPath(target): string {
   return Reflect.getMetadata(PATH_METADATA, target);
 }
 
-export function getSwagger(func: Function): any[] {
-  return Reflect.getMetadata(swagger.DECORATORS.API_PARAMETERS, func) || [];
+export function getSwaggerParams(func: Function): any[] {
+  if (swagger) {
+    return Reflect.getMetadata(swagger.DECORATORS.API_PARAMETERS, func) || [];
+  }
+}
+
+export function getSwaggeOkResponse(func: Function): any {
+  if (swagger) {
+    return Reflect.getMetadata(swagger.DECORATORS.API_RESPONSE, func) || {};
+  }
+}
+
+export function getSwaggerOperation(func: Function): any {
+  if (swagger) {
+    return Reflect.getMetadata(swagger.DECORATORS.API_OPERATION, func) || {};
+  }
 }
 
 export function setValidationPipe(crudOptions: CrudOptions, group: CrudValidate) {

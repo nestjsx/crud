@@ -16,7 +16,7 @@ import { CompaniesService } from './companies.service';
     },
     sort: [{ field: 'id', order: 'DESC' }],
     maxLimit: 5,
-    cache: 3000,
+    cache: 10000,
   },
 })
 @ApiUseTags('companies')

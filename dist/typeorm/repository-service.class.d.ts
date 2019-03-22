@@ -1,6 +1,6 @@
 import { DeepPartial, Repository } from 'typeorm';
-import { RestfulService } from '../classes/restful-service.class';
-import { FilterParamParsed, RequestParamsParsed, RestfulOptions, GetManyDefaultResponse, UpdateOneRouteOptions, DeleteOneRouteOptions } from '../interfaces';
+import { RestfulService } from '../classes';
+import { FilterParamParsed, RequestParamsParsed, RestfulOptions, UpdateOneRouteOptions, DeleteOneRouteOptions } from '../interfaces';
 export declare class RepositoryService<T> extends RestfulService<T> {
     protected repo: Repository<T>;
     protected options: RestfulOptions;
@@ -10,7 +10,8 @@ export declare class RepositoryService<T> extends RestfulService<T> {
     constructor(repo: Repository<T>);
     private readonly entityType;
     private readonly alias;
-    getMany(query?: RequestParamsParsed, options?: RestfulOptions): Promise<GetManyDefaultResponse<T>>;
+    decidePagination(query: RequestParamsParsed, mergedOptions: RestfulOptions): boolean;
+    getMany(query?: RequestParamsParsed, options?: RestfulOptions): Promise<T[] | import("../interfaces").GetManyDefaultResponse<T>>;
     getOne({ fields, join, cache }?: RequestParamsParsed, options?: RestfulOptions): Promise<T>;
     createOne(data: T, params: FilterParamParsed[]): Promise<T>;
     createMany(data: {
@@ -25,6 +26,7 @@ export declare class RepositoryService<T> extends RestfulService<T> {
     private onInitMapRelations;
     private getJoinType;
     private hasColumn;
+    private hasRelation;
     private validateHasColumn;
     private getAllowedColumns;
     private getRelationMetadata;

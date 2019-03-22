@@ -26,25 +26,61 @@ function setAction(action, func) {
     Reflect.defineMetadata(constants_2.ACTION_NAME_METADATA, action, func);
 }
 exports.setAction = setAction;
-function setSwagger(params, func) {
-    Reflect.defineMetadata(utils_1.swagger.DECORATORS.API_PARAMETERS, params, func);
+function setSwaggerOkResponseMeta(meta, func) {
+    if (utils_1.swagger) {
+        Reflect.defineMetadata(utils_1.swagger.DECORATORS.API_RESPONSE, meta, func);
+    }
 }
-exports.setSwagger = setSwagger;
+exports.setSwaggerOkResponseMeta = setSwaggerOkResponseMeta;
+function setSwaggerOperationMeta(meta, func) {
+    if (utils_1.swagger) {
+        Reflect.defineMetadata(utils_1.swagger.DECORATORS.API_OPERATION, meta, func);
+    }
+}
+exports.setSwaggerOperationMeta = setSwaggerOperationMeta;
+function setSwaggerParamsMeta(meta, func) {
+    if (utils_1.swagger) {
+        Reflect.defineMetadata(utils_1.swagger.DECORATORS.API_PARAMETERS, meta, func);
+    }
+}
+exports.setSwaggerParamsMeta = setSwaggerParamsMeta;
+function setSwaggerOkResponse(func, dto, isArray) {
+    if (utils_1.swagger) {
+        const metadata = getSwaggeOkResponse(func);
+        const groupedMetadata = {
+            [200]: {
+                type: dto,
+                isArray,
+                description: '',
+            },
+        };
+        setSwaggerOkResponseMeta(Object.assign({}, metadata, groupedMetadata), func);
+    }
+}
+exports.setSwaggerOkResponse = setSwaggerOkResponse;
+function setSwaggerOperation(func, summary = '') {
+    if (utils_1.swagger) {
+        const metadata = getSwaggerOperation(func);
+        setSwaggerOperationMeta(Object.assign(metadata, { summary }), func);
+    }
+}
+exports.setSwaggerOperation = setSwaggerOperation;
 function setSwaggerParams(func, crudOptions) {
     if (utils_1.swagger) {
+        const metadata = getSwaggerParams(func);
         const params = Object.keys(crudOptions.params).map((key) => ({
             name: key,
             required: true,
             in: 'path',
             type: crudOptions.params[key] === 'number' ? Number : String,
         }));
-        const metadata = getSwagger(func);
-        setSwagger([...metadata, ...params], func);
+        setSwaggerParamsMeta([...metadata, ...params], func);
     }
 }
 exports.setSwaggerParams = setSwaggerParams;
-function setSwaggerQueryGetOne(func, name) {
+function setSwaggerQueryGetOne(func) {
     if (utils_1.swagger) {
+        const metadata = getSwaggerParams(func);
         const params = [
             {
                 name: 'fields',
@@ -68,13 +104,13 @@ function setSwaggerQueryGetOne(func, name) {
                 type: Number,
             },
         ];
-        const metadata = getSwagger(func);
-        setSwagger([...metadata, ...params], func);
+        setSwaggerParamsMeta([...metadata, ...params], func);
     }
 }
 exports.setSwaggerQueryGetOne = setSwaggerQueryGetOne;
 function setSwaggerQueryGetMany(func, name) {
     if (utils_1.swagger) {
+        const metadata = getSwaggerParams(func);
         const params = [
             {
                 name: 'fields',
@@ -133,6 +169,13 @@ function setSwaggerQueryGetMany(func, name) {
                 type: Number,
             },
             {
+                name: 'per_page',
+                description: `Alias for limit`,
+                required: false,
+                in: 'query',
+                type: Number,
+            },
+            {
                 name: 'cache',
                 description: `<h4>Reset cache (if was enabled) and receive entities from the DB.</h4><i>Usage:</i> <strong>?cache=0</strong>`,
                 required: false,
@@ -140,8 +183,7 @@ function setSwaggerQueryGetMany(func, name) {
                 type: Number,
             },
         ];
-        const metadata = getSwagger(func);
-        setSwagger([...metadata, ...params], func);
+        setSwaggerParamsMeta([...metadata, ...params], func);
     }
 }
 exports.setSwaggerQueryGetMany = setSwaggerQueryGetMany;
@@ -182,10 +224,24 @@ function getControllerPath(target) {
     return Reflect.getMetadata(constants_1.PATH_METADATA, target);
 }
 exports.getControllerPath = getControllerPath;
-function getSwagger(func) {
-    return Reflect.getMetadata(utils_1.swagger.DECORATORS.API_PARAMETERS, func) || [];
+function getSwaggerParams(func) {
+    if (utils_1.swagger) {
+        return Reflect.getMetadata(utils_1.swagger.DECORATORS.API_PARAMETERS, func) || [];
+    }
 }
-exports.getSwagger = getSwagger;
+exports.getSwaggerParams = getSwaggerParams;
+function getSwaggeOkResponse(func) {
+    if (utils_1.swagger) {
+        return Reflect.getMetadata(utils_1.swagger.DECORATORS.API_RESPONSE, func) || {};
+    }
+}
+exports.getSwaggeOkResponse = getSwaggeOkResponse;
+function getSwaggerOperation(func) {
+    if (utils_1.swagger) {
+        return Reflect.getMetadata(utils_1.swagger.DECORATORS.API_OPERATION, func) || {};
+    }
+}
+exports.getSwaggerOperation = getSwaggerOperation;
 function setValidationPipe(crudOptions, group) {
     const options = crudOptions.validation || {};
     return utils_1.hasValidator
