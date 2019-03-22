@@ -18,7 +18,13 @@ class UsersService extends RepositoryService<User> {
   }
 }
 
-@Crud(User, {})
+@Crud(User, {
+  routes: {
+    updateOneBase: {
+      allowParamsOverride: true,
+    },
+  },
+})
 @Controller('/companies/:companyId/users')
 class UsersController {
   constructor(public service: UsersService) {}
