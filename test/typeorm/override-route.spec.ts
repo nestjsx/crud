@@ -28,6 +28,12 @@ class UsersService extends RepositoryService<User> {
   },
   routes: {
     exclude: ['createManyBase'],
+    deleteOneBase: {
+      returnDeleted: true,
+    },
+  },
+  options: {
+    maxLimit: 3,
   },
 })
 @Controller('/companies/:companyId/users')
@@ -105,6 +111,15 @@ describe('Override base routes', () => {
       return request(server)
         .delete('/companies/2/users/2343')
         .expect(404);
+    });
+
+    it('should return status 200', () => {
+      return request(server)
+        .delete('/companies/2/users/15')
+        .expect(200)
+        .expect((res) => {
+          expect(res.body).not.toBeFalsy();
+        });
     });
   });
 });

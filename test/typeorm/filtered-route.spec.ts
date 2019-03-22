@@ -11,7 +11,6 @@ import { RepositoryService } from '../../src/typeorm';
 class UsersService extends RepositoryService<User> {
   protected options: RestfulOptions = {
     limit: 10,
-    maxLimit: 20,
   };
 
   constructor(@InjectRepository(User) repo) {
