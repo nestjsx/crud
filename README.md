@@ -813,7 +813,7 @@ getOneBase(
 ): Promise<T>;
 
 createOneBase(
-  @Param() params: ObjectLiteral,
+  @ParsedParams() params: FilterParamParsed[],
   @Body() dto: T,
 ): Promise<T>;
 
