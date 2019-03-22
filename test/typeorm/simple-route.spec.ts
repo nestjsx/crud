@@ -27,7 +27,7 @@ class CompaniesService extends RepositoryService<Company> {
     cache: 1000,
     filter: [{ field: 'id', operator: 'notnull' }],
     join: {
-      'users': {
+      users: {
         persist: ['id'],
         exclude: ['password'],
       },
@@ -42,18 +42,12 @@ class CompaniesService extends RepositoryService<Company> {
 })
 @Controller('companies')
 class CompaniesController implements CrudController<CompaniesService, Company> {
-  constructor(public service: CompaniesService) {
-  }
+  constructor(public service: CompaniesService) {}
 
   @Action('test')
   @Get('test')
   test() {
     return 'ok';
-  }
-
-  @Override()
-  deleteOne(@Param('id') id, @Param() params) {
-    return (this as any).deleteOneBase(id, params);
   }
 }
 
@@ -83,8 +77,7 @@ describe('Simple base routes', () => {
 
   // Get Many
 
-  describe('', () => {
-  });
+  describe('', () => {});
 
   it('/GET / (200)', () => {
     return request(server)
@@ -398,5 +391,4 @@ describe('Simple base routes', () => {
       .get('/companies/test')
       .expect(200);
   });
-
 });

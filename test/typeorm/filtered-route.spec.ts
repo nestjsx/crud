@@ -19,9 +19,7 @@ class UsersService extends RepositoryService<User> {
   }
 }
 
-@Crud(User, {
-  params: ['companyId'],
-})
+@Crud(User, {})
 @Controller('/companies/:companyId/users')
 class UsersController implements CrudController<UsersService, User> {
   constructor(public service: UsersService) {}
