@@ -39,24 +39,28 @@ export function setAction(action: CrudActions, func: Function) {
 
 export function setSwaggerOkResponseMeta(meta: any, func: Function) {
   if (swagger) {
+    /* istanbul ignore next line */
     Reflect.defineMetadata(swagger.DECORATORS.API_RESPONSE, meta, func);
   }
 }
 
 export function setSwaggerOperationMeta(meta: any, func: Function) {
   if (swagger) {
+    /* istanbul ignore next line */
     Reflect.defineMetadata(swagger.DECORATORS.API_OPERATION, meta, func);
   }
 }
 
 export function setSwaggerParamsMeta(meta: any, func: Function) {
   if (swagger) {
+    /* istanbul ignore next line */
     Reflect.defineMetadata(swagger.DECORATORS.API_PARAMETERS, meta, func);
   }
 }
 
 export function setSwaggerOkResponse(func: Function, dto: any, isArray?: boolean) {
   if (swagger) {
+    /* istanbul ignore next line */
     const metadata = getSwaggeOkResponse(func);
 
     const groupedMetadata = {
@@ -66,36 +70,39 @@ export function setSwaggerOkResponse(func: Function, dto: any, isArray?: boolean
         description: '',
       },
     };
-
+    /* istanbul ignore next line */
     setSwaggerOkResponseMeta({ ...metadata, ...groupedMetadata }, func);
   }
 }
 
 export function setSwaggerOperation(func: Function, summary: string = '') {
   if (swagger) {
+    /* istanbul ignore next line */
     const metadata = getSwaggerOperation(func);
-
+    /* istanbul ignore next line */
     setSwaggerOperationMeta(Object.assign(metadata, { summary }), func);
   }
 }
 
 export function setSwaggerParams(func: Function, crudOptions: CrudOptions) {
   if (swagger) {
+    /* istanbul ignore next line */
     const metadata = getSwaggerParams(func);
-
+    /* istanbul ignore next line */
     const params = Object.keys(crudOptions.params).map((key) => ({
       name: key,
       required: true,
       in: 'path',
       type: crudOptions.params[key] === 'number' ? Number : String,
     }));
-
+    /* istanbul ignore next line */
     setSwaggerParamsMeta([...metadata, ...params], func);
   }
 }
 
 export function setSwaggerQueryGetOne(func: Function) {
   if (swagger) {
+    /* istanbul ignore next line */
     const metadata = getSwaggerParams(func);
 
     const params = [
@@ -121,13 +128,14 @@ export function setSwaggerQueryGetOne(func: Function) {
         type: Number,
       },
     ];
-
+    /* istanbul ignore next line */
     setSwaggerParamsMeta([...metadata, ...params], func);
   }
 }
 
 export function setSwaggerQueryGetMany(func: Function, name: string) {
   if (swagger) {
+    /* istanbul ignore next line */
     const metadata = getSwaggerParams(func);
 
     const params = [
@@ -202,7 +210,7 @@ export function setSwaggerQueryGetMany(func: Function, name: string) {
         type: Number,
       },
     ];
-
+    /* istanbul ignore next line */
     setSwaggerParamsMeta([...metadata, ...params], func);
   }
 }
@@ -256,18 +264,21 @@ export function getControllerPath(target): string {
 
 export function getSwaggerParams(func: Function): any[] {
   if (swagger) {
+    /* istanbul ignore next line */
     return Reflect.getMetadata(swagger.DECORATORS.API_PARAMETERS, func) || [];
   }
 }
 
 export function getSwaggeOkResponse(func: Function): any {
   if (swagger) {
+    /* istanbul ignore next line */
     return Reflect.getMetadata(swagger.DECORATORS.API_RESPONSE, func) || {};
   }
 }
 
 export function getSwaggerOperation(func: Function): any {
   if (swagger) {
+    /* istanbul ignore next line */
     return Reflect.getMetadata(swagger.DECORATORS.API_OPERATION, func) || {};
   }
 }
