@@ -1,34 +1,39 @@
 import { RequestMethod } from '@nestjs/common';
 import { RouteParamtypes } from '@nestjs/common/enums/route-paramtypes.enum';
-import { isNil, isObject } from '@nestjs/common/utils/shared.utils';
 
 import { RestfulParamsDto } from '../dto';
 import { CrudActions, CrudValidate } from '../enums';
-import { RestfulParamsInterceptorFactory, RestfulQueryInterceptor } from '../interceptors';
-import { CrudOptions, EntitiesBulk, FilterParamParsed, RestfulOptions } from '../interfaces';
+import { RestfulQueryInterceptor, RestfulParamsInterceptorFactory } from '../interceptors';
+import { CrudOptions, FilterParamParsed, EntitiesBulk, RoutesOptions } from '../interfaces';
 import { BaseRouteName } from '../types';
 import { OVERRIDE_METHOD_METADATA, PARSED_OPTIONS_METADATA, PARSED_PARAMS_REQUEST_KEY, PARSED_QUERY_REQUEST_KEY } from '../constants';
 import { hasValidator, mockTransformerDecorator, mockValidatorDecorator } from '../utils';
 // import { CrudConfigService } from '../module/crud-config.service';
 import {
-  createCustomRequestParamMetadata,
-  createParamMetadata,
-  enableRoute,
+  getOverrideMetadata,
+  getInterceptors,
+  getRouteInterceptors,
   getAction,
   getControllerPath,
-  getInterceptors,
-  getOverrideMetadata,
+  getSwagger,
+  getRoutesSlugName,
   setAction,
   setInterceptors,
-  setParams,
   setParamTypes,
+  setParams,
   setRoute,
+  setSwagger,
+  setSwaggerQueryGetMany,
+  setSwaggerQueryGetOne,
   setSwaggerOkResponse,
   setSwaggerOperation,
   setSwaggerParams,
-  setSwaggerQueryGetMany,
-  setSwaggerQueryGetOne,
   setValidationPipe,
+  createParamMetadata,
+  createCustomRequestParamMetadata,
+  enableRoute,
+  paramsOptionsInit,
+  cleanRoutesOptionsInterceptors,
 } from './helpers';
 
 interface BaseRoutes {
@@ -49,8 +54,11 @@ const baseRoutesInit = {
   getManyBase(target: object, name: string, dto: any, crudOptions: CrudOptions) {
     const prototype = (target as any).prototype;
 
-    prototype[name] = function getManyBase(query: RestfulParamsDto, options: RestfulOptions) {
-      return this.service.getMany(query, options);
+    prototype[name] = function getManyBase(
+      parsedQuery: RestfulParamsDto,
+      parsedOptions: CrudOptions,
+    ) {
+      return this.service.getMany(parsedQuery, parsedOptions.options);
     };
 
     setParams(
@@ -66,7 +74,7 @@ const baseRoutesInit = {
       [
         RestfulParamsInterceptorFactory(crudOptions),
         RestfulQueryInterceptor,
-        ...getRoutesInterceptors(crudOptions.routes.getManyBase),
+        ...getRouteInterceptors(crudOptions.routes.getManyBase),
       ],
       prototype[name],
     );
@@ -83,8 +91,11 @@ const baseRoutesInit = {
   getOneBase(target: object, name: string, dto: any, crudOptions: CrudOptions) {
     const prototype = (target as any).prototype;
 
-    prototype[name] = function getOneBase(query: RestfulParamsDto, options: RestfulOptions) {
-      return this.service.getOne(query, options);
+    prototype[name] = function getOneBase(
+      parsedQuery: RestfulParamsDto,
+      parsedOptions: CrudOptions,
+    ) {
+      return this.service.getOne(parsedQuery, parsedOptions.options);
     };
 
     setParams(
@@ -100,7 +111,7 @@ const baseRoutesInit = {
       [
         RestfulParamsInterceptorFactory(crudOptions),
         RestfulQueryInterceptor,
-        ...getRoutesInterceptors(crudOptions.routes.getOneBase),
+        ...getRouteInterceptors(crudOptions.routes.getOneBase),
       ],
       prototype[name],
     );
@@ -117,8 +128,8 @@ const baseRoutesInit = {
   createOneBase(target: object, name: string, dto: any, crudOptions: CrudOptions) {
     const prototype = (target as any).prototype;
 
-    prototype[name] = function createOneBase(params: FilterParamParsed[], body: any) {
-      return this.service.createOne(body, params);
+    prototype[name] = function createOneBase(parsedParams: FilterParamParsed[], body: any) {
+      return this.service.createOne(body, parsedParams);
     };
 
     setParams(
@@ -135,7 +146,7 @@ const baseRoutesInit = {
     setInterceptors(
       [
         RestfulParamsInterceptorFactory(crudOptions),
-        ...getRoutesInterceptors(crudOptions.routes.createOneBase),
+        ...getRouteInterceptors(crudOptions.routes.createOneBase),
       ],
       prototype[name],
     );
@@ -151,8 +162,8 @@ const baseRoutesInit = {
   createManyBase(target: object, name: string, dto: any, crudOptions: CrudOptions) {
     const prototype = (target as any).prototype;
 
-    prototype[name] = function createManyBase(params: FilterParamParsed[], body: any) {
-      return this.service.createMany(body, params);
+    prototype[name] = function createManyBase(parsedParams: FilterParamParsed[], body: any) {
+      return this.service.createMany(body, parsedParams);
     };
 
     const isArray = mockValidatorDecorator('isArray');
@@ -182,7 +193,7 @@ const baseRoutesInit = {
     setInterceptors(
       [
         RestfulParamsInterceptorFactory(crudOptions),
-        ...getRoutesInterceptors(crudOptions.routes.createManyBase),
+        ...getRouteInterceptors(crudOptions.routes.createManyBase),
       ],
       prototype[name],
     );
@@ -198,8 +209,8 @@ const baseRoutesInit = {
   updateOneBase(target: object, name: string, dto: any, crudOptions: CrudOptions) {
     const prototype = (target as any).prototype;
 
-    prototype[name] = function updateOneBase(params: FilterParamParsed[], body) {
-      return this.service.updateOne(body, params, crudOptions.routes);
+    prototype[name] = function updateOneBase(parsedParams: FilterParamParsed[], body) {
+      return this.service.updateOne(body, parsedParams, crudOptions.routes);
     };
 
     setParams(
@@ -216,7 +227,7 @@ const baseRoutesInit = {
     setInterceptors(
       [
         RestfulParamsInterceptorFactory(crudOptions),
-        ...getRoutesInterceptors(crudOptions.routes.updateOneBase),
+        ...getRouteInterceptors(crudOptions.routes.updateOneBase),
       ],
       prototype[name],
     );
@@ -232,8 +243,8 @@ const baseRoutesInit = {
   deleteOneBase(target: object, name: string, dto: any, crudOptions: CrudOptions) {
     const prototype = (target as any).prototype;
 
-    prototype[name] = function deleteOneBase(params: FilterParamParsed[]) {
-      return this.service.deleteOne(params, crudOptions.routes);
+    prototype[name] = function deleteOneBase(parsedParams: FilterParamParsed[]) {
+      return this.service.deleteOne(parsedParams, crudOptions.routes);
     };
 
     setParams(
@@ -247,7 +258,7 @@ const baseRoutesInit = {
     setInterceptors(
       [
         RestfulParamsInterceptorFactory(crudOptions),
-        ...getRoutesInterceptors(crudOptions.routes.deleteOneBase),
+        ...getRouteInterceptors(crudOptions.routes.deleteOneBase),
       ],
       prototype[name],
     );
@@ -343,10 +354,12 @@ export const Crud = (dto: any, crudOptions: CrudOptions = {}) => (target: object
       const interceptors = getInterceptors(prototype[name]) || [];
       const baseInterceptors = getInterceptors(prototype[overrided]) || [];
       const baseAction = getAction(prototype[overrided]);
+      const baseSwagger = getSwagger(prototype[overrided]);
 
       // set metadata
       setInterceptors([...baseInterceptors, ...interceptors], prototype[name]);
       setAction(baseAction, prototype[name]);
+      setSwagger(baseSwagger, prototype[name]);
 
       // set route
       setRoute(route.path, route.method, prototype[name]);
@@ -362,6 +375,9 @@ export const Crud = (dto: any, crudOptions: CrudOptions = {}) => (target: object
       setRoute(route.path, route.method, prototype[route.name]);
     }
   });
+
+  // clean interceptors in RoutesOptions for perf reasons
+  cleanRoutesOptionsInterceptors(crudOptions);
 };
 
 /**
@@ -372,53 +388,3 @@ export const Override = (name?: BaseRouteName) => (target, key, descriptor: Prop
   Reflect.defineMetadata(OVERRIDE_METHOD_METADATA, name || `${key}Base`, target[key]);
   return descriptor;
 };
-
-// Helpers
-
-function paramsOptionsInit(crudOptions: CrudOptions) {
-  const check = (obj) => isNil(obj) || !isObject(obj) || !Object.keys(obj).length;
-
-  if (check(crudOptions.params)) {
-    crudOptions.params = { id: 'number' };
-  }
-
-  if (check(crudOptions.routes)) {
-    crudOptions.routes = {};
-  }
-
-  if (check(crudOptions.routes.getManyBase)) {
-    crudOptions.routes.getManyBase = { interceptors: [] };
-  }
-
-  if (check(crudOptions.routes.getOneBase)) {
-    crudOptions.routes.getOneBase = { interceptors: [] };
-  }
-
-  if (check(crudOptions.routes.createOneBase)) {
-    crudOptions.routes.createOneBase = { interceptors: [] };
-  }
-
-  if (check(crudOptions.routes.createManyBase)) {
-    crudOptions.routes.createManyBase = { interceptors: [] };
-  }
-
-  if (check(crudOptions.routes.updateOneBase)) {
-    crudOptions.routes.updateOneBase = { allowParamsOverride: false, interceptors: [] };
-  }
-
-  if (check(crudOptions.routes.deleteOneBase)) {
-    crudOptions.routes.deleteOneBase = { returnDeleted: false, interceptors: [] };
-  }
-}
-
-function getRoutesSlugName(crudOptions: CrudOptions, path: string): string {
-  if (!isNil(crudOptions.params.id)) {
-    return 'id';
-  }
-
-  return Object.keys(crudOptions.params).filter((slug) => !path.includes(`:${slug}`))[0] || 'id';
-}
-
-function getRoutesInterceptors(routeOptions: any): any[] {
-  return Array.isArray(routeOptions.interceptors) ? routeOptions.interceptors : [];
-}

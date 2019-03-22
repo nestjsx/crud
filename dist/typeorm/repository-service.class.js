@@ -76,10 +76,10 @@ class RepositoryService extends restful_service_class_1.RestfulService {
             return this.repo.save(bulk, { chunk: 50 });
         });
     }
-    updateOne(data, params = [], routesOptions = {}) {
+    updateOne(data, params = [], routeOptions = {}) {
         return __awaiter(this, void 0, void 0, function* () {
             const found = yield this.getOneOrFail({}, { filter: params });
-            if (params.length && !routesOptions.updateOneBase.allowParamsOverride) {
+            if (params.length && !routeOptions.allowParamsOverride) {
                 for (const filter of params) {
                     data[filter.field] = filter.value;
                 }
@@ -87,11 +87,11 @@ class RepositoryService extends restful_service_class_1.RestfulService {
             return this.repo.save(Object.assign({}, found, data));
         });
     }
-    deleteOne(params, routesOptions = {}) {
+    deleteOne(params, routeOptions = {}) {
         return __awaiter(this, void 0, void 0, function* () {
             const found = yield this.getOneOrFail({}, { filter: params });
             const deleted = yield this.repo.remove(found);
-            if (routesOptions.deleteOneBase.returnDeleted) {
+            if (routeOptions.returnDeleted) {
                 for (const filter of params) {
                     deleted[filter.field] = filter.value;
                 }
