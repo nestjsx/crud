@@ -8,7 +8,7 @@ import {
   SortParamParsed,
   JoinParamParsed,
 } from '../interfaces';
-import { RequestQueryParams } from '../interfaces/request-query-params.interface';
+import { RequestQueryParams } from '../interfaces';
 import { ComparisonOperator } from '../types';
 import { PARSED_QUERY_REQUEST_KEY } from '../constants';
 
@@ -139,7 +139,7 @@ export class RestfulQueryInterceptor implements NestInterceptor {
 
     if (Array.isArray(param) && param.length) {
       const result = [];
-      for (let item of param) {
+      for (const item of param) {
         result.push(parser.call(this, item));
       }
       return result;

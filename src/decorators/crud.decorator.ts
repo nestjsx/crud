@@ -4,36 +4,31 @@ import { isNil, isObject } from '@nestjs/common/utils/shared.utils';
 
 import { RestfulParamsDto } from '../dto';
 import { CrudActions, CrudValidate } from '../enums';
-import { RestfulQueryInterceptor, RestfulParamsInterceptorFactory } from '../interceptors';
-import { CrudOptions, FilterParamParsed, EntitiesBulk, RestfulOptions } from '../interfaces';
+import { RestfulParamsInterceptorFactory, RestfulQueryInterceptor } from '../interceptors';
+import { CrudOptions, EntitiesBulk, FilterParamParsed, RestfulOptions } from '../interfaces';
 import { BaseRouteName } from '../types';
-import {
-  OVERRIDE_METHOD_METADATA,
-  PARSED_PARAMS_REQUEST_KEY,
-  PARSED_QUERY_REQUEST_KEY,
-  PARSED_OPTIONS_METADATA,
-} from '../constants';
-import { mockValidatorDecorator, mockTransformerDecorator, hasValidator } from '../utils';
+import { OVERRIDE_METHOD_METADATA, PARSED_OPTIONS_METADATA, PARSED_PARAMS_REQUEST_KEY, PARSED_QUERY_REQUEST_KEY } from '../constants';
+import { hasValidator, mockTransformerDecorator, mockValidatorDecorator } from '../utils';
 // import { CrudConfigService } from '../module/crud-config.service';
 import {
-  getOverrideMetadata,
-  getInterceptors,
+  createCustomRequestParamMetadata,
+  createParamMetadata,
+  enableRoute,
   getAction,
   getControllerPath,
+  getInterceptors,
+  getOverrideMetadata,
   setAction,
   setInterceptors,
-  setParamTypes,
   setParams,
+  setParamTypes,
   setRoute,
   setSwaggerOkResponse,
   setSwaggerOperation,
+  setSwaggerParams,
   setSwaggerQueryGetMany,
   setSwaggerQueryGetOne,
-  setSwaggerParams,
   setValidationPipe,
-  createParamMetadata,
-  createCustomRequestParamMetadata,
-  enableRoute,
 } from './helpers';
 
 interface BaseRoutes {
@@ -333,9 +328,7 @@ export const Crud = (dto: any, crudOptions: CrudOptions = {}) => (target: object
       }
 
       // create routes
-      route.name !== 'deleteOneBase'
-        ? baseRoutesInit[route.name](target, route.name, dto, crudOptions)
-        : baseRoutesInit[route.name](target, route.name, dto, crudOptions);
+      baseRoutesInit[route.name](target, route.name, dto, crudOptions);
       route.enable = true;
     }
   });

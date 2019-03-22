@@ -160,6 +160,13 @@ export function setSwaggerQueryGetMany(func: Function, name: string) {
         type: Number,
       },
       {
+        name: 'per_page',
+        description: `Alias for limit`,
+        required: false,
+        in: 'query',
+        type: Number,
+      },
+      {
         name: 'cache',
         description: `Reset cached result`,
         required: false,
