@@ -399,21 +399,4 @@ describe('Simple base routes', () => {
       .expect(200);
   });
 
-  describe('nested relations', () => {
-    it('nested relations', () => {
-      return request(server)
-        .get('/companies/1?join=users||email&join=users.projects&join=users.projects.tasks')
-        .expect(200)
-        .expect(res => {
-          expect(res.body).to.have.nested.property('users[0].projects[0].tasks[0].name');
-        });
-    });
-
-    it('when missing fields', () => {
-      return request(server)
-        .get('/companies/1?join=users||email&join=users.projects1&join=users.projects1.tasks')
-        .expect(200);
-    });
-  });
-
 });

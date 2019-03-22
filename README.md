@@ -223,6 +223,10 @@ _Syntax:_
 
 > ?filter=**field**||**condition**||**value**
 
+> ?join=**relation**&filter=**relation**.**field**||**condition**||**value**
+
+**_Notice:_** Using nested filter shall join relation first.
+
 _Examples:_
 
 > ?filter=**name**||**eq**||**batman**

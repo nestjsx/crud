@@ -1,9 +1,11 @@
-import { Injectable, NestInterceptor, ExecutionContext, BadRequestException } from '@nestjs/common';
+import { BadRequestException, ExecutionContext, Injectable, NestInterceptor } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { isObject } from '@nestjs/common/utils/shared.utils';
 
-import { ObjectLiteral, FilterParamParsed, CrudOptions, RestfulOptions } from '../interfaces';
-import { PARSED_PARAMS_REQUEST_KEY, PARSED_OPTIONS_METADATA } from '../constants';
+import { CrudOptions, FilterParamParsed, ObjectLiteral, RestfulOptions } from '../interfaces';
+import { PARSED_OPTIONS_METADATA, PARSED_PARAMS_REQUEST_KEY } from '../constants';
+
+let counter = 0;
 
 export function RestfulParamsInterceptorFactory(crudOptions: CrudOptions): Function {
   @Injectable()
@@ -29,11 +31,11 @@ export function RestfulParamsInterceptorFactory(crudOptions: CrudOptions): Funct
         // parse params
         transformed.parsedParams = keys.map(
           (key) =>
-            <FilterParamParsed>{
+            ({
               field: key,
               operator: 'eq',
               value: this.validate(key, crudOptions.params[key], params[key]),
-            },
+            } as FilterParamParsed),
         );
       } else {
         transformed.parsedParams = [];
@@ -47,7 +49,9 @@ export function RestfulParamsInterceptorFactory(crudOptions: CrudOptions): Funct
 
     /**
      * Validate params
-     * @param params
+     * @param key
+     * @param type
+     * @param value
      */
     private validate(key: string, type: 'number' | 'string' | 'uuid', value: string): any {
       switch (type) {
@@ -87,7 +91,7 @@ export function RestfulParamsInterceptorFactory(crudOptions: CrudOptions): Funct
      * @param parsedParams
      */
     private parseOptions(parsedParams: FilterParamParsed[]): CrudOptions {
-      const options = <RestfulOptions>Object.assign({}, crudOptions.options || {});
+      const options = Object.assign({}, crudOptions.options || {})  as RestfulOptions;
       const optionsFilter = options.filter || [];
       const filter = [...optionsFilter, ...parsedParams];
 
@@ -98,6 +102,12 @@ export function RestfulParamsInterceptorFactory(crudOptions: CrudOptions): Funct
       return { ...crudOptions, options };
     }
   }
+
+  // MUST change class name see #25
+  Object.defineProperty(RestfulParamsInterceptor, 'name', {
+    value: `RestfulParamsInterceptor${counter++}`,
+    writable: false,
+  });
 
   return RestfulParamsInterceptor;
 }
