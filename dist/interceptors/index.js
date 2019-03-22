@@ -4,4 +4,5 @@ function __export(m) {
 }
 Object.defineProperty(exports, "__esModule", { value: true });
 __export(require("./restful-query.interceptor"));
+__export(require("./restful-params.interceptor"));
 //# sourceMappingURL=index.js.map

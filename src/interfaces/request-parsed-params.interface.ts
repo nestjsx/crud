@@ -1,4 +1,4 @@
-import { ComparisonOperator } from '../operators.list';
+import { ComparisonOperator } from '../types';
 
 export interface RequestParamsParsed {
   fields?: string[];

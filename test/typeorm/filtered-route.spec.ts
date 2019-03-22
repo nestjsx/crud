@@ -1,17 +1,16 @@
 import * as request from 'supertest';
 import { Test } from '@nestjs/testing';
 import { TypeOrmModule, InjectRepository } from '@nestjs/typeorm';
-import { INestApplication, Injectable, Controller, Get, Param } from '@nestjs/common';
+import { INestApplication, Injectable, Controller } from '@nestjs/common';
 
 import { UserProfile, User, Company, ormConfig } from '../../integration/typeorm/e2e';
-import { Crud, CrudController, RestfulOptions, Feature, Action, Override } from '../../src';
+import { Crud, RestfulOptions } from '../../src';
 import { RepositoryService } from '../../src/typeorm';
 
 @Injectable()
 class UsersService extends RepositoryService<User> {
   protected options: RestfulOptions = {
     limit: 10,
-    maxLimit: 20,
   };
 
   constructor(@InjectRepository(User) repo) {
@@ -20,10 +19,14 @@ class UsersService extends RepositoryService<User> {
 }
 
 @Crud(User, {
-  params: ['companyId'],
+  routes: {
+    updateOneBase: {
+      allowParamsOverride: true,
+    },
+  },
 })
 @Controller('/companies/:companyId/users')
-class UsersController implements CrudController<UsersService, User> {
+class UsersController {
   constructor(public service: UsersService) {}
 }
 

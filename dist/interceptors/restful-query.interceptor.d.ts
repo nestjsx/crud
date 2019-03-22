@@ -1,10 +1,9 @@
-import { NestInterceptor, ExecutionContext } from '@nestjs/common';
-import { Observable } from 'rxjs';
+import { NestInterceptor, ExecutionContext, CallHandler } from '@nestjs/common';
 export declare class RestfulQueryInterceptor implements NestInterceptor {
     private delim;
     private delimStr;
     private reservedFields;
-    intercept(context: ExecutionContext, call$: Observable<any>): Observable<any>;
+    intercept(context: ExecutionContext, next: CallHandler): import("rxjs").Observable<any>;
     private transform;
     private splitString;
     private parseInt;

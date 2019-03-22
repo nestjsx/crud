@@ -1,6 +1,6 @@
 import { DeepPartial, Repository } from 'typeorm';
-import { RestfulService } from '../classes/restful-service.class';
-import { FilterParamParsed, RequestParamsParsed, RestfulOptions } from '../interfaces';
+import { RestfulService } from '../classes';
+import { FilterParamParsed, RequestParamsParsed, RestfulOptions, GetManyDefaultResponse, UpdateOneRouteOptions, DeleteOneRouteOptions } from '../interfaces';
 export declare class RepositoryService<T> extends RestfulService<T> {
     protected repo: Repository<T>;
     protected options: RestfulOptions;
@@ -10,14 +10,15 @@ export declare class RepositoryService<T> extends RestfulService<T> {
     constructor(repo: Repository<T>);
     private readonly entityType;
     private readonly alias;
-    getMany(query?: RequestParamsParsed, options?: RestfulOptions): Promise<T[]>;
-    getOne(id: number, { fields, join, cache }?: RequestParamsParsed, options?: RestfulOptions): Promise<T>;
-    createOne(data: DeepPartial<T>, paramsFilter?: FilterParamParsed[]): Promise<T>;
+    decidePagination(query: RequestParamsParsed, mergedOptions: RestfulOptions): boolean;
+    getMany(query?: RequestParamsParsed, options?: RestfulOptions): Promise<GetManyDefaultResponse<T> | T[]>;
+    getOne({ fields, join, cache }?: RequestParamsParsed, options?: RestfulOptions): Promise<T>;
+    createOne(data: T, params: FilterParamParsed[]): Promise<T>;
     createMany(data: {
         bulk: DeepPartial<T>[];
-    }, paramsFilter?: FilterParamParsed[]): Promise<T[]>;
-    updateOne(id: number, data: DeepPartial<T>, paramsFilter?: FilterParamParsed[]): Promise<T>;
-    deleteOne(id: number, paramsFilter?: FilterParamParsed[]): Promise<void>;
+    }, params?: FilterParamParsed[]): Promise<T[]>;
+    updateOne(data: DeepPartial<T>, params?: FilterParamParsed[], routeOptions?: UpdateOneRouteOptions): Promise<T>;
+    deleteOne(params: FilterParamParsed[], routeOptions?: DeleteOneRouteOptions): Promise<void | T>;
     private getOneOrFail;
     private buildQuery;
     private plainToClass;
@@ -25,6 +26,7 @@ export declare class RepositoryService<T> extends RestfulService<T> {
     private onInitMapRelations;
     private getJoinType;
     private hasColumn;
+    private hasRelation;
     private validateHasColumn;
     private getAllowedColumns;
     private getRelationMetadata;

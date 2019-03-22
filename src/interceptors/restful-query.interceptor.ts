@@ -1,6 +1,5 @@
-import { Injectable, NestInterceptor, ExecutionContext } from '@nestjs/common';
+import { Injectable, NestInterceptor, ExecutionContext, CallHandler } from '@nestjs/common';
 import { isObject } from '@nestjs/common/utils/shared.utils';
-import { Observable } from 'rxjs';
 
 import {
   RequestParamsParsed,
@@ -8,8 +7,9 @@ import {
   SortParamParsed,
   JoinParamParsed,
 } from '../interfaces';
-import { RequestQueryParams } from '../interfaces/request-query-params.interface';
-import { ComparisonOperator } from '../operators.list';
+import { RequestQueryParams } from '../interfaces';
+import { ComparisonOperator } from '../types';
+import { PARSED_QUERY_REQUEST_KEY } from '../constants';
 
 @Injectable()
 export class RestfulQueryInterceptor implements NestInterceptor {
@@ -32,12 +32,12 @@ export class RestfulQueryInterceptor implements NestInterceptor {
     'cache',
   ];
 
-  intercept(context: ExecutionContext, call$: Observable<any>) {
+  intercept(context: ExecutionContext, next: CallHandler) {
     const req = context.switchToHttp().getRequest();
 
-    req.query = this.transform(req.query);
+    req[PARSED_QUERY_REQUEST_KEY] = this.transform(req.query);
 
-    return call$;
+    return next.handle();
   }
 
   private transform(query: RequestQueryParams): RequestParamsParsed {
@@ -138,7 +138,7 @@ export class RestfulQueryInterceptor implements NestInterceptor {
 
     if (Array.isArray(param) && param.length) {
       const result = [];
-      for (let item of param) {
+      for (const item of param) {
         result.push(parser.call(this, item));
       }
       return result;

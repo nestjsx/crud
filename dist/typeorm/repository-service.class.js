@@ -11,9 +11,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const typeorm_1 = require("typeorm");
 const shared_utils_1 = require("@nestjs/common/utils/shared.utils");
 const class_transformer_1 = require("class-transformer");
-const restful_service_class_1 = require("../classes/restful-service.class");
+const classes_1 = require("../classes");
 const utils_1 = require("../utils");
-class RepositoryService extends restful_service_class_1.RestfulService {
+class RepositoryService extends classes_1.RestfulService {
     constructor(repo) {
         super();
         this.repo = repo;
@@ -29,38 +29,47 @@ class RepositoryService extends restful_service_class_1.RestfulService {
     get alias() {
         return this.repo.metadata.targetName;
     }
+    decidePagination(query, mergedOptions) {
+        return (isFinite(query.page) || isFinite(query.offset)) && !!this.getTake(query, mergedOptions);
+    }
     getMany(query = {}, options = {}) {
         return __awaiter(this, void 0, void 0, function* () {
             const builder = yield this.buildQuery(query, options);
+            const mergedOptions = Object.assign({}, this.options, options);
+            if (this.decidePagination(query, mergedOptions)) {
+                const [data, total] = yield builder.getManyAndCount();
+                const limit = builder.expressionMap.take;
+                const offset = builder.expressionMap.skip;
+                return this.createPageInfo(data, total, limit, offset);
+            }
             return builder.getMany();
         });
     }
-    getOne(id, { fields, join, cache } = {}, options = {}) {
+    getOne({ fields, join, cache } = {}, options = {}) {
         return __awaiter(this, void 0, void 0, function* () {
             return this.getOneOrFail({
-                filter: [{ field: 'id', operator: 'eq', value: id }],
                 fields,
                 join,
                 cache,
             }, options);
         });
     }
-    createOne(data, paramsFilter = []) {
+    createOne(data, params) {
         return __awaiter(this, void 0, void 0, function* () {
-            const entity = this.plainToClass(data, paramsFilter);
+            const entity = this.plainToClass(data, params);
             if (!entity) {
                 this.throwBadRequestException(`Empty data. Nothing to save.`);
             }
             return this.repo.save(entity);
         });
     }
-    createMany(data, paramsFilter = []) {
+    createMany(data, params = []) {
         return __awaiter(this, void 0, void 0, function* () {
             if (!data || !data.bulk || !data.bulk.length) {
                 this.throwBadRequestException(`Empty data. Nothing to save.`);
             }
             const bulk = data.bulk
-                .map((one) => this.plainToClass(one, paramsFilter))
+                .map((one) => this.plainToClass(one, params))
                 .filter((d) => shared_utils_1.isObject(d));
             if (!bulk.length) {
                 this.throwBadRequestException(`Empty data. Nothing to save.`);
@@ -68,27 +77,32 @@ class RepositoryService extends restful_service_class_1.RestfulService {
             return this.repo.save(bulk, { chunk: 50 });
         });
     }
-    updateOne(id, data, paramsFilter = []) {
+    updateOne(data, params = [], routeOptions = {}) {
         return __awaiter(this, void 0, void 0, function* () {
-            const found = yield this.getOneOrFail({
-                filter: [{ field: 'id', operator: 'eq', value: id }, ...paramsFilter],
-            });
-            data['id'] = id;
-            const entity = this.plainToClass(data, paramsFilter);
-            return this.repo.save(entity);
+            const found = yield this.getOneOrFail({}, { filter: params });
+            if (params.length && !routeOptions.allowParamsOverride) {
+                for (const filter of params) {
+                    data[filter.field] = filter.value;
+                }
+            }
+            return this.repo.save(Object.assign({}, found, data));
         });
     }
-    deleteOne(id, paramsFilter = []) {
+    deleteOne(params, routeOptions = {}) {
         return __awaiter(this, void 0, void 0, function* () {
-            const found = yield this.getOneOrFail({
-                filter: [{ field: 'id', operator: 'eq', value: id }, ...paramsFilter],
-            });
+            const found = yield this.getOneOrFail({}, { filter: params });
             const deleted = yield this.repo.remove(found);
+            if (routeOptions.returnDeleted) {
+                for (const filter of params) {
+                    deleted[filter.field] = filter.value;
+                }
+                return deleted;
+            }
         });
     }
-    getOneOrFail({ filter, fields, join, cache } = {}, options = {}) {
+    getOneOrFail({ fields, join, cache } = {}, options = {}) {
         return __awaiter(this, void 0, void 0, function* () {
-            const builder = yield this.buildQuery({ filter, fields, join, cache }, options, false);
+            const builder = yield this.buildQuery({ fields, join, cache }, options, false);
             const found = yield builder.getOne();
             if (!found) {
                 this.throwNotFoundException(this.alias);
@@ -154,7 +168,7 @@ class RepositoryService extends restful_service_class_1.RestfulService {
                 }
             }
             if (utils_1.isArrayFull(query.join)) {
-                const joinOptions = Object.assign({}, (this.options.join ? this.options.join : {}), (options.join ? options.join : {}));
+                const joinOptions = mergedOptions.join || {};
                 if (Object.keys(joinOptions).length) {
                     for (let i = 0; i < query.join.length; i++) {
                         this.setJoin(query.join[i], joinOptions, builder);
@@ -165,33 +179,26 @@ class RepositoryService extends restful_service_class_1.RestfulService {
                 const sort = this.getSort(query, mergedOptions);
                 builder.orderBy(sort);
                 const take = this.getTake(query, mergedOptions);
-                if (take) {
+                if (isFinite(take)) {
                     builder.take(take);
                 }
                 const skip = this.getSkip(query, take);
-                if (skip) {
+                if (isFinite(skip)) {
                     builder.skip(skip);
                 }
             }
-            if (query.cache === 0 &&
-                this.repo.metadata.connection.queryResultCache &&
-                this.repo.metadata.connection.queryResultCache.remove) {
-                const cacheId = this.getCacheId(query, options);
-                yield this.repo.metadata.connection.queryResultCache.remove([cacheId]);
-            }
-            if (mergedOptions.cache) {
-                const cacheId = this.getCacheId(query, options);
-                builder.cache(cacheId, mergedOptions.cache);
+            if (mergedOptions.cache && query.cache !== 0) {
+                builder.cache(builder.getQueryAndParameters(), mergedOptions.cache);
             }
             return builder;
         });
     }
-    plainToClass(data, paramsFilter = []) {
+    plainToClass(data, params = []) {
         if (!shared_utils_1.isObject(data)) {
             return undefined;
         }
-        if (paramsFilter.length) {
-            for (const filter of paramsFilter) {
+        if (params.length) {
+            for (const filter of params) {
                 data[filter.field] = filter.value;
             }
         }
@@ -228,9 +235,30 @@ class RepositoryService extends restful_service_class_1.RestfulService {
     hasColumn(column) {
         return this.entityColumnsHash[column];
     }
+    hasRelation(column) {
+        return this.entityRelationsHash[column];
+    }
     validateHasColumn(column) {
-        if (!this.hasColumn(column)) {
-            this.throwBadRequestException(`Invalid column name '${column}'`);
+        if (column.indexOf('.') !== -1) {
+            const nests = column.split('.');
+            if (nests.length > 2) {
+                this.throwBadRequestException('Too many nested levels! ' +
+                    `Usage: '[join=<other-relation>&]join=[<other-relation>.]<relation>&filter=<relation>.<field>||op||val'`);
+            }
+            let relation;
+            [relation, column] = nests;
+            if (!this.hasRelation(relation)) {
+                this.throwBadRequestException(`Invalid relation name '${relation}'`);
+            }
+            const noColumn = !this.entityRelationsHash[relation].columns.find((o) => o === column);
+            if (noColumn) {
+                this.throwBadRequestException(`Invalid column name '${column}' for relation '${relation}'`);
+            }
+        }
+        else {
+            if (!this.hasColumn(column)) {
+                this.throwBadRequestException(`Invalid column name '${column}'`);
+            }
         }
     }
     getAllowedColumns(columns, options) {
@@ -251,9 +279,10 @@ class RepositoryService extends restful_service_class_1.RestfulService {
             const paths = fields.slice(0, fields.length - 1);
             let relations = this.repo.metadata.relations;
             for (const propertyName of paths) {
-                relations = relations.find(o => o.propertyName === propertyName).inverseEntityMetadata.relations;
+                relations = relations.find((o) => o.propertyName === propertyName).inverseEntityMetadata
+                    .relations;
             }
-            const relation = relations.find(o => o.propertyName === target);
+            const relation = relations.find((o) => o.propertyName === target);
             relation.nestedRelation = `${fields[fields.length - 2]}.${target}`;
             return relation;
         }
@@ -325,7 +354,7 @@ class RepositoryService extends restful_service_class_1.RestfulService {
         return select;
     }
     getSkip(query, take) {
-        return query.page && take ? take * (query.page - 1) : query.offset ? query.offset : 0;
+        return query.page && take ? take * (query.page - 1) : query.offset ? query.offset : null;
     }
     getTake(query, options) {
         if (query.limit) {
@@ -342,7 +371,7 @@ class RepositoryService extends restful_service_class_1.RestfulService {
                     : options.maxLimit
                 : options.limit;
         }
-        return options.maxLimit ? options.maxLimit : 0;
+        return options.maxLimit ? options.maxLimit : null;
     }
     getSort(query, options) {
         return query.sort && query.sort.length
@@ -360,7 +389,7 @@ class RepositoryService extends restful_service_class_1.RestfulService {
         return params;
     }
     mapOperatorsToQuery(cond, param) {
-        const field = `${this.alias}.${cond.field}`;
+        const field = cond.field.indexOf('.') === -1 ? `${this.alias}.${cond.field}` : cond.field;
         let str;
         let params;
         switch (cond.operator) {

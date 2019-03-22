@@ -3,9 +3,18 @@ import { isObject } from '@nestjs/common/utils/shared.utils';
 import { plainToClass } from 'class-transformer';
 import { ClassType } from 'class-transformer/ClassTransformer';
 
-import { RestfulService } from '../classes/restful-service.class';
-import { FilterParamParsed, JoinOptions, JoinParamParsed, RequestParamsParsed, RestfulOptions } from '../interfaces';
-import { ObjectLiteral } from '../interfaces/object-literal.interface';
+import { RestfulService } from '../classes';
+import {
+  FilterParamParsed,
+  JoinOptions,
+  JoinParamParsed,
+  ObjectLiteral,
+  RequestParamsParsed,
+  RestfulOptions,
+  GetManyDefaultResponse,
+  UpdateOneRouteOptions,
+  DeleteOneRouteOptions,
+} from '../interfaces';
 import { isArrayFull } from '../utils';
 import { RelationMetadata } from 'typeorm/metadata/RelationMetadata';
 
@@ -31,6 +40,10 @@ export class RepositoryService<T> extends RestfulService<T> {
     return this.repo.metadata.targetName;
   }
 
+  public decidePagination(query: RequestParamsParsed, mergedOptions: RestfulOptions) {
+    return (isFinite(query.page) || isFinite(query.offset)) && !!this.getTake(query, mergedOptions);
+  }
+
   /**
    * Get many entities
    * @param query
@@ -39,25 +52,29 @@ export class RepositoryService<T> extends RestfulService<T> {
   public async getMany(
     query: RequestParamsParsed = {},
     options: RestfulOptions = {},
-  ): Promise<T[]> {
+  ): Promise<GetManyDefaultResponse<T> | T[]> {
     const builder = await this.buildQuery(query, options);
+    const mergedOptions = Object.assign({}, this.options, options);
+    if (this.decidePagination(query, mergedOptions)) {
+      const [data, total] = await builder.getManyAndCount();
+      const limit = builder.expressionMap.take;
+      const offset = builder.expressionMap.skip;
+      return this.createPageInfo(data, total, limit, offset);
+    }
     return builder.getMany();
   }
 
   /**
    * Get one entity by id
    * @param id
-   * @param param1
    * @param options
    */
   public async getOne(
-    id: number,
     { fields, join, cache }: RequestParamsParsed = {},
     options: RestfulOptions = {},
   ): Promise<T> {
     return this.getOneOrFail(
       {
-        filter: [{ field: 'id', operator: 'eq', value: id }],
         fields,
         join,
         cache,
@@ -69,10 +86,10 @@ export class RepositoryService<T> extends RestfulService<T> {
   /**
    * Create one entity
    * @param data
-   * @param paramsFilter
+   * @param params
    */
-  public async createOne(data: DeepPartial<T>, paramsFilter: FilterParamParsed[] = []): Promise<T> {
-    const entity = this.plainToClass(data, paramsFilter);
+  public async createOne(data: T, params: FilterParamParsed[]): Promise<T> {
+    const entity = this.plainToClass(data, params);
 
     if (!entity) {
       this.throwBadRequestException(`Empty data. Nothing to save.`);
@@ -84,18 +101,18 @@ export class RepositoryService<T> extends RestfulService<T> {
   /**
    * Create many
    * @param data
-   * @param paramsFilter
+   * @param params
    */
   public async createMany(
     data: { bulk: DeepPartial<T>[] },
-    paramsFilter: FilterParamParsed[] = [],
+    params: FilterParamParsed[] = [],
   ): Promise<T[]> {
     if (!data || !data.bulk || !data.bulk.length) {
       this.throwBadRequestException(`Empty data. Nothing to save.`);
     }
 
     const bulk = data.bulk
-      .map((one) => this.plainToClass(one, paramsFilter))
+      .map((one) => this.plainToClass(one as any, params))
       .filter((d) => isObject(d));
 
     if (!bulk.length) {
@@ -107,46 +124,54 @@ export class RepositoryService<T> extends RestfulService<T> {
 
   /**
    * Update one entity
-   * @param id
    * @param data
-   * @param paramsFilter
+   * @param params
+   * @param routesOptions
    */
   public async updateOne(
-    id: number,
     data: DeepPartial<T>,
-    paramsFilter: FilterParamParsed[] = [],
+    params: FilterParamParsed[] = [],
+    routeOptions: UpdateOneRouteOptions = {},
   ): Promise<T> {
-    // we need this, because TypeOrm will try to insert if no data found by id
-    const found = await this.getOneOrFail({
-      filter: [{ field: 'id', operator: 'eq', value: id }, ...paramsFilter],
-    });
+    const found = await this.getOneOrFail({}, { filter: params });
 
-    data['id'] = id;
-    const entity = this.plainToClass(data, paramsFilter);
+    // make sure params not override
+    if (params.length && !routeOptions.allowParamsOverride) {
+      for (const filter of params) {
+        data[filter.field] = filter.value;
+      }
+    }
 
-    // we use save and not update because
-    // we might want to update relational entities
-    return this.repo.save<any>(entity);
+    return this.repo.save<any>({ ...found, ...data });
   }
 
   /**
    * Delete one entity
-   * @param id
-   * @param paramsFilter
+   * @param params
+   * @param routesOptions
    */
-  public async deleteOne(id: number, paramsFilter: FilterParamParsed[] = []): Promise<void> {
-    const found = await this.getOneOrFail({
-      filter: [{ field: 'id', operator: 'eq', value: id }, ...paramsFilter],
-    });
-
+  public async deleteOne(
+    params: FilterParamParsed[],
+    routeOptions: DeleteOneRouteOptions = {},
+  ): Promise<void | T> {
+    const found = await this.getOneOrFail({}, { filter: params });
     const deleted = await this.repo.remove(found);
+
+    if (routeOptions.returnDeleted) {
+      // set params, because id is undefined
+      for (const filter of params) {
+        deleted[filter.field] = filter.value;
+      }
+
+      return deleted;
+    }
   }
 
   private async getOneOrFail(
-    { filter, fields, join, cache }: RequestParamsParsed = {},
+    { fields, join, cache }: RequestParamsParsed = {},
     options: RestfulOptions = {},
   ): Promise<T> {
-    const builder = await this.buildQuery({ filter, fields, join, cache }, options, false);
+    const builder = await this.buildQuery({ fields, join, cache }, options, false);
     const found = await builder.getOne();
 
     if (!found) {
@@ -241,10 +266,7 @@ export class RepositoryService<T> extends RestfulService<T> {
 
     // set joins
     if (isArrayFull(query.join)) {
-      const joinOptions = {
-        ...(this.options.join ? this.options.join : {}),
-        ...(options.join ? options.join : {}),
-      };
+      const joinOptions = mergedOptions.join || {};
 
       if (Object.keys(joinOptions).length) {
         for (let i = 0; i < query.join.length; i++) {
@@ -260,43 +282,41 @@ export class RepositoryService<T> extends RestfulService<T> {
 
       // set take
       const take = this.getTake(query, mergedOptions);
-      if (take) {
+      if (isFinite(take)) {
         builder.take(take);
       }
 
       // set skip
       const skip = this.getSkip(query, take);
-      if (skip) {
+      if (isFinite(skip)) {
         builder.skip(skip);
       }
     }
 
     // remove cache if nedeed
-    if (
-      query.cache === 0 &&
-      this.repo.metadata.connection.queryResultCache &&
-      this.repo.metadata.connection.queryResultCache.remove
-    ) {
-      const cacheId = this.getCacheId(query, options);
-      await this.repo.metadata.connection.queryResultCache.remove([cacheId]);
-    }
+    // if (
+    //   query.cache === 0 &&
+    //   this.repo.metadata.connection.queryResultCache &&
+    //   this.repo.metadata.connection.queryResultCache.remove
+    // ) {
+    //   await this.repo.metadata.connection.queryResultCache.remove(['vvv']);
+    // }
 
     // set cache
-    if (mergedOptions.cache) {
-      const cacheId = this.getCacheId(query, options);
-      builder.cache(cacheId, mergedOptions.cache);
+    if (mergedOptions.cache && query.cache !== 0) {
+      builder.cache(builder.getQueryAndParameters(), mergedOptions.cache);
     }
 
     return builder;
   }
 
-  private plainToClass(data: DeepPartial<T>, paramsFilter: FilterParamParsed[] = []): T {
+  private plainToClass(data: T, params: FilterParamParsed[] = []): T {
     if (!isObject(data)) {
       return undefined;
     }
 
-    if (paramsFilter.length) {
-      for (const filter of paramsFilter) {
+    if (params.length) {
+      for (const filter of params) {
         data[filter.field] = filter.value;
       }
     }
@@ -348,9 +368,34 @@ export class RepositoryService<T> extends RestfulService<T> {
     return this.entityColumnsHash[column];
   }
 
+  private hasRelation(column: string): boolean {
+    return this.entityRelationsHash[column];
+  }
+
   private validateHasColumn(column: string) {
-    if (!this.hasColumn(column)) {
-      this.throwBadRequestException(`Invalid column name '${column}'`);
+    if (column.indexOf('.') !== -1) {
+      const nests = column.split('.');
+      if (nests.length > 2) {
+        this.throwBadRequestException(
+          'Too many nested levels! ' +
+            `Usage: '[join=<other-relation>&]join=[<other-relation>.]<relation>&filter=<relation>.<field>||op||val'`,
+        );
+      }
+      let relation;
+      [relation, column] = nests;
+      if (!this.hasRelation(relation)) {
+        this.throwBadRequestException(`Invalid relation name '${relation}'`);
+      }
+      const noColumn = !(this.entityRelationsHash[relation].columns as string[]).find(
+        (o) => o === column,
+      );
+      if (noColumn) {
+        this.throwBadRequestException(`Invalid column name '${column}' for relation '${relation}'`);
+      }
+    } else {
+      if (!this.hasColumn(column)) {
+        this.throwBadRequestException(`Invalid column name '${column}'`);
+      }
     }
   }
 
@@ -378,10 +423,13 @@ export class RepositoryService<T> extends RestfulService<T> {
       let relations = this.repo.metadata.relations;
 
       for (const propertyName of paths) {
-        relations = relations.find(o => o.propertyName === propertyName).inverseEntityMetadata.relations;
+        relations = relations.find((o) => o.propertyName === propertyName).inverseEntityMetadata
+          .relations;
       }
 
-      const relation: RelationMetadata & { nestedRelation?: string } = relations.find(o => o.propertyName === target);
+      const relation: RelationMetadata & { nestedRelation?: string } = relations.find(
+        (o) => o.propertyName === target,
+      );
 
       relation.nestedRelation = `${fields[fields.length - 2]}.${target}`;
 
@@ -404,8 +452,8 @@ export class RepositoryService<T> extends RestfulService<T> {
         type: this.getJoinType(curr.relationType),
         columns: curr.inverseEntityMetadata.columns.map((col) => col.propertyName),
         referencedColumn: (curr.joinColumns.length
-            ? curr.joinColumns[0]
-            : curr.inverseRelation.joinColumns[0]
+          ? curr.joinColumns[0]
+          : curr.inverseRelation.joinColumns[0]
         ).referencedColumn.propertyName,
         nestedRelation: curr.nestedRelation,
       };
@@ -473,11 +521,11 @@ export class RepositoryService<T> extends RestfulService<T> {
     return select;
   }
 
-  private getSkip(query: RequestParamsParsed, take: number): number {
-    return query.page && take ? take * (query.page - 1) : query.offset ? query.offset : 0;
+  private getSkip(query: RequestParamsParsed, take: number): number | null {
+    return query.page && take ? take * (query.page - 1) : query.offset ? query.offset : null;
   }
 
-  private getTake(query: RequestParamsParsed, options: RestfulOptions): number {
+  private getTake(query: RequestParamsParsed, options: RestfulOptions): number | null {
     if (query.limit) {
       return options.maxLimit
         ? query.limit <= options.maxLimit
@@ -494,7 +542,7 @@ export class RepositoryService<T> extends RestfulService<T> {
         : options.limit;
     }
 
-    return options.maxLimit ? options.maxLimit : 0;
+    return options.maxLimit ? options.maxLimit : null;
   }
 
   private getSort(query: RequestParamsParsed, options: RestfulOptions) {
@@ -520,7 +568,7 @@ export class RepositoryService<T> extends RestfulService<T> {
     cond: FilterParamParsed,
     param: any,
   ): { str: string; params: ObjectLiteral } {
-    const field = `${this.alias}.${cond.field}`;
+    const field = cond.field.indexOf('.') === -1 ? `${this.alias}.${cond.field}` : cond.field;
     let str: string;
     let params: ObjectLiteral;
 

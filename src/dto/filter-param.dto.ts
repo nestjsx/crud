@@ -1,5 +1,6 @@
 import { mockValidatorDecorator } from '../utils';
-import { COMPARISON_OPERATORS, ComparisonOperator } from '../operators.list';
+import { ComparisonOperator } from '../types';
+import { COMPARISON_OPERATORS } from '../operators.list';
 
 const IsString = mockValidatorDecorator('IsString');
 const IsNotEmpty = mockValidatorDecorator('IsNotEmpty');

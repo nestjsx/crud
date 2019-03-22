@@ -1,13 +1,11 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
-import { FastifyAdapter } from '@nestjs/core/adapters';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 
 import { HttpExceptionFilter } from './https-exception.filter';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
-  // const app = await NestFactory.create(AppModule, new FastifyAdapter());
   const app = await NestFactory.create(AppModule);
 
   app.useGlobalPipes(new ValidationPipe());

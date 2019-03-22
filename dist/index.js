@@ -7,4 +7,5 @@ __export(require("./decorators"));
 __export(require("./dto"));
 __export(require("./constants"));
 __export(require("./enums"));
+__export(require("./module"));
 //# sourceMappingURL=index.js.map

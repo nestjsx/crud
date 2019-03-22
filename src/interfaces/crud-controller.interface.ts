@@ -1,26 +1,22 @@
-import { ValidationPipeOptions } from '@nestjs/common';
-
-import { ObjectLiteral } from './object-literal.interface';
-import { RestfulOptions } from './restful-options.interface';
+import { FilterParamParsed } from './request-parsed-params.interface';
+import { CrudOptions } from './crud-options.interface';
+import { GetManyDefaultResponse } from './get-many-default-response.interface';
 import { RestfulParamsDto } from '../dto/restful-params.dto';
 import { RestfulService } from '../classes/restful-service.class';
 
 export interface CrudController<S extends RestfulService<T>, T> {
   service: S;
-  getManyBase?(params: ObjectLiteral, query: RestfulParamsDto): Promise<T[]>;
-  getOneBase?(id: number, params: ObjectLiteral, query: RestfulParamsDto): Promise<T>;
-  createOneBase?(params: ObjectLiteral, dto: T): Promise<T>;
-  createManyBase?(params: ObjectLiteral, dto: EntitiesBulk<T>): Promise<T[]>;
-  updateOneBase?(id: number, params: ObjectLiteral, dto: T): Promise<T>;
-  deleteOneBase?(id: number, params: ObjectLiteral): Promise<void>;
+  getManyBase?(
+    parsedQuery: RestfulParamsDto,
+    parsedOptions: CrudOptions,
+  ): Promise<GetManyDefaultResponse<T> | T[]>;
+  getOneBase?(parsedQuery: RestfulParamsDto, parsedOptions: CrudOptions): Promise<T>;
+  createOneBase?(parsedParams: FilterParamParsed[], dto: T): Promise<T>;
+  createManyBase?(parsedParams: FilterParamParsed[], dto: EntitiesBulk<T>): Promise<T[]>;
+  updateOneBase?(parsedParams: FilterParamParsed[], dto: T): Promise<T>;
+  deleteOneBase?(parsedParams: FilterParamParsed[]): Promise<void | T>;
 }
 
 export interface EntitiesBulk<T> {
   bulk: T[];
-}
-
-export interface CrudOptions {
-  options?: RestfulOptions;
-  params?: ObjectLiteral | string[];
-  validation?: ValidationPipeOptions;
 }

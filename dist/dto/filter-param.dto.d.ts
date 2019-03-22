@@ -1,4 +1,4 @@
-import { ComparisonOperator } from '../operators.list';
+import { ComparisonOperator } from '../types';
 export declare class FilterParamDto {
     field: string;
     operator: ComparisonOperator;

@@ -8,6 +8,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", { value: true });
 const common_1 = require("@nestjs/common");
 const shared_utils_1 = require("@nestjs/common/utils/shared.utils");
+const constants_1 = require("../constants");
 let RestfulQueryInterceptor = class RestfulQueryInterceptor {
     constructor() {
         this.delim = '||';
@@ -29,10 +30,10 @@ let RestfulQueryInterceptor = class RestfulQueryInterceptor {
             'cache',
         ];
     }
-    intercept(context, call$) {
+    intercept(context, next) {
         const req = context.switchToHttp().getRequest();
-        req.query = this.transform(req.query);
-        return call$;
+        req[constants_1.PARSED_QUERY_REQUEST_KEY] = this.transform(req.query);
+        return next.handle();
     }
     transform(query) {
         if (!shared_utils_1.isObject(query) || !Object.keys(query).length) {
@@ -122,7 +123,7 @@ let RestfulQueryInterceptor = class RestfulQueryInterceptor {
         }
         if (Array.isArray(param) && param.length) {
             const result = [];
-            for (let item of param) {
+            for (const item of param) {
                 result.push(parser.call(this, item));
             }
             return result;

@@ -22,6 +22,7 @@
     "!src/constants.ts",
     "!src/crud.module.ts",
     "!src/operators.list.ts",
+    "!src/module/*",
     "!**/node_modules/**"
   ]
 }
