@@ -4,7 +4,7 @@ import { RouteParamtypes } from '@nestjs/common/enums/route-paramtypes.enum';
 import { RestfulParamsDto } from '../dto';
 import { CrudActions, CrudValidate } from '../enums';
 import { RestfulQueryInterceptor, RestfulParamsInterceptorFactory } from '../interceptors';
-import { CrudOptions, FilterParamParsed, EntitiesBulk, RoutesOptions } from '../interfaces';
+import { CrudOptions, FilterParamParsed, EntitiesBulk } from '../interfaces';
 import { BaseRouteName } from '../types';
 import {
   OVERRIDE_METHOD_METADATA,
@@ -26,7 +26,7 @@ import {
   setAction,
   setInterceptors,
   setParamTypes,
-  setParams,
+  setRouteArgs,
   setRoute,
   setSwaggerQueryGetMany,
   setSwaggerQueryGetOne,
@@ -37,11 +37,12 @@ import {
   setSwaggerOperationMeta,
   setSwaggerParamsMeta,
   setValidationPipe,
+  setDefaultCrudOptions,
   createParamMetadata,
   createCustomRequestParamMetadata,
   enableRoute,
-  paramsOptionsInit,
   cleanRoutesOptionsInterceptors,
+  overrideParsedBody,
 } from './helpers';
 
 interface BaseRoutes {
@@ -69,7 +70,7 @@ const baseRoutesInit = {
       return this.service.getMany(parsedQuery, parsedOptions.options);
     };
 
-    setParams(
+    setRouteArgs(
       {
         ...createCustomRequestParamMetadata(PARSED_QUERY_REQUEST_KEY, 0),
         ...createCustomRequestParamMetadata(PARSED_OPTIONS_METADATA, 1),
@@ -106,7 +107,7 @@ const baseRoutesInit = {
       return this.service.getOne(parsedQuery, parsedOptions.options);
     };
 
-    setParams(
+    setRouteArgs(
       {
         ...createCustomRequestParamMetadata(PARSED_QUERY_REQUEST_KEY, 0),
         ...createCustomRequestParamMetadata(PARSED_OPTIONS_METADATA, 1),
@@ -140,7 +141,7 @@ const baseRoutesInit = {
       return this.service.createOne(body, parsedParams);
     };
 
-    setParams(
+    setRouteArgs(
       {
         ...createCustomRequestParamMetadata(PARSED_PARAMS_REQUEST_KEY, 0),
         ...createParamMetadata(RouteParamtypes.BODY, 1, [
@@ -187,7 +188,7 @@ const baseRoutesInit = {
       bulk: any[];
     }
 
-    setParams(
+    setRouteArgs(
       {
         ...createCustomRequestParamMetadata(PARSED_PARAMS_REQUEST_KEY, 0),
         ...createParamMetadata(RouteParamtypes.BODY, 1, [
@@ -221,7 +222,7 @@ const baseRoutesInit = {
       return this.service.updateOne(body, parsedParams, crudOptions.routes);
     };
 
-    setParams(
+    setRouteArgs(
       {
         ...createCustomRequestParamMetadata(PARSED_PARAMS_REQUEST_KEY, 0),
         ...createParamMetadata(RouteParamtypes.BODY, 1, [
@@ -255,7 +256,7 @@ const baseRoutesInit = {
       return this.service.deleteOne(parsedParams, crudOptions.routes);
     };
 
-    setParams(
+    setRouteArgs(
       {
         ...createCustomRequestParamMetadata(PARSED_PARAMS_REQUEST_KEY, 0),
       },
@@ -331,8 +332,8 @@ export const Crud = (dto: any, crudOptions: CrudOptions = {}) => (target: object
   const baseRoutes = getBaseRoutesSchema();
   const path = getControllerPath(target);
 
-  // set params options
-  paramsOptionsInit(crudOptions);
+  // set default crud options
+  setDefaultCrudOptions(crudOptions);
   // get routes slug
   const slug = getRoutesSlugName(crudOptions, path);
 
@@ -372,6 +373,9 @@ export const Crud = (dto: any, crudOptions: CrudOptions = {}) => (target: object
       setSwaggerParamsMeta(baseSwaggerParams, prototype[name]);
       setSwaggerOkResponseMeta(baseSwaggerOkResponse, prototype[name]);
       setSwaggerOperationMeta(baseSwaggerOperation, prototype[name]);
+
+      // override @ParsedBody() decorator is needed
+      overrideParsedBody(target, overrided, name);
 
       // set route
       setRoute(route.path, route.method, prototype[name]);

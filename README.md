@@ -814,17 +814,17 @@ getOneBase(
 
 createOneBase(
   @ParsedParams() params: FilterParamParsed[],
-  @Body() dto: T,
+  @ParsedBody() dto: T,
 ): Promise<T>;
 
 createManyBase(
   @ParsedParams() params: FilterParamParsed[],
-  @Body() dto: EntitiesBulk<T>,
+  @ParsedBody() dto: EntitiesBulk<T>,
 ): Promise<T[]>;
 
 updateOneBase(
   @ParsedParams() params: FilterParamParsed[]
-  @Body() dto: T,
+  @ParsedBody() dto: T,
 ): Promise<T>;
 
 deleteOneBase(
@@ -876,12 +876,41 @@ export class HeroesCrud {
     // do some stuff
   }
 
-  ...
+  @Override()
+  createOne(
+    @ParsedParams() params,
+    @ParsedBody() body: Hero,
+  ) {
+    return this.base.createOneBase(params, body);
+  }
+
+  @Override()
+  createMany(
+    @ParsedBody() body: EntitiesBulk<Hero>, // validation is working ^_^
+    @ParsedParams() params,
+    ) {
+    return this.base.createManyBase(params, body);
+  }
+
+  @Override('updateOneBase')
+  coolFunction() {
+    @ParsedParams() params,
+    @ParsedBody() body: Hero,
+  } {
+    return this.base.updateOneBase(params, body);
+  }
+
+  @Override()
+  async deleteOne(
+    @ParsedParams() params,
+  ) {
+    return this.base.deleteOneBase(params);
+  }
 
 }
 ```
 
-**_Notice:_** new custom route decorators were created to simplify process: `@ParsedQuery()`, `@ParsedParams`, and `@ParsedOptions()`. But you still can add your param decorators to any of the methods, e.g. `@Param()`, `@Session()`, etc. Or any of your own cutom route decorators.
+**_Notice:_** new custom route decorators were created to simplify process: `@ParsedQuery()`, `@ParsedParams`, `@ParsedBody()`, and`@ParsedOptions()`. But you still can add your param decorators to any of the methods, e.g. `@Param()`, `@Session()`, etc. Or any of your own cutom route decorators.
 
 ### Additional Decorators
 
