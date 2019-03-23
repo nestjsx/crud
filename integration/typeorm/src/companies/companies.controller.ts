@@ -1,6 +1,15 @@
-import { Controller, Param } from '@nestjs/common';
+import { Controller } from '@nestjs/common';
 import { ApiUseTags } from '@nestjs/swagger';
-import { Crud, CrudController, Override, ParsedQuery, ParsedOptions } from '@nestjsx/crud';
+import {
+  Crud,
+  CrudController,
+  Override,
+  ParsedQuery,
+  ParsedOptions,
+  ParsedParams,
+  ParsedBody,
+  EntitiesBulk,
+} from '@nestjsx/crud';
 
 import { Company } from './company.entity';
 import { CompaniesService } from './companies.service';
@@ -31,5 +40,15 @@ export class CompaniesController {
   @Override()
   async getOne(@ParsedQuery() query, @ParsedOptions() options) {
     return this.base.getOneBase(query, options);
+  }
+
+  @Override()
+  async createOne(@ParsedParams() params, @ParsedBody() body: Company) {
+    return this.base.createOneBase(params, body);
+  }
+
+  @Override()
+  async createMany(@ParsedParams() params, @ParsedBody() body: EntitiesBulk<Company>) {
+    return this.base.createManyBase(params, body);
   }
 }

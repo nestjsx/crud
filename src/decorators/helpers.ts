@@ -1,4 +1,4 @@
-import { RequestMethod, ParseIntPipe, ValidationPipe } from '@nestjs/common';
+import { RequestMethod, ValidationPipe } from '@nestjs/common';
 import { RouteParamtypes } from '@nestjs/common/enums/route-paramtypes.enum';
 import { isNil, isObject } from '@nestjs/common/utils/shared.utils';
 import {
@@ -13,7 +13,7 @@ import {
 import { CrudActions, CrudValidate } from '../enums';
 import { CrudOptions, RoutesOptions } from '../interfaces';
 import { BaseRouteName } from '../types';
-import { ACTION_NAME_METADATA, OVERRIDE_METHOD_METADATA } from '../constants';
+import { ACTION_NAME_METADATA, OVERRIDE_METHOD_METADATA, PARSED_BODY_METADATA } from '../constants';
 import { swagger, hasValidator, hasTypeorm } from '../utils';
 
 export function setRoute(path: string, method: RequestMethod, func: Function) {
@@ -25,7 +25,7 @@ export function setParamTypes(args: any[], prototype: any, name: string) {
   Reflect.defineMetadata(PARAMTYPES_METADATA, args, prototype, name);
 }
 
-export function setParams(metadata: any, target: object, name: string) {
+export function setRouteArgs(metadata: any, target: object, name: string) {
   Reflect.defineMetadata(ROUTE_ARGS_METADATA, metadata, target, name);
 }
 
@@ -35,6 +35,10 @@ export function setInterceptors(interceptors: any[], func: Function) {
 
 export function setAction(action: CrudActions, func: Function) {
   Reflect.defineMetadata(ACTION_NAME_METADATA, action, func);
+}
+
+export function setParsedBody(meta, func: Function) {
+  Reflect.defineMetadata(PARSED_BODY_METADATA, meta, func);
 }
 
 export function setSwaggerOkResponseMeta(meta: any, func: Function) {
@@ -246,7 +250,7 @@ export function createCustomRequestParamMetadata(
   };
 }
 
-export function getOverrideMetadata(func: Function): string {
+export function getOverrideMetadata(func: Function): BaseRouteName {
   return Reflect.getMetadata(OVERRIDE_METHOD_METADATA, func);
 }
 
@@ -256,6 +260,18 @@ export function getInterceptors(func: Function): any[] {
 
 export function getAction(func: Function): CrudActions {
   return Reflect.getMetadata(ACTION_NAME_METADATA, func);
+}
+
+export function getParsedBody(func: Function) {
+  return Reflect.getMetadata(PARSED_BODY_METADATA, func);
+}
+
+export function getParamTypes(prototype: any, name: string) {
+  return Reflect.getMetadata(PARAMTYPES_METADATA, prototype, name) || [];
+}
+
+export function getRouteArgs(target: object, name: string) {
+  return Reflect.getMetadata(ROUTE_ARGS_METADATA, target, name) || {};
 }
 
 export function getControllerPath(target): string {
@@ -307,7 +323,7 @@ export function enableRoute(name: BaseRouteName, crudOptions: CrudOptions) {
   return true;
 }
 
-export function paramsOptionsInit(crudOptions: CrudOptions) {
+export function setDefaultCrudOptions(crudOptions: CrudOptions) {
   const check = (obj) => isNil(obj) || !isObject(obj) || !Object.keys(obj).length;
 
   // set default `id` numeric slug
@@ -363,4 +379,44 @@ export function cleanRoutesOptionsInterceptors(crudOptions: CrudOptions) {
       crudOptions.routes[option].interceptors = [];
     }
   });
+}
+
+export function overrideParsedBody(target: any, baseName: BaseRouteName, name: string) {
+  const allowed = ['createManyBase', 'createOneBase', 'updateOneBase'] as BaseRouteName[];
+  const withBody = allowed.includes(baseName);
+  const prototype = (target as any).prototype;
+  const parsedBody = getParsedBody(prototype[name]);
+
+  if (withBody && parsedBody) {
+    const baseKey = `${RouteParamtypes.BODY}:1`;
+    const key = `${RouteParamtypes.BODY}:${parsedBody.index}`;
+    const baseRouteArgs = getRouteArgs(target, baseName);
+    const routeArgs = getRouteArgs(target, name);
+    const baseBodyArgMeta = baseRouteArgs[baseKey];
+    setRouteArgs(
+      {
+        ...routeArgs,
+        [key]: {
+          ...baseBodyArgMeta,
+          index: parsedBody.index,
+        },
+      },
+      target,
+      name,
+    );
+
+    if (baseName === 'createManyBase') {
+      const paramTypes = getParamTypes(prototype, name) as any[];
+      const metatype = paramTypes[parsedBody.index];
+      const types = [String, Boolean, Number, Array, Object];
+      const toCopy = types.some((t) => metatype === t) || isNil(metatype);
+
+      if (toCopy) {
+        const baseParamTypes = getParamTypes(prototype, baseName);
+        const baseMetatype = baseParamTypes[1];
+        paramTypes.splice(parsedBody.index, 1, baseMetatype);
+        setParamTypes(paramTypes, prototype, name);
+      }
+    }
+  }
 }

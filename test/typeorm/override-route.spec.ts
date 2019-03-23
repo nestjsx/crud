@@ -10,8 +10,10 @@ import {
   ParsedOptions,
   ParsedQuery,
   ParsedParams,
+  ParsedBody,
   CrudOptions,
   CrudController,
+  EntitiesBulk,
 } from '../../src';
 import { RepositoryService } from '../../src/typeorm';
 
@@ -27,7 +29,7 @@ class UsersService extends RepositoryService<User> {
     companyId: 'number',
   },
   routes: {
-    exclude: ['createManyBase'],
+    exclude: ['updateOneBase'],
     deleteOneBase: {
       returnDeleted: true,
     },
@@ -52,6 +54,16 @@ class UsersController {
   @Override()
   getOne(@ParsedQuery() query, @ParsedOptions() crudOptions: CrudOptions) {
     return this.base.getOneBase(query, crudOptions);
+  }
+
+  @Override()
+  createOne(@ParsedParams() params, @ParsedBody() body: User) {
+    return this.base.createOneBase(params, body);
+  }
+
+  @Override()
+  createMany(@ParsedParams() params, @ParsedBody() body: EntitiesBulk<User>) {
+    return this.base.createManyBase(params, body);
   }
 
   @Override('deleteOneBase')

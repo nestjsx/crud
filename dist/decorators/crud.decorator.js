@@ -23,7 +23,7 @@ const baseRoutesInit = {
         prototype[name] = function getManyBase(parsedQuery, parsedOptions) {
             return this.service.getMany(parsedQuery, parsedOptions.options);
         };
-        helpers_1.setParams(Object.assign({}, helpers_1.createCustomRequestParamMetadata(constants_1.PARSED_QUERY_REQUEST_KEY, 0), helpers_1.createCustomRequestParamMetadata(constants_1.PARSED_OPTIONS_METADATA, 1)), target, name);
+        helpers_1.setRouteArgs(Object.assign({}, helpers_1.createCustomRequestParamMetadata(constants_1.PARSED_QUERY_REQUEST_KEY, 0), helpers_1.createCustomRequestParamMetadata(constants_1.PARSED_OPTIONS_METADATA, 1)), target, name);
         helpers_1.setParamTypes([dto_1.RestfulParamsDto, Object], prototype, name);
         helpers_1.setInterceptors([
             interceptors_1.RestfulParamsInterceptorFactory(crudOptions),
@@ -41,7 +41,7 @@ const baseRoutesInit = {
         prototype[name] = function getOneBase(parsedQuery, parsedOptions) {
             return this.service.getOne(parsedQuery, parsedOptions.options);
         };
-        helpers_1.setParams(Object.assign({}, helpers_1.createCustomRequestParamMetadata(constants_1.PARSED_QUERY_REQUEST_KEY, 0), helpers_1.createCustomRequestParamMetadata(constants_1.PARSED_OPTIONS_METADATA, 1)), target, name);
+        helpers_1.setRouteArgs(Object.assign({}, helpers_1.createCustomRequestParamMetadata(constants_1.PARSED_QUERY_REQUEST_KEY, 0), helpers_1.createCustomRequestParamMetadata(constants_1.PARSED_OPTIONS_METADATA, 1)), target, name);
         helpers_1.setParamTypes([dto_1.RestfulParamsDto, Object], prototype, name);
         helpers_1.setInterceptors([
             interceptors_1.RestfulParamsInterceptorFactory(crudOptions),
@@ -59,7 +59,7 @@ const baseRoutesInit = {
         prototype[name] = function createOneBase(parsedParams, body) {
             return this.service.createOne(body, parsedParams);
         };
-        helpers_1.setParams(Object.assign({}, helpers_1.createCustomRequestParamMetadata(constants_1.PARSED_PARAMS_REQUEST_KEY, 0), helpers_1.createParamMetadata(route_paramtypes_enum_1.RouteParamtypes.BODY, 1, [
+        helpers_1.setRouteArgs(Object.assign({}, helpers_1.createCustomRequestParamMetadata(constants_1.PARSED_PARAMS_REQUEST_KEY, 0), helpers_1.createParamMetadata(route_paramtypes_enum_1.RouteParamtypes.BODY, 1, [
             helpers_1.setValidationPipe(crudOptions, enums_1.CrudValidate.CREATE),
         ])), target, name);
         helpers_1.setParamTypes([Array, dto], prototype, name);
@@ -90,7 +90,7 @@ const baseRoutesInit = {
             Type((t) => dto),
             __metadata("design:type", Array)
         ], BulkDto.prototype, "bulk", void 0);
-        helpers_1.setParams(Object.assign({}, helpers_1.createCustomRequestParamMetadata(constants_1.PARSED_PARAMS_REQUEST_KEY, 0), helpers_1.createParamMetadata(route_paramtypes_enum_1.RouteParamtypes.BODY, 1, [
+        helpers_1.setRouteArgs(Object.assign({}, helpers_1.createCustomRequestParamMetadata(constants_1.PARSED_PARAMS_REQUEST_KEY, 0), helpers_1.createParamMetadata(route_paramtypes_enum_1.RouteParamtypes.BODY, 1, [
             helpers_1.setValidationPipe(crudOptions, enums_1.CrudValidate.CREATE),
         ])), target, name);
         helpers_1.setParamTypes([Array, utils_1.hasValidator ? BulkDto : {}], prototype, name);
@@ -108,7 +108,7 @@ const baseRoutesInit = {
         prototype[name] = function updateOneBase(parsedParams, body) {
             return this.service.updateOne(body, parsedParams, crudOptions.routes);
         };
-        helpers_1.setParams(Object.assign({}, helpers_1.createCustomRequestParamMetadata(constants_1.PARSED_PARAMS_REQUEST_KEY, 0), helpers_1.createParamMetadata(route_paramtypes_enum_1.RouteParamtypes.BODY, 1, [
+        helpers_1.setRouteArgs(Object.assign({}, helpers_1.createCustomRequestParamMetadata(constants_1.PARSED_PARAMS_REQUEST_KEY, 0), helpers_1.createParamMetadata(route_paramtypes_enum_1.RouteParamtypes.BODY, 1, [
             helpers_1.setValidationPipe(crudOptions, enums_1.CrudValidate.UPDATE),
         ])), target, name);
         helpers_1.setParamTypes([Array, dto], prototype, name);
@@ -126,7 +126,7 @@ const baseRoutesInit = {
         prototype[name] = function deleteOneBase(parsedParams) {
             return this.service.deleteOne(parsedParams, crudOptions.routes);
         };
-        helpers_1.setParams(Object.assign({}, helpers_1.createCustomRequestParamMetadata(constants_1.PARSED_PARAMS_REQUEST_KEY, 0)), target, name);
+        helpers_1.setRouteArgs(Object.assign({}, helpers_1.createCustomRequestParamMetadata(constants_1.PARSED_PARAMS_REQUEST_KEY, 0)), target, name);
         helpers_1.setParamTypes([Array], prototype, name);
         helpers_1.setInterceptors([
             interceptors_1.RestfulParamsInterceptorFactory(crudOptions),
@@ -185,7 +185,7 @@ exports.Crud = (dto, crudOptions = {}) => (target) => {
     const prototype = target.prototype;
     const baseRoutes = getBaseRoutesSchema();
     const path = helpers_1.getControllerPath(target);
-    helpers_1.paramsOptionsInit(crudOptions);
+    helpers_1.setDefaultCrudOptions(crudOptions);
     const slug = helpers_1.getRoutesSlugName(crudOptions, path);
     Object.keys(baseRoutes).forEach((name) => {
         const route = baseRoutes[name];
@@ -212,6 +212,7 @@ exports.Crud = (dto, crudOptions = {}) => (target) => {
             helpers_1.setSwaggerParamsMeta(baseSwaggerParams, prototype[name]);
             helpers_1.setSwaggerOkResponseMeta(baseSwaggerOkResponse, prototype[name]);
             helpers_1.setSwaggerOperationMeta(baseSwaggerOperation, prototype[name]);
+            helpers_1.overrideParsedBody(target, overrided, name);
             helpers_1.setRoute(route.path, route.method, prototype[name]);
             route.override = true;
         }

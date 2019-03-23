@@ -8,4 +8,5 @@ __export(require("./crud.decorator"));
 __export(require("./parsed-params.decorator"));
 __export(require("./parsed-query.decorator"));
 __export(require("./parsed-options.decorator"));
+__export(require("./parsed-body.decorator"));
 //# sourceMappingURL=index.js.map
