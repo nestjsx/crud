@@ -9,7 +9,7 @@ function UsePathInterceptors(...names) {
         const every = (arr) => all.every((n) => arr.some((name) => name === n));
         const some = (arr, name) => arr.some((n) => name === n);
         let interceptors = [];
-        if (!names || !Array.isArray(names) || !names.length || every(names)) {
+        if (!names.length || every(names)) {
             interceptors = [interceptors_1.RestfulQueryInterceptor, interceptors_1.RestfulParamsInterceptor];
         }
         else if (some(names, 'query')) {

@@ -10,7 +10,7 @@ export function UsePathInterceptors(...names: Array<'query' | 'param'>) {
     const some = (arr: string[], name: string): boolean => arr.some((n) => name === n);
     let interceptors: any[] = [];
 
-    if (!names || !Array.isArray(names) || !names.length || every(names)) {
+    if (!names.length || every(names)) {
       interceptors = [RestfulQueryInterceptor, RestfulParamsInterceptor];
     } else if (some(names, 'query')) {
       interceptors = [RestfulQueryInterceptor];
