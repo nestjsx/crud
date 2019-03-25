@@ -26,7 +26,7 @@ const baseRoutesInit = {
         helpers_1.setRouteArgs(Object.assign({}, helpers_1.createCustomRequestParamMetadata(constants_1.PARSED_QUERY_REQUEST_KEY, 0), helpers_1.createCustomRequestParamMetadata(constants_1.PARSED_OPTIONS_METADATA, 1)), target, name);
         helpers_1.setParamTypes([dto_1.RestfulParamsDto, Object], prototype, name);
         helpers_1.setInterceptors([
-            interceptors_1.RestfulParamsInterceptorFactory(crudOptions),
+            interceptors_1.RestfulParamsInterceptor,
             interceptors_1.RestfulQueryInterceptor,
             ...helpers_1.getRouteInterceptors(crudOptions.routes.getManyBase),
         ], prototype[name]);
@@ -44,7 +44,7 @@ const baseRoutesInit = {
         helpers_1.setRouteArgs(Object.assign({}, helpers_1.createCustomRequestParamMetadata(constants_1.PARSED_QUERY_REQUEST_KEY, 0), helpers_1.createCustomRequestParamMetadata(constants_1.PARSED_OPTIONS_METADATA, 1)), target, name);
         helpers_1.setParamTypes([dto_1.RestfulParamsDto, Object], prototype, name);
         helpers_1.setInterceptors([
-            interceptors_1.RestfulParamsInterceptorFactory(crudOptions),
+            interceptors_1.RestfulParamsInterceptor,
             interceptors_1.RestfulQueryInterceptor,
             ...helpers_1.getRouteInterceptors(crudOptions.routes.getOneBase),
         ], prototype[name]);
@@ -63,10 +63,7 @@ const baseRoutesInit = {
             helpers_1.setValidationPipe(crudOptions, enums_1.CrudValidate.CREATE),
         ])), target, name);
         helpers_1.setParamTypes([Array, dto], prototype, name);
-        helpers_1.setInterceptors([
-            interceptors_1.RestfulParamsInterceptorFactory(crudOptions),
-            ...helpers_1.getRouteInterceptors(crudOptions.routes.createOneBase),
-        ], prototype[name]);
+        helpers_1.setInterceptors([interceptors_1.RestfulParamsInterceptor, ...helpers_1.getRouteInterceptors(crudOptions.routes.createOneBase)], prototype[name]);
         helpers_1.setAction(enums_1.CrudActions.CreateOne, prototype[name]);
         helpers_1.setSwaggerParams(prototype[name], crudOptions);
         helpers_1.setSwaggerOperation(prototype[name], `Create one ${dto.name}`);
@@ -94,10 +91,7 @@ const baseRoutesInit = {
             helpers_1.setValidationPipe(crudOptions, enums_1.CrudValidate.CREATE),
         ])), target, name);
         helpers_1.setParamTypes([Array, utils_1.hasValidator ? BulkDto : {}], prototype, name);
-        helpers_1.setInterceptors([
-            interceptors_1.RestfulParamsInterceptorFactory(crudOptions),
-            ...helpers_1.getRouteInterceptors(crudOptions.routes.createManyBase),
-        ], prototype[name]);
+        helpers_1.setInterceptors([interceptors_1.RestfulParamsInterceptor, ...helpers_1.getRouteInterceptors(crudOptions.routes.createManyBase)], prototype[name]);
         helpers_1.setAction(enums_1.CrudActions.CreateMany, prototype[name]);
         helpers_1.setSwaggerParams(prototype[name], crudOptions);
         helpers_1.setSwaggerOperation(prototype[name], `Create many ${dto.name}`);
@@ -112,10 +106,7 @@ const baseRoutesInit = {
             helpers_1.setValidationPipe(crudOptions, enums_1.CrudValidate.UPDATE),
         ])), target, name);
         helpers_1.setParamTypes([Array, dto], prototype, name);
-        helpers_1.setInterceptors([
-            interceptors_1.RestfulParamsInterceptorFactory(crudOptions),
-            ...helpers_1.getRouteInterceptors(crudOptions.routes.updateOneBase),
-        ], prototype[name]);
+        helpers_1.setInterceptors([interceptors_1.RestfulParamsInterceptor, ...helpers_1.getRouteInterceptors(crudOptions.routes.updateOneBase)], prototype[name]);
         helpers_1.setAction(enums_1.CrudActions.UpdateOne, prototype[name]);
         helpers_1.setSwaggerParams(prototype[name], crudOptions);
         helpers_1.setSwaggerOperation(prototype[name], `Update one ${dto.name}`);
@@ -128,10 +119,7 @@ const baseRoutesInit = {
         };
         helpers_1.setRouteArgs(Object.assign({}, helpers_1.createCustomRequestParamMetadata(constants_1.PARSED_PARAMS_REQUEST_KEY, 0)), target, name);
         helpers_1.setParamTypes([Array], prototype, name);
-        helpers_1.setInterceptors([
-            interceptors_1.RestfulParamsInterceptorFactory(crudOptions),
-            ...helpers_1.getRouteInterceptors(crudOptions.routes.deleteOneBase),
-        ], prototype[name]);
+        helpers_1.setInterceptors([interceptors_1.RestfulParamsInterceptor, ...helpers_1.getRouteInterceptors(crudOptions.routes.deleteOneBase)], prototype[name]);
         helpers_1.setAction(enums_1.CrudActions.DeleteOne, prototype[name]);
         helpers_1.setSwaggerParams(prototype[name], crudOptions);
         helpers_1.setSwaggerOperation(prototype[name], `Delete one ${dto.name}`);
@@ -185,7 +173,7 @@ exports.Crud = (dto, crudOptions = {}) => (target) => {
     const prototype = target.prototype;
     const baseRoutes = getBaseRoutesSchema();
     const path = helpers_1.getControllerPath(target);
-    helpers_1.setDefaultCrudOptions(crudOptions);
+    helpers_1.setDefaultCrudOptions(crudOptions, target);
     const slug = helpers_1.getRoutesSlugName(crudOptions, path);
     Object.keys(baseRoutes).forEach((name) => {
         const route = baseRoutes[name];

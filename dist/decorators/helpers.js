@@ -31,6 +31,10 @@ function setParsedBody(meta, func) {
     Reflect.defineMetadata(constants_2.PARSED_BODY_METADATA, meta, func);
 }
 exports.setParsedBody = setParsedBody;
+function setCrudOptionsMeta(crudOptions, target) {
+    Reflect.defineMetadata(constants_2.CRUD_OPTIONS_METADATA, crudOptions, target);
+}
+exports.setCrudOptionsMeta = setCrudOptionsMeta;
 function setSwaggerOkResponseMeta(meta, func) {
     if (utils_1.swagger) {
         Reflect.defineMetadata(utils_1.swagger.DECORATORS.API_RESPONSE, meta, func);
@@ -259,6 +263,10 @@ function getSwaggerOperation(func) {
     }
 }
 exports.getSwaggerOperation = getSwaggerOperation;
+function getCrudOptionsMeta(target) {
+    return Reflect.getMetadata(constants_2.CRUD_OPTIONS_METADATA, target);
+}
+exports.getCrudOptionsMeta = getCrudOptionsMeta;
 function setValidationPipe(crudOptions, group) {
     const options = crudOptions.validation || {};
     return utils_1.hasValidator
@@ -276,7 +284,7 @@ function enableRoute(name, crudOptions) {
     return true;
 }
 exports.enableRoute = enableRoute;
-function setDefaultCrudOptions(crudOptions) {
+function setDefaultCrudOptions(crudOptions, target) {
     const check = (obj) => shared_utils_1.isNil(obj) || !shared_utils_1.isObject(obj) || !Object.keys(obj).length;
     if (check(crudOptions.params)) {
         crudOptions.params = { id: 'number' };
@@ -302,6 +310,7 @@ function setDefaultCrudOptions(crudOptions) {
     if (check(crudOptions.routes.deleteOneBase)) {
         crudOptions.routes.deleteOneBase = { returnDeleted: false, interceptors: [] };
     }
+    setCrudOptionsMeta(crudOptions, target);
 }
 exports.setDefaultCrudOptions = setDefaultCrudOptions;
 function getRoutesSlugName(crudOptions, path) {

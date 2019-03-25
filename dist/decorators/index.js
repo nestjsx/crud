@@ -9,4 +9,5 @@ __export(require("./parsed-params.decorator"));
 __export(require("./parsed-query.decorator"));
 __export(require("./parsed-options.decorator"));
 __export(require("./parsed-body.decorator"));
+__export(require("./use-path-interceptors.decorator"));
 //# sourceMappingURL=index.js.map

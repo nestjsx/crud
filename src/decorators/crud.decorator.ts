@@ -3,7 +3,7 @@ import { RouteParamtypes } from '@nestjs/common/enums/route-paramtypes.enum';
 
 import { RestfulParamsDto } from '../dto';
 import { CrudActions, CrudValidate } from '../enums';
-import { RestfulQueryInterceptor, RestfulParamsInterceptorFactory } from '../interceptors';
+import { RestfulQueryInterceptor, RestfulParamsInterceptor } from '../interceptors';
 import { CrudOptions, FilterParamParsed, EntitiesBulk } from '../interfaces';
 import { BaseRouteName } from '../types';
 import {
@@ -81,7 +81,7 @@ const baseRoutesInit = {
     setParamTypes([RestfulParamsDto, Object], prototype, name);
     setInterceptors(
       [
-        RestfulParamsInterceptorFactory(crudOptions),
+        RestfulParamsInterceptor,
         RestfulQueryInterceptor,
         ...getRouteInterceptors(crudOptions.routes.getManyBase),
       ],
@@ -118,7 +118,7 @@ const baseRoutesInit = {
     setParamTypes([RestfulParamsDto, Object], prototype, name);
     setInterceptors(
       [
-        RestfulParamsInterceptorFactory(crudOptions),
+        RestfulParamsInterceptor,
         RestfulQueryInterceptor,
         ...getRouteInterceptors(crudOptions.routes.getOneBase),
       ],
@@ -153,10 +153,7 @@ const baseRoutesInit = {
     );
     setParamTypes([Array, dto], prototype, name);
     setInterceptors(
-      [
-        RestfulParamsInterceptorFactory(crudOptions),
-        ...getRouteInterceptors(crudOptions.routes.createOneBase),
-      ],
+      [RestfulParamsInterceptor, ...getRouteInterceptors(crudOptions.routes.createOneBase)],
       prototype[name],
     );
     setAction(CrudActions.CreateOne, prototype[name]);
@@ -200,10 +197,7 @@ const baseRoutesInit = {
     );
     setParamTypes([Array, hasValidator ? BulkDto : {}], prototype, name);
     setInterceptors(
-      [
-        RestfulParamsInterceptorFactory(crudOptions),
-        ...getRouteInterceptors(crudOptions.routes.createManyBase),
-      ],
+      [RestfulParamsInterceptor, ...getRouteInterceptors(crudOptions.routes.createManyBase)],
       prototype[name],
     );
     setAction(CrudActions.CreateMany, prototype[name]);
@@ -234,10 +228,7 @@ const baseRoutesInit = {
     );
     setParamTypes([Array, dto], prototype, name);
     setInterceptors(
-      [
-        RestfulParamsInterceptorFactory(crudOptions),
-        ...getRouteInterceptors(crudOptions.routes.updateOneBase),
-      ],
+      [RestfulParamsInterceptor, ...getRouteInterceptors(crudOptions.routes.updateOneBase)],
       prototype[name],
     );
     setAction(CrudActions.UpdateOne, prototype[name]);
@@ -265,10 +256,7 @@ const baseRoutesInit = {
     );
     setParamTypes([Array], prototype, name);
     setInterceptors(
-      [
-        RestfulParamsInterceptorFactory(crudOptions),
-        ...getRouteInterceptors(crudOptions.routes.deleteOneBase),
-      ],
+      [RestfulParamsInterceptor, ...getRouteInterceptors(crudOptions.routes.deleteOneBase)],
       prototype[name],
     );
     setAction(CrudActions.DeleteOne, prototype[name]);
@@ -333,7 +321,7 @@ export const Crud = (dto: any, crudOptions: CrudOptions = {}) => (target: object
   const path = getControllerPath(target);
 
   // set default crud options
-  setDefaultCrudOptions(crudOptions);
+  setDefaultCrudOptions(crudOptions, target);
   // get routes slug
   const slug = getRoutesSlugName(crudOptions, path);
 

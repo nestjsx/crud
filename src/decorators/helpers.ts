@@ -13,7 +13,12 @@ import {
 import { CrudActions, CrudValidate } from '../enums';
 import { CrudOptions, RoutesOptions } from '../interfaces';
 import { BaseRouteName } from '../types';
-import { ACTION_NAME_METADATA, OVERRIDE_METHOD_METADATA, PARSED_BODY_METADATA } from '../constants';
+import {
+  ACTION_NAME_METADATA,
+  OVERRIDE_METHOD_METADATA,
+  PARSED_BODY_METADATA,
+  CRUD_OPTIONS_METADATA,
+} from '../constants';
 import { swagger, hasValidator, hasTypeorm } from '../utils';
 
 export function setRoute(path: string, method: RequestMethod, func: Function) {
@@ -39,6 +44,10 @@ export function setAction(action: CrudActions, func: Function) {
 
 export function setParsedBody(meta, func: Function) {
   Reflect.defineMetadata(PARSED_BODY_METADATA, meta, func);
+}
+
+export function setCrudOptionsMeta(crudOptions: CrudOptions, target: any) {
+  Reflect.defineMetadata(CRUD_OPTIONS_METADATA, crudOptions, target);
 }
 
 export function setSwaggerOkResponseMeta(meta: any, func: Function) {
@@ -299,6 +308,10 @@ export function getSwaggerOperation(func: Function): any {
   }
 }
 
+export function getCrudOptionsMeta(target: any): CrudOptions {
+  return Reflect.getMetadata(CRUD_OPTIONS_METADATA, target);
+}
+
 export function setValidationPipe(crudOptions: CrudOptions, group: CrudValidate) {
   const options = crudOptions.validation || {};
 
@@ -323,7 +336,7 @@ export function enableRoute(name: BaseRouteName, crudOptions: CrudOptions) {
   return true;
 }
 
-export function setDefaultCrudOptions(crudOptions: CrudOptions) {
+export function setDefaultCrudOptions(crudOptions: CrudOptions, target: any) {
   const check = (obj) => isNil(obj) || !isObject(obj) || !Object.keys(obj).length;
 
   // set default `id` numeric slug
@@ -359,6 +372,9 @@ export function setDefaultCrudOptions(crudOptions: CrudOptions) {
   if (check(crudOptions.routes.deleteOneBase)) {
     crudOptions.routes.deleteOneBase = { returnDeleted: false, interceptors: [] };
   }
+
+  // set metadata
+  setCrudOptionsMeta(crudOptions, target);
 }
 
 export function getRoutesSlugName(crudOptions: CrudOptions, path: string): string {
