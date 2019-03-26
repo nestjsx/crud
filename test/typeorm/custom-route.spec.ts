@@ -31,7 +31,11 @@ class CompaniesService extends RepositoryService<Company> {
   }
 }
 
-@Crud(Company, {})
+@Crud(Company, {
+  params: {
+    id: 'uuid',
+  },
+})
 @UsePathInterceptors()
 @Controller('custom2')
 class Custom2Controller {
@@ -199,6 +203,20 @@ describe('Custom routes with @UsePathInterceptors()', () => {
           expect(res.body[0]).toHaveProperty('id');
           expect(res.body[0].id).toBe(1);
         });
+    });
+  });
+
+  describe('test params validation', () => {
+    it('should return status 400', () => {
+      return request(server)
+        .get('/custom2/invalid')
+        .expect(400);
+    });
+
+    it('should return status 500', () => {
+      return request(server)
+        .get('/custom2/12876db5-1754-4864-96e6-c3c78f85d151')
+        .expect(500);
     });
   });
 });
