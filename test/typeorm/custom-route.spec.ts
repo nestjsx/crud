@@ -3,7 +3,14 @@ import { Test } from '@nestjs/testing';
 import { TypeOrmModule, InjectRepository } from '@nestjs/typeorm';
 import { INestApplication, Injectable, Controller, Get } from '@nestjs/common';
 
-import { UserProfile, User, Company, ormConfig } from '../../integration/typeorm/e2e';
+import {
+  UserProfile,
+  User,
+  Company,
+  Task,
+  Project,
+  ormConfig,
+} from '../../integration/typeorm/e2e';
 import {
   Crud,
   ParsedQuery,
@@ -11,12 +18,15 @@ import {
   RestfulParamsDto,
   UsePathInterceptors,
   ParsedOptions,
+  RestfulOptions,
 } from '../../src';
 import { RepositoryService } from '../../src/typeorm';
 
 @Injectable()
 class CompaniesService extends RepositoryService<Company> {
-  constructor(@InjectRepository(Company) repo) {
+  protected options: RestfulOptions = {};
+
+  constructor(@InjectRepository(Company) public repo) {
     super(repo);
   }
 }
@@ -34,6 +44,16 @@ class Custom2Controller {
     @ParsedOptions() options,
   ) {
     return { query, params, options };
+  }
+
+  @Get('repo/find-one')
+  async customFindOne() {
+    return this.service.findOne(1);
+  }
+
+  @Get('repo/find')
+  async customFind() {
+    return this.service.find({ id: 1 });
   }
 }
 
@@ -83,9 +103,10 @@ describe('Custom routes with @UsePathInterceptors()', () => {
     const fixture = await Test.createTestingModule({
       imports: [
         TypeOrmModule.forRoot(ormConfig),
-        TypeOrmModule.forFeature([UserProfile, User, Company]),
+        TypeOrmModule.forFeature([UserProfile, User, Task, Project, Company]),
       ],
       providers: [CompaniesService],
+      exports: [CompaniesService],
       controllers: [Custom1Controller, Custom2Controller],
     }).compile();
 
@@ -153,6 +174,31 @@ describe('Custom routes with @UsePathInterceptors()', () => {
 
     it('should return status 200, 3/3', () => {
       return test('/custom2/with/all');
+    });
+  });
+
+  describe('get custom service findOne', () => {
+    it('should return status 200', () => {
+      return request(server)
+        .get('/custom2/repo/find-one')
+        .expect(200)
+        .expect((res) => {
+          expect(res.body).toHaveProperty('id');
+          expect(res.body.id).toBe(1);
+        });
+    });
+  });
+
+  describe('get custom service find', () => {
+    it('should return status 200', () => {
+      return request(server)
+        .get('/custom2/repo/find')
+        .expect(200)
+        .expect((res) => {
+          expect(res.body[0]).not.toBeFalsy();
+          expect(res.body[0]).toHaveProperty('id');
+          expect(res.body[0].id).toBe(1);
+        });
     });
   });
 });
