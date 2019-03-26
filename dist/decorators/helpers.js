@@ -67,7 +67,7 @@ function setSwaggerOkResponse(func, dto, isArray) {
     }
 }
 exports.setSwaggerOkResponse = setSwaggerOkResponse;
-function setSwaggerOperation(func, summary = '') {
+function setSwaggerOperation(func, summary) {
     if (utils_1.swagger) {
         const metadata = getSwaggerOperation(func);
         setSwaggerOperationMeta(Object.assign(metadata, { summary }), func);
@@ -271,7 +271,8 @@ function setValidationPipe(crudOptions, group) {
     const options = crudOptions.validation || {};
     return utils_1.hasValidator
         ? new common_1.ValidationPipe(Object.assign({}, options, { groups: [group], transform: false }))
-        : undefined;
+        :
+            undefined;
 }
 exports.setValidationPipe = setValidationPipe;
 function enableRoute(name, crudOptions) {

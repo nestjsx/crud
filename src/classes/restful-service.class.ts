@@ -5,8 +5,7 @@ import { GetManyDefaultResponse, RequestParamsParsed, RestfulOptions } from '../
 export abstract class RestfulService<T> {
   protected abstract options: RestfulOptions;
 
-  constructor() {
-  }
+  constructor() {}
 
   /**
    * Wrap page into page-info
@@ -16,13 +15,22 @@ export abstract class RestfulService<T> {
    * @param limit
    * @param offset
    */
-  public createPageInfo(data: T[], total: number, limit: number, offset: number): GetManyDefaultResponse<T> {
+  public createPageInfo(
+    data: T[],
+    total: number,
+    limit: number,
+    offset: number,
+  ): GetManyDefaultResponse<T> {
     return {
       data,
       count: data.length,
       total,
       page: Math.floor(offset / limit) + 1,
-      pageCount: limit && total ? Math.round(total / limit) : undefined,
+      pageCount:
+        limit && total
+          ? Math.round(total / limit)
+          : /* istanbul ignore next line */
+            undefined,
     };
   }
 

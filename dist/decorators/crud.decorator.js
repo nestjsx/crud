@@ -87,10 +87,11 @@ const baseRoutesInit = {
             Type((t) => dto),
             __metadata("design:type", Array)
         ], BulkDto.prototype, "bulk", void 0);
+        const BultDtoType = utils_1.hasValidator ? BulkDto : {};
         helpers_1.setRouteArgs(Object.assign({}, helpers_1.createCustomRequestParamMetadata(constants_1.PARSED_PARAMS_REQUEST_KEY, 0), helpers_1.createParamMetadata(route_paramtypes_enum_1.RouteParamtypes.BODY, 1, [
             helpers_1.setValidationPipe(crudOptions, enums_1.CrudValidate.CREATE),
         ])), target, name);
-        helpers_1.setParamTypes([Array, utils_1.hasValidator ? BulkDto : {}], prototype, name);
+        helpers_1.setParamTypes([Array, BultDtoType], prototype, name);
         helpers_1.setInterceptors([interceptors_1.RestfulParamsInterceptor, ...helpers_1.getRouteInterceptors(crudOptions.routes.createManyBase)], prototype[name]);
         helpers_1.setAction(enums_1.CrudActions.CreateMany, prototype[name]);
         helpers_1.setSwaggerParams(prototype[name], crudOptions);
@@ -190,7 +191,7 @@ exports.Crud = (dto, crudOptions = {}) => (target) => {
         const route = baseRoutes[overrided];
         if (overrided && route && route.enable) {
             const interceptors = helpers_1.getInterceptors(prototype[name]) || [];
-            const baseInterceptors = helpers_1.getInterceptors(prototype[overrided]) || [];
+            const baseInterceptors = helpers_1.getInterceptors(prototype[overrided]);
             const baseAction = helpers_1.getAction(prototype[overrided]);
             const baseSwaggerParams = helpers_1.getSwaggerParams(prototype[overrided]);
             const baseSwaggerOkResponse = helpers_1.getSwaggeOkResponse(prototype[overrided]);

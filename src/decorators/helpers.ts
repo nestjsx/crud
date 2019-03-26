@@ -88,7 +88,7 @@ export function setSwaggerOkResponse(func: Function, dto: any, isArray?: boolean
   }
 }
 
-export function setSwaggerOperation(func: Function, summary: string = '') {
+export function setSwaggerOperation(func: Function, summary: string) {
   if (swagger) {
     /* istanbul ignore next line */
     const metadata = getSwaggerOperation(func);
@@ -231,6 +231,7 @@ export function setSwaggerQueryGetMany(func: Function, name: string) {
 export function createParamMetadata(
   paramtype: RouteParamtypes,
   index: number,
+  /* istanbul ignore next line */
   pipes: any[] = [],
   data = undefined,
 ): any {
@@ -276,10 +277,12 @@ export function getParsedBody(func: Function) {
 }
 
 export function getParamTypes(prototype: any, name: string) {
+  /* istanbul ignore next line */
   return Reflect.getMetadata(PARAMTYPES_METADATA, prototype, name) || [];
 }
 
 export function getRouteArgs(target: object, name: string) {
+  /* istanbul ignore next line */
   return Reflect.getMetadata(ROUTE_ARGS_METADATA, target, name) || {};
 }
 
@@ -321,7 +324,8 @@ export function setValidationPipe(crudOptions: CrudOptions, group: CrudValidate)
         groups: [group],
         transform: false,
       })
-    : undefined;
+    : /* istanbul ignore next line */
+      undefined;
 }
 
 export function enableRoute(name: BaseRouteName, crudOptions: CrudOptions) {
@@ -425,6 +429,7 @@ export function overrideParsedBody(target: any, baseName: BaseRouteName, name: s
       const paramTypes = getParamTypes(prototype, name) as any[];
       const metatype = paramTypes[parsedBody.index];
       const types = [String, Boolean, Number, Array, Object];
+      /* istanbul ignore next line */
       const toCopy = types.some((t) => metatype === t) || isNil(metatype);
 
       if (toCopy) {

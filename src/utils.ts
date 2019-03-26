@@ -16,6 +16,7 @@ try {
   swaggerPkg = require('@nestjs/swagger/dist/constants');
 } catch (error) {}
 
+/* istanbul ignore next line */
 export const swagger = swaggerPkg ? swaggerPkg : null;
 export const hasValidator = !!classValidatorPkg;
 export const hasTypeorm = !!typeormPkg;
@@ -28,4 +29,5 @@ export const mockValidatorDecorator = (name: string) =>
 export const mockTransformerDecorator = (name: string) =>
   classTransformerPkg && classTransformerPkg[name]
     ? classTransformerPkg[name]
-    : (...args: any[]) => (target, key) => {};
+    : /* istanbul ignore next line */
+      (...args: any[]) => (target, key) => {};

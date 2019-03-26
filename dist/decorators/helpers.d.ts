@@ -14,7 +14,7 @@ export declare function setSwaggerOkResponseMeta(meta: any, func: Function): voi
 export declare function setSwaggerOperationMeta(meta: any, func: Function): void;
 export declare function setSwaggerParamsMeta(meta: any, func: Function): void;
 export declare function setSwaggerOkResponse(func: Function, dto: any, isArray?: boolean): void;
-export declare function setSwaggerOperation(func: Function, summary?: string): void;
+export declare function setSwaggerOperation(func: Function, summary: string): void;
 export declare function setSwaggerParams(func: Function, crudOptions: CrudOptions): void;
 export declare function setSwaggerQueryGetOne(func: Function): void;
 export declare function setSwaggerQueryGetMany(func: Function, name: string): void;

@@ -61,7 +61,7 @@ class Custom2Controller {
   }
 }
 
-@Crud(Company, {})
+@Crud(Company)
 @Controller('custom1')
 class Custom1Controller {
   constructor(public service: CompaniesService) {}
@@ -206,7 +206,7 @@ describe('Custom routes with @UsePathInterceptors()', () => {
     });
   });
 
-  describe('test params validation', () => {
+  describe('params validation', () => {
     it('should return status 400', () => {
       return request(server)
         .get('/custom2/invalid')
@@ -217,6 +217,22 @@ describe('Custom routes with @UsePathInterceptors()', () => {
       return request(server)
         .get('/custom2/12876db5-1754-4864-96e6-c3c78f85d151')
         .expect(500);
+    });
+  });
+
+  describe('decidePagination', () => {
+    it('should return status 200', () => {
+      return request(server)
+        .get('/custom1')
+        .query({ page: 1, limit: 3 })
+        .expect(200)
+        .expect((res) => {
+          expect(res.body).toHaveProperty('data');
+          expect(res.body).toHaveProperty('count');
+          expect(res.body).toHaveProperty('total');
+          expect(res.body).toHaveProperty('page');
+          expect(res.body).toHaveProperty('pageCount');
+        });
     });
   });
 });

@@ -184,6 +184,8 @@ const baseRoutesInit = {
       @Type((t) => dto)
       bulk: any[];
     }
+    /* istanbul ignore next line */
+    const BultDtoType = hasValidator ? BulkDto : {};
 
     setRouteArgs(
       {
@@ -195,7 +197,7 @@ const baseRoutesInit = {
       target,
       name,
     );
-    setParamTypes([Array, hasValidator ? BulkDto : {}], prototype, name);
+    setParamTypes([Array, BultDtoType], prototype, name);
     setInterceptors(
       [RestfulParamsInterceptor, ...getRouteInterceptors(crudOptions.routes.createManyBase)],
       prototype[name],
@@ -349,7 +351,7 @@ export const Crud = (dto: any, crudOptions: CrudOptions = {}) => (target: object
     if (overrided && route && route.enable) {
       // get base function metadata
       const interceptors = getInterceptors(prototype[name]) || [];
-      const baseInterceptors = getInterceptors(prototype[overrided]) || [];
+      const baseInterceptors = getInterceptors(prototype[overrided]);
       const baseAction = getAction(prototype[overrided]);
       const baseSwaggerParams = getSwaggerParams(prototype[overrided]);
       const baseSwaggerOkResponse = getSwaggeOkResponse(prototype[overrided]);
