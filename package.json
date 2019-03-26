@@ -21,6 +21,11 @@
     "prebuild": "npm run clean",
     "postbuild": "npm run clean:typeorm && npm run update:typeorm"
   },
+  "peerDependencies": {
+    "@nestjs/common": "^6",
+    "@nestjs/core": "^6",
+    "@nestjs/typeorm": "^6"
+  },
   "dependencies": {
     "@nestjs/common": "^6.0.2",
     "@nestjs/core": "^6.0.2",

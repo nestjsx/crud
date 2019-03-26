@@ -25,5 +25,10 @@
     "name": "Michael Yali",
     "email": "mihon4ik@gmail.com"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "peerDependencies": {
+    "@nestjs/common": "^6",
+    "@nestjs/core": "^6",
+    "@nestjs/typeorm": "^6"
+  }
 }

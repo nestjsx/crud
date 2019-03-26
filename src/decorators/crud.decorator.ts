@@ -345,17 +345,17 @@ export const Crud = (dto: any, crudOptions: CrudOptions = {}) => (target: object
 
   // method override
   Object.getOwnPropertyNames(prototype).forEach((name) => {
-    const overrided = getOverrideMetadata(prototype[name]);
-    const route = baseRoutes[overrided];
+    const override = getOverrideMetadata(prototype[name]);
+    const route = baseRoutes[override];
 
-    if (overrided && route && route.enable) {
+    if (override && route && route.enable) {
       // get base function metadata
       const interceptors = getInterceptors(prototype[name]) || [];
-      const baseInterceptors = getInterceptors(prototype[overrided]);
-      const baseAction = getAction(prototype[overrided]);
-      const baseSwaggerParams = getSwaggerParams(prototype[overrided]);
-      const baseSwaggerOkResponse = getSwaggeOkResponse(prototype[overrided]);
-      const baseSwaggerOperation = getSwaggerOperation(prototype[overrided]);
+      const baseInterceptors = getInterceptors(prototype[override]);
+      const baseAction = getAction(prototype[override]);
+      const baseSwaggerParams = getSwaggerParams(prototype[override]);
+      const baseSwaggerOkResponse = getSwaggeOkResponse(prototype[override]);
+      const baseSwaggerOperation = getSwaggerOperation(prototype[override]);
 
       // set metadata
       setInterceptors([...baseInterceptors, ...interceptors], prototype[name]);
@@ -365,7 +365,7 @@ export const Crud = (dto: any, crudOptions: CrudOptions = {}) => (target: object
       setSwaggerOperationMeta(baseSwaggerOperation, prototype[name]);
 
       // override @ParsedBody() decorator is needed
-      overrideParsedBody(target, overrided, name);
+      overrideParsedBody(target, override, name);
 
       // set route
       setRoute(route.path, route.method, prototype[name]);
