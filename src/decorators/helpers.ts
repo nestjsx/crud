@@ -210,7 +210,7 @@ export function setSwaggerQueryGetMany(func: Function, name: string) {
       },
       {
         name: 'per_page',
-        description: `Alias for limit`,
+        description: `<h4>Alias for <code>limit</code></h4>`,
         required: false,
         in: 'query',
         type: Number,
