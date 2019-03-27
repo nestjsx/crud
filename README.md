@@ -83,7 +83,8 @@ Next, let's create a [Repository Service](#repository-service) for it:
 ```typescript
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { RepositoryService } from '@nestjsx/crud/typeorm';
+import { forTypeORM } from '@nestjsx/crud';
+import RepositoryService = forTypeORM.RepositoryService;
 
 import { Hero } from './hero.entity';
 
@@ -612,22 +613,28 @@ Also, routes options object may have some options for each particular route:
   routes: {
     getManyBase: {
       interceptors: [],
+      decorators: [],
     },
     getOneBase: {
       interceptors: [],
+      decorators: [],
     },
     createOneBase: {
       interceptors: [],
+      decorators: [],
     },
     createManyBase: {
       interceptors: [],
+      decorators: [],
     },
     updateOneBase: {
       interceptors: [],
+      decorators: [],
       allowParamsOverride: true
     },
     deleteOneBase: {
       interceptors: [],
+      decorators: [],
       returnDeleted: true
     },
   }
@@ -635,8 +642,11 @@ Also, routes options object may have some options for each particular route:
 ```
 
 `interceptors` - an array of your custom interceptors  
+`decorators` - an array of your custom decorators
 `allowParamsOverride` - whether or not to allow body data be overriten by the URL params on PATH request. Default: `false`  
 `returnDeleted` - whether or not an entity object should be returned in the response body on DELETE request. Default: `false`
+
+**_Notice:_** `decorators` will not move from original ones to override ones
 
 ### Params Options
 
