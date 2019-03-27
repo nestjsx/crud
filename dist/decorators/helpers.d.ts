@@ -1,7 +1,7 @@
 import { RequestMethod, ValidationPipe } from '@nestjs/common';
 import { RouteParamtypes } from '@nestjs/common/enums/route-paramtypes.enum';
 import { CrudActions, CrudValidate } from '../enums';
-import { CrudOptions } from '../interfaces';
+import { BaseRouteOptions, CrudOptions } from '../interfaces';
 import { BaseRouteName } from '../types';
 export declare function setRoute(path: string, method: RequestMethod, func: Function): void;
 export declare function setParamTypes(args: any[], prototype: any, name: string): void;
@@ -35,6 +35,8 @@ export declare function setValidationPipe(crudOptions: CrudOptions, group: CrudV
 export declare function enableRoute(name: BaseRouteName, crudOptions: CrudOptions): boolean;
 export declare function setDefaultCrudOptions(crudOptions: CrudOptions, target: any): void;
 export declare function getRoutesSlugName(crudOptions: CrudOptions, path: string): string;
-export declare function getRouteInterceptors(routeOptions: any): any[];
+export declare function getRouteInterceptors(routeOptions: BaseRouteOptions): any[];
+export declare function getRouteDecorators(routeOptions: BaseRouteOptions): (PropertyDecorator | MethodDecorator)[];
 export declare function cleanRoutesOptionsInterceptors(crudOptions: CrudOptions): void;
 export declare function overrideParsedBody(target: any, baseName: BaseRouteName, name: string): void;
+export declare function setDecorators(decorators: (PropertyDecorator | MethodDecorator)[], target: object, name: string): void;

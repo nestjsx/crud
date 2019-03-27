@@ -8,4 +8,6 @@ __export(require("./dto"));
 __export(require("./constants"));
 __export(require("./enums"));
 __export(require("./module"));
+const forTypeORM = require("./typeorm");
+exports.forTypeORM = forTypeORM;
 //# sourceMappingURL=index.js.map
