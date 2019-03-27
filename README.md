@@ -43,7 +43,8 @@
   - [Params Options](#params-options)
   - [Validation Options](#validation-options)
   - [IntelliSense](#intellisense)
-  - [Method Override](#method-override)
+  - [Routes Override](#routes-override)
+  - [Adding Routes](#adding-routes)
   - [Additional Decorators](#additional-decorators)
 - [Example Project](#example-project)
 - [Contribution](#contribution)
@@ -797,9 +798,9 @@ export class HeroesCrud {
 }
 ```
 
-### Method Override
+### Routes Override
 
-List of composed base methods:
+List of composed base routes methods:
 
 ```typescript
 getManyBase(
@@ -910,7 +911,28 @@ export class HeroesCrud {
 }
 ```
 
-**_Notice:_** new custom route decorators were created to simplify process: `@ParsedQuery()`, `@ParsedParams`, `@ParsedBody()`, and`@ParsedOptions()`. But you still can add your param decorators to any of the methods, e.g. `@Param()`, `@Session()`, etc. Or any of your own cutom route decorators.
+**_Notice:_** new custom route decorators were created to simplify process: `@ParsedQuery()`, `@ParsedParams`, `@ParsedBody()`, and `@ParsedOptions()`. But you still can add your param decorators to any of the methods, e.g. `@Param()`, `@Session()`, etc. Or any of your own cutom route decorators.
+
+### Adding Routes
+
+Sometimes you might need to add a new route and to use `@ParsedQuery()`, `@ParsedParams`, `@ParsedOptions()` in it. You need to use `@UsePathInterceptors()` method decorator in order to do that:
+
+```typescript
+...
+import { UsePathInterceptors } from '@nestjsx/crud';
+...
+
+@UsePathInterceptors()
+@Get('/export/list.xlsx')
+async exportSome(
+  @ParsedQuery() query: RestfulParamsDto,
+  @ParsedOptions() options: CrudOptions,
+) {
+  // some logic
+}
+```
+
+By default this decorator will parse `query` and `param`. But you can specify what you need to parse by passing the appropriate argument (`@UsePathInterceptors('query')` or `@UsePathInterceptors('param')`).
 
 ### Additional Decorators
 
