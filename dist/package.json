@@ -1,6 +1,6 @@
 {
   "name": "@nestjsx/crud",
-  "version": "3.1.0",
+  "version": "3.2.0",
   "description": "NestJs CRUD for RESTful APIs",
   "main": "index.js",
   "types": "index.d.ts",
@@ -25,5 +25,10 @@
     "name": "Michael Yali",
     "email": "mihon4ik@gmail.com"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "peerDependencies": {
+    "@nestjs/common": "^6",
+    "@nestjs/core": "^6",
+    "@nestjs/typeorm": "^6"
+  }
 }

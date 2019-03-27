@@ -31,6 +31,10 @@ function setParsedBody(meta, func) {
     Reflect.defineMetadata(constants_2.PARSED_BODY_METADATA, meta, func);
 }
 exports.setParsedBody = setParsedBody;
+function setCrudOptionsMeta(crudOptions, target) {
+    Reflect.defineMetadata(constants_2.CRUD_OPTIONS_METADATA, crudOptions, target);
+}
+exports.setCrudOptionsMeta = setCrudOptionsMeta;
 function setSwaggerOkResponseMeta(meta, func) {
     if (utils_1.swagger) {
         Reflect.defineMetadata(utils_1.swagger.DECORATORS.API_RESPONSE, meta, func);
@@ -63,7 +67,7 @@ function setSwaggerOkResponse(func, dto, isArray) {
     }
 }
 exports.setSwaggerOkResponse = setSwaggerOkResponse;
-function setSwaggerOperation(func, summary = '') {
+function setSwaggerOperation(func, summary) {
     if (utils_1.swagger) {
         const metadata = getSwaggerOperation(func);
         setSwaggerOperationMeta(Object.assign(metadata, { summary }), func);
@@ -175,7 +179,7 @@ function setSwaggerQueryGetMany(func, name) {
             },
             {
                 name: 'per_page',
-                description: `Alias for limit`,
+                description: `<h4>Alias for <code>limit</code></h4>`,
                 required: false,
                 in: 'query',
                 type: Number,
@@ -259,11 +263,16 @@ function getSwaggerOperation(func) {
     }
 }
 exports.getSwaggerOperation = getSwaggerOperation;
+function getCrudOptionsMeta(target) {
+    return Reflect.getMetadata(constants_2.CRUD_OPTIONS_METADATA, target);
+}
+exports.getCrudOptionsMeta = getCrudOptionsMeta;
 function setValidationPipe(crudOptions, group) {
     const options = crudOptions.validation || {};
     return utils_1.hasValidator
         ? new common_1.ValidationPipe(Object.assign({}, options, { groups: [group], transform: false }))
-        : undefined;
+        :
+            undefined;
 }
 exports.setValidationPipe = setValidationPipe;
 function enableRoute(name, crudOptions) {
@@ -276,7 +285,7 @@ function enableRoute(name, crudOptions) {
     return true;
 }
 exports.enableRoute = enableRoute;
-function setDefaultCrudOptions(crudOptions) {
+function setDefaultCrudOptions(crudOptions, target) {
     const check = (obj) => shared_utils_1.isNil(obj) || !shared_utils_1.isObject(obj) || !Object.keys(obj).length;
     if (check(crudOptions.params)) {
         crudOptions.params = { id: 'number' };
@@ -302,6 +311,7 @@ function setDefaultCrudOptions(crudOptions) {
     if (check(crudOptions.routes.deleteOneBase)) {
         crudOptions.routes.deleteOneBase = { returnDeleted: false, interceptors: [] };
     }
+    setCrudOptionsMeta(crudOptions, target);
 }
 exports.setDefaultCrudOptions = setDefaultCrudOptions;
 function getRoutesSlugName(crudOptions, path) {

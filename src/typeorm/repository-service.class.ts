@@ -1,4 +1,4 @@
-import { Brackets, DeepPartial, Repository, SelectQueryBuilder } from 'typeorm';
+import { Brackets, DeepPartial, Repository, SelectQueryBuilder, FindManyOptions } from 'typeorm';
 import { isObject } from '@nestjs/common/utils/shared.utils';
 import { plainToClass } from 'class-transformer';
 import { ClassType } from 'class-transformer/ClassTransformer';
@@ -30,6 +30,14 @@ export class RepositoryService<T> extends RestfulService<T> {
 
     this.onInitMapEntityColumns();
     this.onInitMapRelations();
+  }
+
+  public get findOne(): Repository<T>['findOne'] {
+    return this.repo.findOne.bind(this.repo);
+  }
+
+  public get find(): Repository<T>['find'] {
+    return this.repo.find.bind(this.repo);
   }
 
   private get entityType(): ClassType<T> {

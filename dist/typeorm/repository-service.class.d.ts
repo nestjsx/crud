@@ -8,6 +8,8 @@ export declare class RepositoryService<T> extends RestfulService<T> {
     private entityColumnsHash;
     private entityRelationsHash;
     constructor(repo: Repository<T>);
+    readonly findOne: Repository<T>['findOne'];
+    readonly find: Repository<T>['find'];
     private readonly entityType;
     private readonly alias;
     decidePagination(query: RequestParamsParsed, mergedOptions: RestfulOptions): boolean;

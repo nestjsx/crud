@@ -23,6 +23,12 @@ class RepositoryService extends classes_1.RestfulService {
         this.onInitMapEntityColumns();
         this.onInitMapRelations();
     }
+    get findOne() {
+        return this.repo.findOne.bind(this.repo);
+    }
+    get find() {
+        return this.repo.find.bind(this.repo);
+    }
     get entityType() {
         return this.repo.target;
     }

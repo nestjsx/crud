@@ -1,14 +1,17 @@
-import { Controller } from '@nestjs/common';
+import { Controller, Get } from '@nestjs/common';
 import { ApiUseTags } from '@nestjs/swagger';
 import {
   Crud,
   CrudController,
+  CrudOptions,
   Override,
   ParsedQuery,
   ParsedOptions,
   ParsedParams,
   ParsedBody,
   EntitiesBulk,
+  UsePathInterceptors,
+  RestfulParamsDto,
 } from '@nestjsx/crud';
 
 import { Company } from './company.entity';
@@ -50,5 +53,15 @@ export class CompaniesController {
   @Override()
   async createMany(@ParsedParams() params, @ParsedBody() body: EntitiesBulk<Company>) {
     return this.base.createManyBase(params, body);
+  }
+
+  @Get('/custom/get-all')
+  @UsePathInterceptors()
+  async customRoute(
+    @ParsedQuery() query: RestfulParamsDto,
+    @ParsedParams() params,
+    @ParsedOptions() options: CrudOptions,
+  ) {
+    return { query, params, options };
   }
 }

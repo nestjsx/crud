@@ -29,5 +29,6 @@ exports.mockValidatorDecorator = (name) => classValidatorPkg && classValidatorPk
     : (...args) => (target, key) => { };
 exports.mockTransformerDecorator = (name) => classTransformerPkg && classTransformerPkg[name]
     ? classTransformerPkg[name]
-    : (...args) => (target, key) => { };
+    :
+        (...args) => (target, key) => { };
 //# sourceMappingURL=utils.js.map

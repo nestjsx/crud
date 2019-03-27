@@ -13,7 +13,12 @@ import {
 import { CrudActions, CrudValidate } from '../enums';
 import { CrudOptions, RoutesOptions } from '../interfaces';
 import { BaseRouteName } from '../types';
-import { ACTION_NAME_METADATA, OVERRIDE_METHOD_METADATA, PARSED_BODY_METADATA } from '../constants';
+import {
+  ACTION_NAME_METADATA,
+  OVERRIDE_METHOD_METADATA,
+  PARSED_BODY_METADATA,
+  CRUD_OPTIONS_METADATA,
+} from '../constants';
 import { swagger, hasValidator, hasTypeorm } from '../utils';
 
 export function setRoute(path: string, method: RequestMethod, func: Function) {
@@ -39,6 +44,10 @@ export function setAction(action: CrudActions, func: Function) {
 
 export function setParsedBody(meta, func: Function) {
   Reflect.defineMetadata(PARSED_BODY_METADATA, meta, func);
+}
+
+export function setCrudOptionsMeta(crudOptions: CrudOptions, target: any) {
+  Reflect.defineMetadata(CRUD_OPTIONS_METADATA, crudOptions, target);
 }
 
 export function setSwaggerOkResponseMeta(meta: any, func: Function) {
@@ -79,7 +88,7 @@ export function setSwaggerOkResponse(func: Function, dto: any, isArray?: boolean
   }
 }
 
-export function setSwaggerOperation(func: Function, summary: string = '') {
+export function setSwaggerOperation(func: Function, summary: string) {
   if (swagger) {
     /* istanbul ignore next line */
     const metadata = getSwaggerOperation(func);
@@ -201,7 +210,7 @@ export function setSwaggerQueryGetMany(func: Function, name: string) {
       },
       {
         name: 'per_page',
-        description: `Alias for limit`,
+        description: `<h4>Alias for <code>limit</code></h4>`,
         required: false,
         in: 'query',
         type: Number,
@@ -222,6 +231,7 @@ export function setSwaggerQueryGetMany(func: Function, name: string) {
 export function createParamMetadata(
   paramtype: RouteParamtypes,
   index: number,
+  /* istanbul ignore next line */
   pipes: any[] = [],
   data = undefined,
 ): any {
@@ -267,10 +277,12 @@ export function getParsedBody(func: Function) {
 }
 
 export function getParamTypes(prototype: any, name: string) {
+  /* istanbul ignore next line */
   return Reflect.getMetadata(PARAMTYPES_METADATA, prototype, name) || [];
 }
 
 export function getRouteArgs(target: object, name: string) {
+  /* istanbul ignore next line */
   return Reflect.getMetadata(ROUTE_ARGS_METADATA, target, name) || {};
 }
 
@@ -299,6 +311,10 @@ export function getSwaggerOperation(func: Function): any {
   }
 }
 
+export function getCrudOptionsMeta(target: any): CrudOptions {
+  return Reflect.getMetadata(CRUD_OPTIONS_METADATA, target);
+}
+
 export function setValidationPipe(crudOptions: CrudOptions, group: CrudValidate) {
   const options = crudOptions.validation || {};
 
@@ -308,7 +324,8 @@ export function setValidationPipe(crudOptions: CrudOptions, group: CrudValidate)
         groups: [group],
         transform: false,
       })
-    : undefined;
+    : /* istanbul ignore next line */
+      undefined;
 }
 
 export function enableRoute(name: BaseRouteName, crudOptions: CrudOptions) {
@@ -323,7 +340,7 @@ export function enableRoute(name: BaseRouteName, crudOptions: CrudOptions) {
   return true;
 }
 
-export function setDefaultCrudOptions(crudOptions: CrudOptions) {
+export function setDefaultCrudOptions(crudOptions: CrudOptions, target: any) {
   const check = (obj) => isNil(obj) || !isObject(obj) || !Object.keys(obj).length;
 
   // set default `id` numeric slug
@@ -359,6 +376,9 @@ export function setDefaultCrudOptions(crudOptions: CrudOptions) {
   if (check(crudOptions.routes.deleteOneBase)) {
     crudOptions.routes.deleteOneBase = { returnDeleted: false, interceptors: [] };
   }
+
+  // set metadata
+  setCrudOptionsMeta(crudOptions, target);
 }
 
 export function getRoutesSlugName(crudOptions: CrudOptions, path: string): string {
@@ -409,6 +429,7 @@ export function overrideParsedBody(target: any, baseName: BaseRouteName, name: s
       const paramTypes = getParamTypes(prototype, name) as any[];
       const metatype = paramTypes[parsedBody.index];
       const types = [String, Boolean, Number, Array, Object];
+      /* istanbul ignore next line */
       const toCopy = types.some((t) => metatype === t) || isNil(metatype);
 
       if (toCopy) {
