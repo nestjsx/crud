@@ -27,7 +27,8 @@
     "no-console": false,
     "prefer-for-of": false,
     "no-string-literal": false,
-    "ban-types": false
+    "ban-types": false,
+    "object-literal-key-quotes": false
   },
   "rulesDirectory": []
 }
