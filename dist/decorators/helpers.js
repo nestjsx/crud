@@ -210,7 +210,7 @@ function createCustomRequestParamMetadata(paramtype, index, pipes = [], data = u
     return {
         [`${paramtype}${constants_1.CUSTOM_ROUTE_AGRS_METADATA}:${index}`]: {
             index,
-            factory: (data, req) => req[paramtype],
+            factory: (ignored, req) => req[paramtype],
             data,
             pipes,
         },
@@ -294,22 +294,22 @@ function setDefaultCrudOptions(crudOptions, target) {
         crudOptions.routes = {};
     }
     if (check(crudOptions.routes.getManyBase)) {
-        crudOptions.routes.getManyBase = { interceptors: [] };
+        crudOptions.routes.getManyBase = { interceptors: [], decorators: [] };
     }
     if (check(crudOptions.routes.getOneBase)) {
-        crudOptions.routes.getOneBase = { interceptors: [] };
+        crudOptions.routes.getOneBase = { interceptors: [], decorators: [] };
     }
     if (check(crudOptions.routes.createOneBase)) {
-        crudOptions.routes.createOneBase = { interceptors: [] };
+        crudOptions.routes.createOneBase = { interceptors: [], decorators: [] };
     }
     if (check(crudOptions.routes.createManyBase)) {
-        crudOptions.routes.createManyBase = { interceptors: [] };
+        crudOptions.routes.createManyBase = { interceptors: [], decorators: [] };
     }
     if (check(crudOptions.routes.updateOneBase)) {
-        crudOptions.routes.updateOneBase = { allowParamsOverride: false, interceptors: [] };
+        crudOptions.routes.updateOneBase = { allowParamsOverride: false, interceptors: [], decorators: [] };
     }
     if (check(crudOptions.routes.deleteOneBase)) {
-        crudOptions.routes.deleteOneBase = { returnDeleted: false, interceptors: [] };
+        crudOptions.routes.deleteOneBase = { returnDeleted: false, interceptors: [], decorators: [] };
     }
     setCrudOptionsMeta(crudOptions, target);
 }
@@ -325,6 +325,10 @@ function getRouteInterceptors(routeOptions) {
     return Array.isArray(routeOptions.interceptors) ? routeOptions.interceptors : [];
 }
 exports.getRouteInterceptors = getRouteInterceptors;
+function getRouteDecorators(routeOptions) {
+    return Array.isArray(routeOptions.decorators) ? routeOptions.decorators : [];
+}
+exports.getRouteDecorators = getRouteDecorators;
 function cleanRoutesOptionsInterceptors(crudOptions) {
     Object.keys(crudOptions.routes).forEach((option) => {
         if (option !== 'exclude' && option !== 'only') {
@@ -360,4 +364,9 @@ function overrideParsedBody(target, baseName, name) {
     }
 }
 exports.overrideParsedBody = overrideParsedBody;
+function setDecorators(decorators, target, name) {
+    Reflect.defineProperty(target, name, Reflect.decorate(decorators, target, name, Reflect.getOwnPropertyDescriptor(target, name)));
+    Reflect.decorate(decorators, target, name, Reflect.getOwnPropertyDescriptor(target, name));
+}
+exports.setDecorators = setDecorators;
 //# sourceMappingURL=helpers.js.map
