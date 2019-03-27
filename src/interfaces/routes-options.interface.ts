@@ -11,28 +11,27 @@ export interface RoutesOptions {
   deleteOneBase?: DeleteOneRouteOptions;
 }
 
-export interface GetMayRouteOptions {
+export interface BaseRouteOptions {
   interceptors?: any[];
+  decorators?: (PropertyDecorator | MethodDecorator)[];
 }
 
-export interface GetOneRouteOptions {
-  interceptors?: any[];
+export interface GetMayRouteOptions extends BaseRouteOptions {
 }
 
-export interface CreateOneRouteOptions {
-  interceptors?: any[];
+export interface GetOneRouteOptions extends BaseRouteOptions {
 }
 
-export interface CreateManyRouteOptions {
-  interceptors?: any[];
+export interface CreateOneRouteOptions extends BaseRouteOptions {
 }
 
-export interface UpdateOneRouteOptions {
-  interceptors?: any[];
+export interface CreateManyRouteOptions extends BaseRouteOptions {
+}
+
+export interface UpdateOneRouteOptions extends BaseRouteOptions {
   allowParamsOverride?: boolean;
 }
 
-export interface DeleteOneRouteOptions {
-  interceptors?: any[];
+export interface DeleteOneRouteOptions extends BaseRouteOptions {
   returnDeleted?: boolean;
 }
