@@ -2,24 +2,19 @@ import { RequestMethod, ValidationPipe } from '@nestjs/common';
 import { RouteParamtypes } from '@nestjs/common/enums/route-paramtypes.enum';
 import { isNil, isObject } from '@nestjs/common/utils/shared.utils';
 import {
-  PATH_METADATA,
-  METHOD_METADATA,
-  INTERCEPTORS_METADATA,
-  ROUTE_ARGS_METADATA,
-  PARAMTYPES_METADATA,
   CUSTOM_ROUTE_AGRS_METADATA,
+  INTERCEPTORS_METADATA,
+  METHOD_METADATA,
+  PARAMTYPES_METADATA,
+  PATH_METADATA,
+  ROUTE_ARGS_METADATA,
 } from '@nestjs/common/constants';
 
 import { CrudActions, CrudValidate } from '../enums';
-import { CrudOptions, RoutesOptions } from '../interfaces';
+import { BaseRouteOptions, CrudOptions, RoutesOptions } from '../interfaces';
 import { BaseRouteName } from '../types';
-import {
-  ACTION_NAME_METADATA,
-  OVERRIDE_METHOD_METADATA,
-  PARSED_BODY_METADATA,
-  CRUD_OPTIONS_METADATA,
-} from '../constants';
-import { swagger, hasValidator, hasTypeorm } from '../utils';
+import { ACTION_NAME_METADATA, CRUD_OPTIONS_METADATA, OVERRIDE_METHOD_METADATA, PARSED_BODY_METADATA } from '../constants';
+import { hasValidator, swagger } from '../utils';
 
 export function setRoute(path: string, method: RequestMethod, func: Function) {
   Reflect.defineMetadata(PATH_METADATA, path, func);
@@ -121,6 +116,7 @@ export function setSwaggerQueryGetOne(func: Function) {
     const params = [
       {
         name: 'fields',
+        // tslint:disable-next-line:max-line-length
         description: `<h4>Selects fields that should be returned in the reponse body.</h4><i>Syntax:</i> <strong>?fields=field1,field2,...</strong> <br/><i>Example:</i> <strong>?fields=email,name</strong>`,
         required: false,
         in: 'query',
@@ -128,6 +124,7 @@ export function setSwaggerQueryGetOne(func: Function) {
       },
       {
         name: 'join',
+        // tslint:disable-next-line:max-line-length
         description: `<h4>Receive joined relational objects in GET result (with all or selected fields).</h4><i>Syntax:</i><ul><li><strong>?join=relation</strong></li><li><strong>?join=relation||field1,field2,...</strong></li><li><strong>?join=relation1||field11,field12,...&join=relation1.nested||field21,field22,...&join=...</strong></li></ul><br/><i>Examples:</i></i><ul><li><strong>?join=profile</strong></li><li><strong>?join=profile||firstName,email</strong></li><li><strong>?join=profile||firstName,email&join=notifications||content&join=tasks</strong></li><li><strong>?join=relation1&join=relation1.nested&join=relation1.nested.deepnested</strong></li></ul><strong><i>Notice:</i></strong> <code>id</code> field always persists in relational objects. To use nested relations, the parent level MUST be set before the child level like example above.`,
         required: false,
         in: 'query',
@@ -154,6 +151,7 @@ export function setSwaggerQueryGetMany(func: Function, name: string) {
     const params = [
       {
         name: 'fields',
+        // tslint:disable-next-line:max-line-length
         description: `<h4>Selects fields that should be returned in the reponse body.</h4><i>Syntax:</i> <strong>?fields=field1,field2,...</strong> <br/><i>Example:</i> <strong>?fields=email,name</strong>`,
         required: false,
         in: 'query',
@@ -161,6 +159,7 @@ export function setSwaggerQueryGetMany(func: Function, name: string) {
       },
       {
         name: 'filter',
+        // tslint:disable-next-line:max-line-length
         description: `<h4>Adds fields request condition (multiple conditions) to the request.</h4><i>Syntax:</i> <strong>?filter=field||condition||value</strong><br/><i>Examples:</i> <ul><li><strong>?filter=name||eq||batman</strong></li><li><strong>?filter=isVillain||eq||false&filter=city||eq||Arkham</strong> (multiple filters are treated as a combination of AND type of conditions)</li><li><strong>?filter=shots||in||12,26</strong> (some conditions accept multiple values separated by commas)</li><li><strong>?filter=power||isnull</strong> (some conditions don't accept value)</li></ul><br/>Filter Conditions:<ul><li><strong><code>eq</code></strong> (<code>=</code>, equal)</li><li><strong><code>ne</code></strong> (<code>!=</code>, not equal)</li><li><strong><code>gt</code></strong> (<code>&gt;</code>, greater than)</li><li><strong><code>lt</code></strong> (<code>&lt;</code>, lower that)</li><li><strong><code>gte</code></strong> (<code>&gt;=</code>, greater than or equal)</li><li><strong><code>lte</code></strong> (<code>&lt;=</code>, lower than or equal)</li><li><strong><code>starts</code></strong> (<code>LIKE val%</code>, starts with)</li><li><strong><code>ends</code></strong> (<code>LIKE %val</code>, ends with)</li><li><strong><code>cont</code></strong> (<code>LIKE %val%</code>, contains)</li><li><strong><code>excl</code></strong> (<code>NOT LIKE %val%</code>, not contains)</li><li><strong><code>in</code></strong> (<code>IN</code>, in range, <strong><em>accepts multiple values</em></strong>)</li><li><strong><code>notin</code></strong> (<code>NOT IN</code>, not in range, <strong><em>accepts multiple values</em></strong>)</li><li><strong><code>isnull</code></strong> (<code>IS NULL</code>, is NULL, <strong><em>doesn't accept value</em></strong>)</li><li><strong><code>notnull</code></strong> (<code>IS NOT NULL</code>, not NULL, <strong><em>doesn't accept value</em></strong>)</li><li><strong><code>between</code></strong> (<code>BETWEEN</code>, between, <strong><em>accepts two values</em></strong>)</li></ul>`,
         required: false,
         in: 'query',
@@ -168,6 +167,7 @@ export function setSwaggerQueryGetMany(func: Function, name: string) {
       },
       {
         name: 'or',
+        // tslint:disable-next-line:max-line-length
         description: `<h4>Adds <code>OR</code> conditions to the request.</h4><i>Syntax:</i> <strong>?or=field||condition||value</strong><br/>It uses the same conditions as the filter parameter<br/><i>Rules and <i>Examples:</i></i><ul><li>If there is only <strong>one</strong> <code>or</code> present (without <code>filter</code>) then it will be interpreted as simple filter:</li><ul><li><strong>?or=name||eq||batman</strong></li></ul></ul><ul><li>If there are <strong>multiple</strong> <code>or</code> present (without <code>filter</code>) then it will be interpreted as a compination of <code>OR</code> conditions, as follows:<br><code>WHERE {or} OR {or} OR ...</code></li><ul><li><strong>?or=name||eq||batman&or=name||eq||joker</strong></li></ul></ul><ul><li>If there are <strong>one</strong> <code>or</code> and <strong>one</strong> <code>filter</code> then it will be interpreted as <code>OR</code> condition, as follows:<br><code>WHERE {filter} OR {or}</code></li><ul><li><strong>?filter=name||eq||batman&or=name||eq||joker</strong></li></ul></ul><ul><li>If present <strong>both</strong> <code>or</code> and <code>filter</code> in any amount (<strong>one</strong> or <strong>miltiple</strong> each) then both interpreted as a combitation of <code>AND</code> conditions and compared with each other by <code>OR</code> condition, as follows:<br><code>WHERE ({filter} AND {filter} AND ...) OR ({or} AND {or} AND ...)</code></li><ul><li><strong>?filter=type||eq||hero&filter=status||eq||alive&or=type||eq||villain&or=status||eq||dead</strong></li></ul></ul>`,
         required: false,
         in: 'query',
@@ -175,6 +175,7 @@ export function setSwaggerQueryGetMany(func: Function, name: string) {
       },
       {
         name: 'sort',
+        // tslint:disable-next-line:max-line-length
         description: `<h4>Adds sort by field (by multiple fields) and order to query result.</h4><i>Syntax:</i> <strong>?sort=field,ASC|DESC</strong><br/><i>Examples:</i></i><ul><li><strong>?sort=name,ASC</strong></li><li><strong>?sort=name,ASC&sort=id,DESC</strong></li></ul>`,
         required: false,
         in: 'query',
@@ -182,6 +183,7 @@ export function setSwaggerQueryGetMany(func: Function, name: string) {
       },
       {
         name: 'join',
+        // tslint:disable-next-line:max-line-length
         description: `<h4>Receive joined relational objects in GET result (with all or selected fields).</h4><i>Syntax:</i><ul><li><strong>?join=relation</strong></li><li><strong>?join=relation||field1,field2,...</strong></li><li><strong>?join=relation1||field11,field12,...&join=relation1.nested||field21,field22,...&join=...</strong></li></ul><br/><i>Examples:</i></i><ul><li><strong>?join=profile</strong></li><li><strong>?join=profile||firstName,email</strong></li><li><strong>?join=profile||firstName,email&join=notifications||content&join=tasks</strong></li><li><strong>?join=relation1&join=relation1.nested&join=relation1.nested.deepnested</strong></li></ul><strong><i>Notice:</i></strong> <code>id</code> field always persists in relational objects. To use nested relations, the parent level MUST be set before the child level like example above.`,
         required: false,
         in: 'query',
@@ -189,6 +191,7 @@ export function setSwaggerQueryGetMany(func: Function, name: string) {
       },
       {
         name: 'limit',
+        // tslint:disable-next-line:max-line-length
         description: `<h4>Receive <code>N</code> amount of entities.</h4><i>Syntax:</i> <strong>?limit=number</strong><br/><i>Example:</i> <strong>?limit=10</strong>`,
         required: false,
         in: 'query',
@@ -196,6 +199,7 @@ export function setSwaggerQueryGetMany(func: Function, name: string) {
       },
       {
         name: 'offset',
+        // tslint:disable-next-line:max-line-length
         description: `<h4>Offset <code>N</code> amount of entities.</h4><i>Syntax:</i> <strong>?offset=number</strong><br/><i>Example:</i> <strong>?offset=10</strong>`,
         required: false,
         in: 'query',
@@ -203,6 +207,7 @@ export function setSwaggerQueryGetMany(func: Function, name: string) {
       },
       {
         name: 'page',
+        // tslint:disable-next-line:max-line-length
         description: `<h4>Receive a portion of <code>limit</code> (per_page) entities (alternative to <code>offset</code>). Will be applied if <code>limit</code> is set up.</h4><i>Syntax:</i> <strong>?page=number</strong><br/><i>Example:</i> <strong>?page=2</strong>`,
         required: false,
         in: 'query',
@@ -233,6 +238,7 @@ export function createParamMetadata(
   index: number,
   /* istanbul ignore next line */
   pipes: any[] = [],
+  // tslint:disable-next-line:no-unnecessary-initializer
   data = undefined,
 ): any {
   return {
@@ -248,12 +254,13 @@ export function createCustomRequestParamMetadata(
   paramtype: string,
   index: number,
   pipes: any[] = [],
+  // tslint:disable-next-line:no-unnecessary-initializer
   data = undefined,
 ): any {
   return {
     [`${paramtype}${CUSTOM_ROUTE_AGRS_METADATA}:${index}`]: {
       index,
-      factory: (data, req) => req[paramtype],
+      factory: (ignored, req) => req[paramtype],
       data,
       pipes,
     },
@@ -320,12 +327,12 @@ export function setValidationPipe(crudOptions: CrudOptions, group: CrudValidate)
 
   return hasValidator
     ? new ValidationPipe({
-        ...options,
-        groups: [group],
-        transform: false,
-      })
+      ...options,
+      groups: [group],
+      transform: false,
+    })
     : /* istanbul ignore next line */
-      undefined;
+    undefined;
 }
 
 export function enableRoute(name: BaseRouteName, crudOptions: CrudOptions) {
@@ -354,27 +361,27 @@ export function setDefaultCrudOptions(crudOptions: CrudOptions, target: any) {
   }
 
   if (check(crudOptions.routes.getManyBase)) {
-    crudOptions.routes.getManyBase = { interceptors: [] };
+    crudOptions.routes.getManyBase = { interceptors: [], decorators: [] };
   }
 
   if (check(crudOptions.routes.getOneBase)) {
-    crudOptions.routes.getOneBase = { interceptors: [] };
+    crudOptions.routes.getOneBase = { interceptors: [], decorators: [] };
   }
 
   if (check(crudOptions.routes.createOneBase)) {
-    crudOptions.routes.createOneBase = { interceptors: [] };
+    crudOptions.routes.createOneBase = { interceptors: [], decorators: [] };
   }
 
   if (check(crudOptions.routes.createManyBase)) {
-    crudOptions.routes.createManyBase = { interceptors: [] };
+    crudOptions.routes.createManyBase = { interceptors: [], decorators: [] };
   }
 
   if (check(crudOptions.routes.updateOneBase)) {
-    crudOptions.routes.updateOneBase = { allowParamsOverride: false, interceptors: [] };
+    crudOptions.routes.updateOneBase = { allowParamsOverride: false, interceptors: [], decorators: [] };
   }
 
   if (check(crudOptions.routes.deleteOneBase)) {
-    crudOptions.routes.deleteOneBase = { returnDeleted: false, interceptors: [] };
+    crudOptions.routes.deleteOneBase = { returnDeleted: false, interceptors: [], decorators: [] };
   }
 
   // set metadata
@@ -389,12 +396,16 @@ export function getRoutesSlugName(crudOptions: CrudOptions, path: string): strin
   return Object.keys(crudOptions.params).filter((slug) => !path.includes(`:${slug}`))[0] || 'id';
 }
 
-export function getRouteInterceptors(routeOptions: any): any[] {
+export function getRouteInterceptors(routeOptions: BaseRouteOptions) {
   return Array.isArray(routeOptions.interceptors) ? routeOptions.interceptors : [];
 }
 
+export function getRouteDecorators(routeOptions: BaseRouteOptions) {
+  return Array.isArray(routeOptions.decorators) ? routeOptions.decorators : [];
+}
+
 export function cleanRoutesOptionsInterceptors(crudOptions: CrudOptions) {
-  Object.keys(<RoutesOptions>crudOptions.routes).forEach((option) => {
+  Object.keys(crudOptions.routes as RoutesOptions).forEach((option) => {
     if (option !== 'exclude' && option !== 'only') {
       crudOptions.routes[option].interceptors = [];
     }
@@ -440,4 +451,15 @@ export function overrideParsedBody(target: any, baseName: BaseRouteName, name: s
       }
     }
   }
+}
+
+export function setDecorators(decorators: (PropertyDecorator | MethodDecorator)[], target: object, name: string) {
+  // this makes proxy decorator works
+  Reflect.defineProperty(target, name,
+    Reflect.decorate(decorators, target, name,
+      Reflect.getOwnPropertyDescriptor(target, name)));
+
+  // this makes metadata decorator works
+  Reflect.decorate(decorators, target, name,
+    Reflect.getOwnPropertyDescriptor(target, name));
 }

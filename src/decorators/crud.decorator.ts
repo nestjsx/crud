@@ -3,46 +3,43 @@ import { RouteParamtypes } from '@nestjs/common/enums/route-paramtypes.enum';
 
 import { RestfulParamsDto } from '../dto';
 import { CrudActions, CrudValidate } from '../enums';
-import { RestfulQueryInterceptor, RestfulParamsInterceptor } from '../interceptors';
-import { CrudOptions, FilterParamParsed, EntitiesBulk } from '../interfaces';
+import { RestfulParamsInterceptor, RestfulQueryInterceptor } from '../interceptors';
+import { CrudOptions, EntitiesBulk, FilterParamParsed } from '../interfaces';
 import { BaseRouteName } from '../types';
-import {
-  OVERRIDE_METHOD_METADATA,
-  PARSED_OPTIONS_METADATA,
-  PARSED_PARAMS_REQUEST_KEY,
-  PARSED_QUERY_REQUEST_KEY,
-} from '../constants';
+import { OVERRIDE_METHOD_METADATA, PARSED_OPTIONS_METADATA, PARSED_PARAMS_REQUEST_KEY, PARSED_QUERY_REQUEST_KEY } from '../constants';
 import { hasValidator, mockTransformerDecorator, mockValidatorDecorator } from '../utils';
 import {
-  getOverrideMetadata,
-  getInterceptors,
-  getRouteInterceptors,
+  cleanRoutesOptionsInterceptors,
+  createCustomRequestParamMetadata,
+  createParamMetadata,
+  enableRoute,
   getAction,
   getControllerPath,
-  getSwaggerParams,
+  getInterceptors,
+  getOverrideMetadata,
+  getRouteDecorators,
+  getRouteInterceptors,
+  getRoutesSlugName,
   getSwaggeOkResponse,
   getSwaggerOperation,
-  getRoutesSlugName,
+  getSwaggerParams,
+  overrideParsedBody,
   setAction,
+  setDecorators,
+  setDefaultCrudOptions,
   setInterceptors,
   setParamTypes,
-  setRouteArgs,
   setRoute,
+  setRouteArgs,
+  setSwaggerOkResponse,
+  setSwaggerOkResponseMeta,
+  setSwaggerOperation,
+  setSwaggerOperationMeta,
+  setSwaggerParams,
+  setSwaggerParamsMeta,
   setSwaggerQueryGetMany,
   setSwaggerQueryGetOne,
-  setSwaggerOkResponse,
-  setSwaggerOperation,
-  setSwaggerParams,
-  setSwaggerOkResponseMeta,
-  setSwaggerOperationMeta,
-  setSwaggerParamsMeta,
   setValidationPipe,
-  setDefaultCrudOptions,
-  createParamMetadata,
-  createCustomRequestParamMetadata,
-  enableRoute,
-  cleanRoutesOptionsInterceptors,
-  overrideParsedBody,
 } from './helpers';
 
 interface BaseRoutes {
@@ -58,11 +55,12 @@ interface BaseRoutes {
 // Base routes
 const baseRoutesInit = {
   /**
-   * Get meny entities base route
+   * Get many entities base route
    */
   getManyBase(target: object, name: string, dto: any, crudOptions: CrudOptions) {
     const prototype = (target as any).prototype;
 
+    // to let setDecorators works, the method must be define as a property like this
     prototype[name] = function getManyBase(
       parsedQuery: RestfulParamsDto,
       parsedOptions: CrudOptions,
@@ -79,6 +77,7 @@ const baseRoutesInit = {
       name,
     );
     setParamTypes([RestfulParamsDto, Object], prototype, name);
+    setDecorators(getRouteDecorators(crudOptions.routes.getManyBase), prototype, name);
     setInterceptors(
       [
         RestfulParamsInterceptor,
@@ -116,6 +115,7 @@ const baseRoutesInit = {
       name,
     );
     setParamTypes([RestfulParamsDto, Object], prototype, name);
+    setDecorators(getRouteDecorators(crudOptions.routes.getOneBase), prototype, name);
     setInterceptors(
       [
         RestfulParamsInterceptor,
@@ -152,6 +152,7 @@ const baseRoutesInit = {
       name,
     );
     setParamTypes([Array, dto], prototype, name);
+    setDecorators(getRouteDecorators(crudOptions.routes.createOneBase), prototype, name);
     setInterceptors(
       [RestfulParamsInterceptor, ...getRouteInterceptors(crudOptions.routes.createOneBase)],
       prototype[name],
@@ -184,8 +185,9 @@ const baseRoutesInit = {
       @Type((t) => dto)
       bulk: any[];
     }
+
     /* istanbul ignore next line */
-    const BultDtoType = hasValidator ? BulkDto : {};
+    const BulkDtoType = hasValidator ? BulkDto : {};
 
     setRouteArgs(
       {
@@ -197,7 +199,8 @@ const baseRoutesInit = {
       target,
       name,
     );
-    setParamTypes([Array, BultDtoType], prototype, name);
+    setParamTypes([Array, BulkDtoType], prototype, name);
+    setDecorators(getRouteDecorators(crudOptions.routes.createManyBase), prototype, name);
     setInterceptors(
       [RestfulParamsInterceptor, ...getRouteInterceptors(crudOptions.routes.createManyBase)],
       prototype[name],
@@ -229,6 +232,7 @@ const baseRoutesInit = {
       name,
     );
     setParamTypes([Array, dto], prototype, name);
+    setDecorators(getRouteDecorators(crudOptions.routes.updateOneBase), prototype, name);
     setInterceptors(
       [RestfulParamsInterceptor, ...getRouteInterceptors(crudOptions.routes.updateOneBase)],
       prototype[name],
@@ -257,6 +261,7 @@ const baseRoutesInit = {
       name,
     );
     setParamTypes([Array], prototype, name);
+    setDecorators(getRouteDecorators(crudOptions.routes.deleteOneBase), prototype, name);
     setInterceptors(
       [RestfulParamsInterceptor, ...getRouteInterceptors(crudOptions.routes.deleteOneBase)],
       prototype[name],
