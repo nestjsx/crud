@@ -454,7 +454,7 @@ An Array of [fields](#fields) that will be always persisted in `GET` response
 
 An Array of `filter` objects that will be merged (combined) with query [filter](#filter) if those are passed in `GET` request. If not - `filter` will be added to the DB query as a stand-alone condition.
 
-If fultiple items are added, they will be interpreted as `AND` type of conditions.
+If multiple items are added, they will be interpreted as `AND` type of conditions.
 
 ```typescript
 {
