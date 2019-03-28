@@ -219,7 +219,7 @@ _Example:_
 
 ### filter
 
-Adds fields request condition (multiple conditions) to you request.
+Adds fields request condition (multiple conditions) to your request.
 
 _Syntax:_
 
