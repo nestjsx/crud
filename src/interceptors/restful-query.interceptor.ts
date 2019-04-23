@@ -1,13 +1,7 @@
-import { Injectable, NestInterceptor, ExecutionContext, CallHandler } from '@nestjs/common';
+import { CallHandler, ExecutionContext, Injectable, NestInterceptor } from '@nestjs/common';
 import { isObject } from '@nestjs/common/utils/shared.utils';
 
-import {
-  RequestParamsParsed,
-  FilterParamParsed,
-  SortParamParsed,
-  JoinParamParsed,
-} from '../interfaces';
-import { RequestQueryParams } from '../interfaces';
+import { FilterParamParsed, JoinParamParsed, RequestParamsParsed, RequestQueryParams, SortParamParsed } from '../interfaces';
 import { ComparisonOperator } from '../types';
 import { PARSED_QUERY_REQUEST_KEY } from '../constants';
 
@@ -95,6 +89,8 @@ export class RestfulQueryInterceptor implements NestInterceptor {
         value = this.splitString(value) as any;
       }
 
+      value = this.parseValues(value);
+
       return {
         field,
         operator,
@@ -150,6 +146,29 @@ export class RestfulQueryInterceptor implements NestInterceptor {
   private parseEntityFields(query: RequestQueryParams): FilterParamParsed[] {
     return Object.keys(query)
       .filter((key) => !this.reservedFields.some((reserved) => reserved === key))
-      .map((field) => ({ field, operator: 'eq', value: query[field] } as FilterParamParsed));
+      .map((field) => ({ field, operator: 'eq', value: this.parseValue(query[field]) } as FilterParamParsed));
+  }
+
+  private parseValue(value: any) {
+    try {
+      const parsed = JSON.parse(value);
+
+      if (parsed && typeof parsed === 'object') {
+        // throw new Error('Don\'t support object now');
+        return value;
+      }
+
+      return parsed;
+    } catch (ignored) {
+      return value;
+    }
+  }
+
+  private parseValues(values: any) {
+    if (Array.isArray(values)) {
+      return values.map(v => this.parseValue(v));
+    } else {
+      return this.parseValue(values);
+    }
   }
 }
