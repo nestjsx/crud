@@ -3,17 +3,23 @@
     "module": "commonjs",
     "declaration": true,
     "noImplicitAny": false,
+    "noUnusedLocals": false,
     "removeComments": true,
     "noLib": false,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
-    "target": "es6",
+    "target": "es2018",
     "sourceMap": true,
     "allowJs": false,
-    "outDir": "./dist",
-    "rootDir": "./src",
-    "skipLibCheck": true
-  },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules"]
+    "skipLibCheck": false,
+    "composite": true,
+    "baseUrl": "./packages",
+    "paths": {
+      "@nestjsx/crud": ["crud/src/*"],
+      "@nestjsx/request-query": ["request-query/src/*"],
+      "@nestjsx/restful": ["restful/src/*"],
+      "@nestjsx/typeorm": ["typeorm/src/*"],
+      "@nestjsx/util": ["util/src/*"]
+    }
+  }
 }
