@@ -1,0 +1,1 @@
+{"version":3,"file":"crud-options.service.js","sourceRoot":"","sources":["../../src/module/crud-options.service.ts"],"names":[],"mappings":";;AAEA,MAAa,kBAAkB;IAG7B,YAAoB,QAAqB;QAArB,aAAQ,GAAR,QAAQ,CAAa;IAAG,CAAC;IAE7C,MAAM,CAAC,UAAU,CAAC,OAAoB;QACpC,kBAAkB,CAAC,OAAO,GAAG,OAAO,CAAC;IACvC,CAAC;IAED,MAAM,CAAC,UAAU;QACf,OAAO,kBAAkB,CAAC,OAAO,CAAC;IACpC,CAAC;CACF;AAZD,gDAYC"}

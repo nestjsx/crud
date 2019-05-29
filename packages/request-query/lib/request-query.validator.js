@@ -37,7 +37,7 @@ function validateCondition(val, cond) {
 exports.validateCondition = validateCondition;
 function validateComparisonOperator(operator) {
     if (!exports.comparisonOperatorsList.includes(operator)) {
-        throw new exceptions_1.RequestQueryException(`Invalid comparisonvalidateJoinoperator. ${comparisonOperatorsListStr} expected`);
+        throw new exceptions_1.RequestQueryException(`Invalid comparison operator. ${comparisonOperatorsListStr} expected`);
     }
 }
 exports.validateComparisonOperator = validateComparisonOperator;

@@ -53,7 +53,7 @@ export function validateCondition(val: QueryFilter, cond: 'filter' | 'or'): void
 export function validateComparisonOperator(operator: ComparisonOperator): void {
   if (!comparisonOperatorsList.includes(operator)) {
     throw new RequestQueryException(
-      `Invalid comparisonvalidateJoinoperator. ${comparisonOperatorsListStr} expected`,
+      `Invalid comparison operator. ${comparisonOperatorsListStr} expected`,
     );
   }
 }
@@ -79,7 +79,10 @@ export function validateSort(sort: QuerySort): void {
   }
 }
 
-export function validateNumeric(val: number, num: 'limit' | 'offset' | 'page'): void {
+export function validateNumeric(
+  val: number,
+  num: 'limit' | 'offset' | 'page' | 'cache',
+): void {
   if (!isNumber(val)) {
     throw new RequestQueryException(`Invalid ${num}. Number expected`);
   }

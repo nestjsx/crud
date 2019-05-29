@@ -1,5 +1,3 @@
-import { RequestQueryBuilderOptions } from './interfaces';
-import { QueryFields, QueryFilter, QueryJoin, QuerySort } from './types';
 import {
   validateFields,
   validateCondition,
@@ -8,6 +6,8 @@ import {
   validateNumeric,
 } from './request-query.validator';
 import { isNil, isArrayFull, hasLength } from './util';
+import { RequestQueryBuilderOptions } from './interfaces';
+import { QueryFields, QueryFilter, QueryJoin, QuerySort } from './types';
 
 export class RequestQueryBuilder {
   private static _options: RequestQueryBuilderOptions = {

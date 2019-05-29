@@ -6,4 +6,4 @@ export declare function validateCondition(val: QueryFilter, cond: 'filter' | 'or
 export declare function validateComparisonOperator(operator: ComparisonOperator): void;
 export declare function validateJoin(join: QueryJoin): void;
 export declare function validateSort(sort: QuerySort): void;
-export declare function validateNumeric(val: number, num: 'limit' | 'offset' | 'page'): void;
+export declare function validateNumeric(val: number, num: 'limit' | 'offset' | 'page' | 'cache'): void;

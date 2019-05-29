@@ -7,7 +7,9 @@ export const isStringFull = (val: any): boolean => isString(val) && hasLength(va
 export const isArrayFull = (val: any): boolean => Array.isArray(val) && hasLength(val);
 export const isArrayStrings = (val: any): boolean =>
   isArrayFull(val) && (val as string[]).every((v) => isStringFull(v));
+export const getKeys = (val: any): string[] => Object.keys(val);
 export const isObject = (val: any): boolean => typeof val === 'object' && !isNull(val);
+// export const isObjectFull = (val: any) => isObject(val) && hasLength(getKeys(val));
 export const isNumber = (val: any): boolean =>
   typeof val === 'number' && !Number.isNaN(val) && Number.isFinite(val);
 export const isEqual = (val: any, eq: any): boolean => val === eq;

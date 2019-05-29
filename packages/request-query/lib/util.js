@@ -8,6 +8,7 @@ exports.hasLength = (val) => val.length > 0;
 exports.isStringFull = (val) => exports.isString(val) && exports.hasLength(val);
 exports.isArrayFull = (val) => Array.isArray(val) && exports.hasLength(val);
 exports.isArrayStrings = (val) => exports.isArrayFull(val) && val.every((v) => exports.isStringFull(v));
+exports.getKeys = (val) => Object.keys(val);
 exports.isObject = (val) => typeof val === 'object' && !exports.isNull(val);
 exports.isNumber = (val) => typeof val === 'number' && !Number.isNaN(val) && Number.isFinite(val);
 exports.isEqual = (val, eq) => val === eq;
