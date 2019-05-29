@@ -1,9 +1,10 @@
-import { RestfulOptions } from './restful-options.interface';
+import { QueryOptions } from './query-options.interface';
 import { RoutesOptions } from './routes-options.interface';
-import { ParamsOptions } from './params-options.interface';
+import { ParamOptions } from './param-options.interface';
 
 export interface CrudOptions {
-  options?: RestfulOptions;
+  model?: any;
+  query?: QueryOptions;
   routes?: RoutesOptions;
-  params?: ParamsOptions;
+  param?: ParamOptions;
 }

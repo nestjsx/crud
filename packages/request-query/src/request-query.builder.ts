@@ -1,3 +1,5 @@
+import { isNil, isArrayFull, hasLength } from '@nestjsx/util';
+
 import {
   validateFields,
   validateCondition,
@@ -5,7 +7,6 @@ import {
   validateSort,
   validateNumeric,
 } from './request-query.validator';
-import { isNil, isArrayFull, hasLength } from './util';
 import { RequestQueryBuilderOptions } from './interfaces';
 import { QueryFields, QueryFilter, QueryJoin, QuerySort } from './types';
 

@@ -1,3 +1,12 @@
+import {
+  isUndefined,
+  isArrayStrings,
+  isStringFull,
+  isObject,
+  isEqual,
+  isNumber,
+} from '@nestjsx/util';
+
 import { RequestQueryException } from './exceptions';
 import {
   QueryFields,
@@ -6,14 +15,6 @@ import {
   QueryJoin,
   QuerySort,
 } from './types';
-import {
-  isUndefined,
-  isArrayStrings,
-  isStringFull,
-  isObject,
-  isEqual,
-  isNumber,
-} from './util';
 
 export const comparisonOperatorsList = [
   'eq',

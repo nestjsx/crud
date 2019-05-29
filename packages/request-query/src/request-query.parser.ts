@@ -1,13 +1,13 @@
+import { isObject, objKeys, isStringFull, isArrayFull, hasLength } from '@nestjsx/util';
+
 import { RequestQueryBuilder } from './request-query.builder';
 import {
-  validateFields,
   validateCondition,
   validateJoin,
   validateSort,
   validateNumeric,
 } from './request-query.validator';
 import { RequestQueryException } from './exceptions';
-import { isObject, getKeys, isStringFull, isArrayFull, hasLength } from './util';
 import { RequestQueryBuilderOptions } from './interfaces';
 import {
   QueryFields,
@@ -37,7 +37,7 @@ export class RequestQueryParser {
 
   parse(query: any): this {
     if (isObject(query)) {
-      const paramNames = getKeys(query);
+      const paramNames = objKeys(query);
 
       if (hasLength(paramNames)) {
         this._query = query;

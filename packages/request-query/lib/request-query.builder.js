@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+const util_1 = require("@nestjsx/util");
 const request_query_validator_1 = require("./request-query.validator");
-const util_1 = require("./util");
 class RequestQueryBuilder {
     constructor() {
         this._fields = [];

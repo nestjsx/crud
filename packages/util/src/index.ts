@@ -1,1 +1,1 @@
-export * from './require';
+export * from './checks.util';

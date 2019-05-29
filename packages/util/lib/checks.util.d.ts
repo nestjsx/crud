@@ -1,0 +1,13 @@
+export declare const isUndefined: (val: any) => boolean;
+export declare const isNull: (val: any) => boolean;
+export declare const isNil: (val: any) => boolean;
+export declare const isString: (val: any) => boolean;
+export declare const hasLength: (val: any) => boolean;
+export declare const isStringFull: (val: any) => boolean;
+export declare const isArrayFull: (val: any) => boolean;
+export declare const isArrayStrings: (val: any) => boolean;
+export declare const objKeys: (val: any) => string[];
+export declare const isObject: (val: any) => boolean;
+export declare const isObjectFull: (val: any) => boolean;
+export declare const isNumber: (val: any) => boolean;
+export declare const isEqual: (val: any, eq: any) => boolean;

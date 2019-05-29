@@ -16,6 +16,7 @@ module.exports = {
     'packages/**/*.ts',
     '!packages/**/*.d.ts',
     '!packages/**/index.ts',
+    '!packages/**/*.interface.ts',
     '!**/node_modules/**',
     '!**/__stubs__/**',
   ],

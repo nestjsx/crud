@@ -16,9 +16,9 @@
     "baseUrl": "./packages",
     "paths": {
       "@nestjsx/crud": ["crud/src/*"],
+      "@nestjsx/crud-typeorm": ["crud-typeorm/src/*"],
       "@nestjsx/request-query": ["request-query/src/*"],
       "@nestjsx/restful": ["restful/src/*"],
-      "@nestjsx/typeorm": ["typeorm/src/*"],
       "@nestjsx/util": ["util/src/*"]
     }
   }

@@ -1,1 +1,1 @@
-export * from './request-query.,types';
+export * from './request-query.types';

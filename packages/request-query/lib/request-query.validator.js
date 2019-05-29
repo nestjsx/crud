@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+const util_1 = require("@nestjsx/util");
 const exceptions_1 = require("./exceptions");
-const util_1 = require("./util");
 exports.comparisonOperatorsList = [
     'eq',
     'ne',

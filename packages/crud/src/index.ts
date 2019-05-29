@@ -1,1 +1,3 @@
-export default {};
+import 'reflect-metadata';
+
+export * from './decorators';

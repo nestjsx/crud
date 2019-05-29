@@ -1,2 +1,2 @@
-declare const _default: {};
-export default _default;
+import 'reflect-metadata';
+export * from './decorators';
