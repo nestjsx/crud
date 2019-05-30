@@ -27,17 +27,6 @@ export class RequestQueryBuilder {
     },
   };
 
-  static setOptions(options: RequestQueryBuilderOptions) {
-    RequestQueryBuilder._options = {
-      ...RequestQueryBuilder._options,
-      ...options,
-      paramNamesMap: {
-        ...RequestQueryBuilder._options.paramNamesMap,
-        ...(options.paramNamesMap ? options.paramNamesMap : {}),
-      },
-    };
-  }
-
   private _fields: QueryFields = [];
   private _filter: QueryFilter[] = [];
   private _or: QueryFilter[] = [];
@@ -49,6 +38,21 @@ export class RequestQueryBuilder {
   private _cache: number;
 
   public queryString: string;
+
+  static setOptions(options: RequestQueryBuilderOptions) {
+    RequestQueryBuilder._options = {
+      ...RequestQueryBuilder._options,
+      ...options,
+      paramNamesMap: {
+        ...RequestQueryBuilder._options.paramNamesMap,
+        ...(options.paramNamesMap ? options.paramNamesMap : {}),
+      },
+    };
+  }
+
+  static create(): RequestQueryBuilder {
+    return new RequestQueryBuilder();
+  }
 
   get options(): RequestQueryBuilderOptions {
     return RequestQueryBuilder._options;

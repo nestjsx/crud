@@ -6,9 +6,11 @@ import {
   validateJoin,
   validateSort,
   validateNumeric,
+  validateParamOption,
+  validateUUID,
 } from './request-query.validator';
 import { RequestQueryException } from './exceptions';
-import { RequestQueryBuilderOptions } from './interfaces';
+import { RequestQueryBuilderOptions, ParamsOptions } from './interfaces';
 import {
   QueryFields,
   QueryFilter,
@@ -18,10 +20,13 @@ import {
 } from './types';
 
 export class RequestQueryParser {
+  private _params: any;
   private _query: any;
   private _paramNames: string[];
+  private _paramsOptions: ParamsOptions;
 
   public fields: QueryFields = [];
+  public paramsFilter: QueryFilter[] = [];
   public filter: QueryFilter[] = [];
   public or: QueryFilter[] = [];
   public join: QueryJoin[] = [];
@@ -31,11 +36,15 @@ export class RequestQueryParser {
   public page: number;
   public cache: number;
 
+  static create(): RequestQueryParser {
+    return new RequestQueryParser();
+  }
+
   get options(): RequestQueryBuilderOptions {
     return (RequestQueryBuilder as any)._options;
   }
 
-  parse(query: any): this {
+  parseQuery(query: any): this {
     if (isObject(query)) {
       const paramNames = objKeys(query);
 
@@ -43,21 +52,45 @@ export class RequestQueryParser {
         this._query = query;
         this._paramNames = paramNames;
 
-        this.fields = this.parseParam('fields', this.fieldsParser.bind(this))[0] || [];
-        this.filter = this.parseParam(
+        this.fields =
+          this.parseQueryParam('fields', this.fieldsParser.bind(this))[0] || [];
+        this.filter = this.parseQueryParam(
           'filter',
           this.conditionParser.bind(this, 'filter'),
         );
-        this.or = this.parseParam('or', this.conditionParser.bind(this, 'or'));
-        this.join = this.parseParam('join', this.joinParser.bind(this));
-        this.sort = this.parseParam('sort', this.sortParser.bind(this));
-        this.limit = this.parseParam('limit', this.numericParser.bind(this, 'limit'))[0];
-        this.offset = this.parseParam(
+        this.or = this.parseQueryParam('or', this.conditionParser.bind(this, 'or'));
+        this.join = this.parseQueryParam('join', this.joinParser.bind(this));
+        this.sort = this.parseQueryParam('sort', this.sortParser.bind(this));
+        this.limit = this.parseQueryParam(
+          'limit',
+          this.numericParser.bind(this, 'limit'),
+        )[0];
+        this.offset = this.parseQueryParam(
           'offset',
           this.numericParser.bind(this, 'offset'),
         )[0];
-        this.page = this.parseParam('page', this.numericParser.bind(this, 'page'))[0];
-        this.cache = this.parseParam('cache', this.numericParser.bind(this, 'cache'))[0];
+        this.page = this.parseQueryParam(
+          'page',
+          this.numericParser.bind(this, 'page'),
+        )[0];
+        this.cache = this.parseQueryParam(
+          'cache',
+          this.numericParser.bind(this, 'cache'),
+        )[0];
+      }
+    }
+
+    return this;
+  }
+
+  parseParams(params: any, options: ParamsOptions): this {
+    if (isObject(params)) {
+      const paramNames = objKeys(params);
+
+      if (hasLength(paramNames)) {
+        this._params = params;
+        this._paramsOptions = options;
+        this.paramsFilter = paramNames.map((name) => this.paramParser(name));
       }
     }
 
@@ -84,7 +117,7 @@ export class RequestQueryParser {
     return [];
   }
 
-  private parseParam(
+  private parseQueryParam(
     type: keyof RequestQueryBuilderOptions['paramNamesMap'],
     parser: Function,
   ) {
@@ -181,5 +214,24 @@ export class RequestQueryParser {
     validateNumeric(val, num);
 
     return val;
+  }
+
+  private paramParser(name: string): QueryFilter {
+    validateParamOption(this._paramsOptions, name);
+    const option = this._paramsOptions[name];
+    const value = this.parseValue(this._params[name]);
+
+    switch (option.type) {
+      case 'number':
+        validateNumeric(value, `param ${name}`);
+        break;
+      case 'uuid':
+        validateUUID(value, name);
+        break;
+      default:
+        break;
+    }
+
+    return { field: option.field, operator: 'eq', value };
   }
 }

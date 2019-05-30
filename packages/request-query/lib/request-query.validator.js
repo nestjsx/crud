@@ -66,4 +66,20 @@ function validateNumeric(val, num) {
     }
 }
 exports.validateNumeric = validateNumeric;
+function validateParamOption(option, name) {
+    if (!util_1.isObject(option)) {
+        throw new exceptions_1.RequestQueryException(`Invalid param ${name}. Invalid crud options`);
+    }
+    if (util_1.isNil(option.field) || util_1.isNil(option.type)) {
+        throw new exceptions_1.RequestQueryException(`Invalid param option in Crud`);
+    }
+}
+exports.validateParamOption = validateParamOption;
+function validateUUID(str, name) {
+    const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!uuid.test(str)) {
+        throw new exceptions_1.RequestQueryException(`Invalid param ${name}. UUID string expected`);
+    }
+}
+exports.validateUUID = validateUUID;
 //# sourceMappingURL=request-query.validator.js.map

@@ -1,9 +1,12 @@
-import { RequestQueryBuilderOptions } from './interfaces';
+import { RequestQueryBuilderOptions, ParamsOptions } from './interfaces';
 import { QueryFields, QueryFilter, QueryJoin, QuerySort } from './types';
 export declare class RequestQueryParser {
+    private _params;
     private _query;
     private _paramNames;
+    private _paramsOptions;
     fields: QueryFields;
+    paramFilter: QueryFilter[];
     filter: QueryFilter[];
     or: QueryFilter[];
     join: QueryJoin[];
@@ -12,11 +15,13 @@ export declare class RequestQueryParser {
     offset: number;
     page: number;
     cache: number;
+    static create(): RequestQueryParser;
     readonly options: RequestQueryBuilderOptions;
-    parse(query: any): this;
+    parseQuery(query: any): this;
+    parseParams(params: any, options: ParamsOptions): this;
     private getParamNames;
     private getParamValues;
-    private parseParam;
+    private parseQueryParam;
     private parseValue;
     private parseValues;
     private fieldsParser;
@@ -24,4 +29,5 @@ export declare class RequestQueryParser {
     private joinParser;
     private sortParser;
     private numericParser;
+    private paramParser;
 }

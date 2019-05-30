@@ -2,7 +2,6 @@ import { RequestQueryBuilderOptions } from './interfaces';
 import { QueryFields, QueryFilter, QueryJoin, QuerySort } from './types';
 export declare class RequestQueryBuilder {
     private static _options;
-    static setOptions(options: RequestQueryBuilderOptions): void;
     private _fields;
     private _filter;
     private _or;
@@ -13,6 +12,8 @@ export declare class RequestQueryBuilder {
     private _page;
     private _cache;
     queryString: string;
+    static setOptions(options: RequestQueryBuilderOptions): void;
+    static create(): RequestQueryBuilder;
     readonly options: RequestQueryBuilderOptions;
     query(): string;
     select(fields: QueryFields): this;

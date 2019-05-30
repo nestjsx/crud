@@ -5,9 +5,11 @@ import {
   isObject,
   isEqual,
   isNumber,
+  isNil,
 } from '@nestjsx/util';
 
 import { RequestQueryException } from './exceptions';
+import { ParamsOptions, ParamOption } from './interfaces';
 import {
   QueryFields,
   QueryFilter,
@@ -82,9 +84,26 @@ export function validateSort(sort: QuerySort): void {
 
 export function validateNumeric(
   val: number,
-  num: 'limit' | 'offset' | 'page' | 'cache',
+  num: 'limit' | 'offset' | 'page' | 'cache' | string,
 ): void {
   if (!isNumber(val)) {
     throw new RequestQueryException(`Invalid ${num}. Number expected`);
+  }
+}
+
+export function validateParamOption(options: ParamsOptions, name: string) {
+  if (!isObject(options)) {
+    throw new RequestQueryException(`Invalid param ${name}. Invalid crud options`);
+  }
+  const option = options[name];
+  if (!isObject(option) || isNil(option.field) || isNil(option.type)) {
+    throw new RequestQueryException(`Invalid param option in Crud`);
+  }
+}
+
+export function validateUUID(str: string, name: string) {
+  const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  if (!uuid.test(str)) {
+    throw new RequestQueryException(`Invalid param ${name}. UUID string expected`);
   }
 }

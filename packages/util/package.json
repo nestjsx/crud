@@ -42,7 +42,5 @@
     "prebuild": "npx rimraf ./lib",
     "build": "tsc -b"
   },
-  "dependencies": {
-    "@zmotivat0r/o0": "^1.0.2"
-  }
+  "dependencies": {}
 }

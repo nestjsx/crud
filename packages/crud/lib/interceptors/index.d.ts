@@ -1,2 +1,1 @@
-export * from './request-query.interceptor';
-export * from './request-params.interceptor';
+export * from './crud-request.interceptor';

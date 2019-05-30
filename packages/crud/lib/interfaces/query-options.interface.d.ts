@@ -11,10 +11,11 @@ export interface QueryOptions {
     cache?: number | false;
 }
 export interface JoinOptions {
-    [key: string]: {
-        allow?: string[];
-        exclude?: string[];
-        persist?: string[];
-        eager: boolean;
-    };
+    [key: string]: JoinOption;
+}
+export interface JoinOption {
+    allow?: QueryFields;
+    exclude?: QueryFields;
+    persist?: QueryFields;
+    eager: boolean;
 }

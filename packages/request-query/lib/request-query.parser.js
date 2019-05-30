@@ -7,29 +7,45 @@ const exceptions_1 = require("./exceptions");
 class RequestQueryParser {
     constructor() {
         this.fields = [];
+        this.paramFilter = [];
         this.filter = [];
         this.or = [];
         this.join = [];
         this.sort = [];
     }
+    static create() {
+        return new RequestQueryParser();
+    }
     get options() {
         return request_query_builder_1.RequestQueryBuilder._options;
     }
-    parse(query) {
+    parseQuery(query) {
         if (util_1.isObject(query)) {
-            const paramNames = util_1.getKeys(query);
+            const paramNames = util_1.objKeys(query);
             if (util_1.hasLength(paramNames)) {
                 this._query = query;
                 this._paramNames = paramNames;
-                this.fields = this.parseParam('fields', this.fieldsParser.bind(this))[0] || [];
-                this.filter = this.parseParam('filter', this.conditionParser.bind(this, 'filter'));
-                this.or = this.parseParam('or', this.conditionParser.bind(this, 'or'));
-                this.join = this.parseParam('join', this.joinParser.bind(this));
-                this.sort = this.parseParam('sort', this.sortParser.bind(this));
-                this.limit = this.parseParam('limit', this.numericParser.bind(this, 'limit'))[0];
-                this.offset = this.parseParam('offset', this.numericParser.bind(this, 'offset'))[0];
-                this.page = this.parseParam('page', this.numericParser.bind(this, 'page'))[0];
-                this.cache = this.parseParam('cache', this.numericParser.bind(this, 'cache'))[0];
+                this.fields =
+                    this.parseQueryParam('fields', this.fieldsParser.bind(this))[0] || [];
+                this.filter = this.parseQueryParam('filter', this.conditionParser.bind(this, 'filter'));
+                this.or = this.parseQueryParam('or', this.conditionParser.bind(this, 'or'));
+                this.join = this.parseQueryParam('join', this.joinParser.bind(this));
+                this.sort = this.parseQueryParam('sort', this.sortParser.bind(this));
+                this.limit = this.parseQueryParam('limit', this.numericParser.bind(this, 'limit'))[0];
+                this.offset = this.parseQueryParam('offset', this.numericParser.bind(this, 'offset'))[0];
+                this.page = this.parseQueryParam('page', this.numericParser.bind(this, 'page'))[0];
+                this.cache = this.parseQueryParam('cache', this.numericParser.bind(this, 'cache'))[0];
+            }
+        }
+        return this;
+    }
+    parseParams(params, options) {
+        if (util_1.isObject(params)) {
+            const paramNames = util_1.objKeys(params);
+            if (util_1.hasLength(paramNames)) {
+                this._params = params;
+                this._paramsOptions = options;
+                this.paramFilter = paramNames.map((name) => this.paramParser(name));
             }
         }
         return this;
@@ -46,7 +62,7 @@ class RequestQueryParser {
         }
         return [];
     }
-    parseParam(type, parser) {
+    parseQueryParam(type, parser) {
         const param = this.getParamNames(type);
         if (util_1.isArrayFull(param)) {
             return param.reduce((a, name) => [...a, ...this.getParamValues(this._query[name], parser)], []);
@@ -116,6 +132,22 @@ class RequestQueryParser {
         const val = this.parseValue(data);
         request_query_validator_1.validateNumeric(val, num);
         return val;
+    }
+    paramParser(name) {
+        const option = this._paramsOptions[name];
+        request_query_validator_1.validateParamOption(option, name);
+        const value = this.parseValue(this._params[name]);
+        switch (option.type) {
+            case 'number':
+                request_query_validator_1.validateNumeric(value, `param ${name}`);
+                break;
+            case 'uuid':
+                request_query_validator_1.validateUUID(value, name);
+                break;
+            default:
+                break;
+        }
+        return { field: option.field, operator: 'eq', value };
     }
 }
 exports.RequestQueryParser = RequestQueryParser;

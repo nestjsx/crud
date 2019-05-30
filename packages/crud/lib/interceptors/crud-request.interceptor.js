@@ -7,13 +7,21 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const common_1 = require("@nestjs/common");
-let RequestParamsInterceptor = class RequestParamsInterceptor {
+const request_query_parser_1 = require("@nestjsx/request-query/lib/request-query.parser");
+const reflection_helper_1 = require("../crud/reflection.helper");
+let CrudRequestInterceptor = class CrudRequestInterceptor {
     intercept(context, next) {
+        const req = context.switchToHttp().getRequest();
+        const controller = context.getClass();
+        const crudOptions = reflection_helper_1.R.getCrudOptions(controller);
+        const query = request_query_parser_1.RequestQueryParser.create()
+            .parseParams(req.params, crudOptions.params)
+            .parseQuery(req.query);
         return next.handle();
     }
 };
-RequestParamsInterceptor = __decorate([
+CrudRequestInterceptor = __decorate([
     common_1.Injectable()
-], RequestParamsInterceptor);
-exports.RequestParamsInterceptor = RequestParamsInterceptor;
-//# sourceMappingURL=request-params.interceptor.js.map
+], CrudRequestInterceptor);
+exports.CrudRequestInterceptor = CrudRequestInterceptor;
+//# sourceMappingURL=crud-request.interceptor.js.map

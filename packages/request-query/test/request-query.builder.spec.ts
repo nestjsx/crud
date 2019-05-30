@@ -1,6 +1,12 @@
 import { RequestQueryBuilder } from '../src/request-query.builder';
 import { RequestQueryException } from '../src/exceptions/request-query.exception';
-import { QueryFields, QueryFilter, QueryJoin, QuerySort } from '../src/types';
+import {
+  QueryFields,
+  QueryFilter,
+  QueryJoin,
+  QuerySort,
+  CondOperator,
+} from '../src/types';
 
 const defaultOptions = { ...(RequestQueryBuilder as any)._options };
 
@@ -9,7 +15,7 @@ describe('#request-query', () => {
     let qb: RequestQueryBuilder;
 
     beforeEach(() => {
-      qb = new RequestQueryBuilder();
+      qb = RequestQueryBuilder.create();
     });
 
     afterEach(() => {
@@ -64,7 +70,7 @@ describe('#request-query', () => {
         ).toThrowError(RequestQueryException);
       });
       it('should set _filter', () => {
-        const expected: QueryFilter = { field: 'foo', operator: 'eq' };
+        const expected: QueryFilter = { field: 'foo', operator: CondOperator.EQUALS };
         qb.setFilter(expected);
         expect((qb as any)._filter[0]).toMatchObject(expected);
       });
