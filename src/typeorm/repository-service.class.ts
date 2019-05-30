@@ -195,7 +195,7 @@ export class RepositoryService<T> extends RestfulService<T> {
    * @param options
    * @param many
    */
-  private async buildQuery(
+  protected async buildQuery(
     query: RequestParamsParsed,
     options: RestfulOptions = {},
     many = true,
