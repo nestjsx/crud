@@ -7,9 +7,15 @@ import {
   PATH_METADATA,
   ROUTE_ARGS_METADATA,
 } from '@nestjs/common/constants';
+import { isArrayFull } from '@nestjsx/util';
 
 import { BaseRoute, CrudOptions } from '../interfaces';
-import { CRUD_OPTIONS_METADATA } from '../constants';
+import {
+  CRUD_OPTIONS_METADATA,
+  ACTION_NAME_METADATA,
+  PARSED_CRUD_REQUEST_KEY,
+} from '../constants';
+import { CrudActions } from '../enums';
 
 export class R {
   static set(
@@ -23,6 +29,26 @@ export class R {
     } else {
       Reflect.defineMetadata(metadataKey, metadataValue, target);
     }
+  }
+
+  static setCustomRouteDecorator(
+    paramtype: string,
+    index: number,
+    pipes: any[] = [],
+    data = undefined,
+  ): any {
+    return {
+      [`${paramtype}${CUSTOM_ROUTE_AGRS_METADATA}:${index}`]: {
+        index,
+        factory: (_, req) => req[paramtype],
+        data,
+        pipes,
+      },
+    };
+  }
+
+  static setParsedRequest(index: number) {
+    return R.setCustomRouteDecorator(PARSED_CRUD_REQUEST_KEY, index);
   }
 
   static get<T extends any>(
@@ -52,7 +78,15 @@ export class R {
     R.set(ROUTE_ARGS_METADATA, metadata, target, name);
   }
 
+  static setAction(action: CrudActions, func: Function) {
+    R.set(ACTION_NAME_METADATA, action, func);
+  }
+
   static getCrudOptions(target: any): CrudOptions {
     return R.get(CRUD_OPTIONS_METADATA, target);
+  }
+
+  static getAction(func: Function): CrudActions {
+    return R.get(ACTION_NAME_METADATA, func);
   }
 }

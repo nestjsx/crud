@@ -5,6 +5,8 @@ export declare class CrudRoutesFactory {
     constructor(target: any, options: CrudOptions);
     static create(target: any, options: CrudOptions): CrudRoutesFactory;
     private readonly targetProto;
+    private readonly modelName;
+    private readonly actionsMap;
     private create;
     private setOptionsDefaults;
     private getRoutesSchema;
@@ -19,4 +21,9 @@ export declare class CrudRoutesFactory {
     private overrideRoutes;
     private enableRoutes;
     private getPrimaryParam;
+    private setArgs;
+    private setInterceptors;
+    private setAction;
+    private setSwaggerOperation;
+    private setSwaggerParams;
 }

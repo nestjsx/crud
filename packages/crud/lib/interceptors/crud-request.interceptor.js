@@ -15,11 +15,12 @@ let CrudRequestInterceptor = class CrudRequestInterceptor {
         const req = context.switchToHttp().getRequest();
         const controller = context.getClass();
         const options = reflection_helper_1.R.getCrudOptions(controller);
+        const { query, routes, params } = options;
         const parsed = request_query_parser_1.RequestQueryParser.create()
             .parseParams(req.params, options.params)
             .parseQuery(req.query)
             .getParsed();
-        req[constants_1.PARSED_CRUD_REQUEST_KEY] = Object.assign({}, parsed, { options });
+        req[constants_1.PARSED_CRUD_REQUEST_KEY] = Object.assign({}, parsed, { options: { query, routes, params } });
         return next.handle();
     }
 };

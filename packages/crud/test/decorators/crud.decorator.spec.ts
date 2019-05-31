@@ -9,6 +9,10 @@ import { Crud } from '../../src/decorators/crud.decorator';
 class TestService {}
 
 @Crud({
+  model: {
+    type: {},
+    service: 'typeorm',
+  },
   params: {
     id: {
       field: 'id',

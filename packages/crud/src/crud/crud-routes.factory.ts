@@ -1,17 +1,12 @@
 import { RequestMethod } from '@nestjs/common';
-import {
-  hasLength,
-  isArrayFull,
-  isObjectFull,
-  getOwnPropNames,
-  objKeys,
-} from '@nestjsx/util';
+import { hasLength, isArrayFull, isObjectFull, objKeys } from '@nestjsx/util';
 
 import { R } from './reflection.helper';
-import { N } from './nest.helper';
+import { Swagger } from './swagger.helper';
 import { CrudRequestInterceptor } from '../interceptors';
-import { BaseRoute, CrudOptions, CrudRequest } from '../interfaces';
+import { BaseRoute, CrudOptions, CrudRequest, BaseRouteOptions } from '../interfaces';
 import { BaseRouteName } from '../types';
+import { CrudActions } from '../enums';
 
 export class CrudRoutesFactory {
   constructor(private target: any, private options: CrudOptions) {
@@ -26,6 +21,21 @@ export class CrudRoutesFactory {
     return this.target.prototype;
   }
 
+  private get modelName(): string {
+    return this.options.model.type.name;
+  }
+
+  private get actionsMap(): { [key in BaseRouteName]: CrudActions } {
+    return {
+      getManyBase: CrudActions.ReadAll,
+      getOneBase: CrudActions.ReadOne,
+      createManyBase: CrudActions.CreateMany,
+      createOneBase: CrudActions.CreateOne,
+      updateOneBase: CrudActions.UpdateOne,
+      deleteOneBase: CrudActions.DeleteOne,
+    };
+  }
+
   private create() {
     const routesSchema = this.getRoutesSchema();
     this.setOptionsDefaults();
@@ -35,6 +45,12 @@ export class CrudRoutesFactory {
   }
 
   private setOptionsDefaults() {
+    if (!isObjectFull(this.options.model)) {
+      this.options.model = {
+        type: {},
+        service: 'typeorm',
+      };
+    }
     if (!isObjectFull(this.options.params)) {
       this.options.params = {
         id: {
@@ -124,56 +140,38 @@ export class CrudRoutesFactory {
     ];
   }
 
-  private getManyBase() {
-    const name: BaseRouteName = 'getManyBase';
-
+  private getManyBase(name: BaseRouteName) {
     this.targetProto[name] = function getManyBase(parsedRequest: CrudRequest) {
       return [];
     };
-
-    R.setRouteArgs({ ...N.setParsedRequest(0) }, this.target, name);
-    R.setInterceptors([CrudRequestInterceptor], this.targetProto[name]);
   }
 
-  private getOneBase() {
-    const name: BaseRouteName = 'getOneBase';
-
+  private getOneBase(name: BaseRouteName) {
     this.targetProto[name] = function getOneBase(parsedRequest: CrudRequest) {
-      return parsedRequest;
-    };
-
-    R.setRouteArgs({ ...N.setParsedRequest(0) }, this.target, name);
-    R.setInterceptors([CrudRequestInterceptor], this.targetProto[name]);
-  }
-
-  private createOneBase() {
-    const name: BaseRouteName = 'createOneBase';
-
-    this.targetProto[name] = function createOneBase() {
       return [];
     };
   }
 
-  private createManyBase() {
-    const name: BaseRouteName = 'createManyBase';
-
-    this.targetProto[name] = function createManyBase() {
+  private createOneBase(name: BaseRouteName) {
+    this.targetProto[name] = function createOneBase(parsedRequest: CrudRequest) {
       return [];
     };
   }
 
-  private updateOneBase() {
-    const name: BaseRouteName = 'updateOneBase';
-
-    this.targetProto[name] = function updateOneBase() {
+  private createManyBase(name: BaseRouteName) {
+    this.targetProto[name] = function createManyBase(parsedRequest: CrudRequest) {
       return [];
     };
   }
 
-  private deleteOneBase() {
-    const name: BaseRouteName = 'deleteOneBase';
+  private updateOneBase(name: BaseRouteName) {
+    this.targetProto[name] = function updateOneBase(parsedRequest: CrudRequest) {
+      return [];
+    };
+  }
 
-    this.targetProto[name] = function deleteOneBase() {
+  private deleteOneBase(name: BaseRouteName) {
+    this.targetProto[name] = function deleteOneBase(parsedRequest: CrudRequest) {
       return [];
     };
   }
@@ -198,8 +196,17 @@ export class CrudRoutesFactory {
 
     routesSchema.forEach((route) => {
       if (this.canCreateRoute(route.name)) {
-        this[route.name]();
+        const { name } = route;
+
+        // create base method
+        this[name](name);
         route.enable = true;
+        // set metadata
+        this.setArgs(name);
+        this.setInterceptors(name);
+        this.setAction(name);
+        this.setSwaggerOperation(name);
+        this.setSwaggerParams(name);
       }
 
       if (!hasLength(route.path)) {
@@ -224,5 +231,31 @@ export class CrudRoutesFactory {
     return objKeys(this.options.params).find(
       (param) => this.options.params[param].primary,
     );
+  }
+
+  private setArgs(name: BaseRouteName, rest: any = {}) {
+    R.setRouteArgs({ ...R.setParsedRequest(0), ...rest }, this.target, name);
+  }
+
+  private setInterceptors(name: BaseRouteName) {
+    const interceptors = this.options.routes[name].interceptors;
+    R.setInterceptors(
+      [CrudRequestInterceptor, ...(isArrayFull(interceptors) ? interceptors : [])],
+      this.targetProto[name],
+    );
+  }
+
+  private setAction(name: BaseRouteName) {
+    R.setAction(this.actionsMap[name], this.targetProto[name]);
+  }
+
+  private setSwaggerOperation(name: BaseRouteName) {
+    Swagger.setOperation(name, this.modelName, this.targetProto[name]);
+  }
+
+  private setSwaggerParams(name: BaseRouteName) {
+    const metadata = Swagger.getParams(this.targetProto[name]);
+    const pathParamsMeta = Swagger.createPathParamMeta(this.options.params);
+    Swagger.setParams([...metadata, pathParamsMeta], this.targetProto[name]);
   }
 }
