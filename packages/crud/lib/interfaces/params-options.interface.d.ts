@@ -1,4 +1,4 @@
-import { ParamOptionType } from '@nestjsx/request-query/lib/types/request-param.types';
+import { ParamOptionType } from '@nestjsx/crud-request/lib/types/request-param.types';
 export interface ParamsOptions {
     [key: string]: ParamOption;
 }

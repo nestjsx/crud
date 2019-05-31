@@ -6,7 +6,6 @@ export declare class CrudRoutesFactory {
     static create(target: any, options: CrudOptions): CrudRoutesFactory;
     private readonly targetProto;
     private create;
-    private onModuleInit;
     private setOptionsDefaults;
     private getRoutesSchema;
     private getManyBase;

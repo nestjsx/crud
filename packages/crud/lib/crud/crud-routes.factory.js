@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const common_1 = require("@nestjs/common");
 const util_1 = require("@nestjsx/util");
 const reflection_helper_1 = require("./reflection.helper");
+const nest_helper_1 = require("./nest.helper");
 const interceptors_1 = require("../interceptors");
 class CrudRoutesFactory {
     constructor(target, options) {
@@ -17,18 +18,11 @@ class CrudRoutesFactory {
         return this.target.prototype;
     }
     create() {
-        this.setOptionsDefaults();
-        this.onModuleInit();
         const routesSchema = this.getRoutesSchema();
+        this.setOptionsDefaults();
         this.createRoutes(routesSchema);
         this.overrideRoutes(routesSchema);
         this.enableRoutes(routesSchema);
-    }
-    onModuleInit() {
-        const options = this.options;
-        this.targetProto['onModuleInit'] = function onModuleInit() {
-            this.service.options = options;
-        };
     }
     setOptionsDefaults() {
         if (!util_1.isObjectFull(this.options.params)) {
@@ -119,16 +113,18 @@ class CrudRoutesFactory {
     }
     getManyBase() {
         const name = 'getManyBase';
-        this.targetProto[name] = function getManyBase() {
+        this.targetProto[name] = function getManyBase(parsedRequest) {
             return [];
         };
+        reflection_helper_1.R.setRouteArgs(Object.assign({}, nest_helper_1.N.setParsedRequest(0)), this.target, name);
         reflection_helper_1.R.setInterceptors([interceptors_1.CrudRequestInterceptor], this.targetProto[name]);
     }
     getOneBase() {
         const name = 'getOneBase';
-        this.targetProto[name] = function getOneBase() {
-            return {};
+        this.targetProto[name] = function getOneBase(parsedRequest) {
+            return parsedRequest;
         };
+        reflection_helper_1.R.setRouteArgs(Object.assign({}, nest_helper_1.N.setParsedRequest(0)), this.target, name);
         reflection_helper_1.R.setInterceptors([interceptors_1.CrudRequestInterceptor], this.targetProto[name]);
     }
     createOneBase() {

@@ -66,11 +66,12 @@ function validateNumeric(val, num) {
     }
 }
 exports.validateNumeric = validateNumeric;
-function validateParamOption(option, name) {
-    if (!util_1.isObject(option)) {
+function validateParamOption(options, name) {
+    if (!util_1.isObject(options)) {
         throw new exceptions_1.RequestQueryException(`Invalid param ${name}. Invalid crud options`);
     }
-    if (util_1.isNil(option.field) || util_1.isNil(option.type)) {
+    const option = options[name];
+    if (!util_1.isObject(option) || util_1.isNil(option.field) || util_1.isNil(option.type)) {
         throw new exceptions_1.RequestQueryException(`Invalid param option in Crud`);
     }
 }

@@ -7,7 +7,7 @@ const exceptions_1 = require("./exceptions");
 class RequestQueryParser {
     constructor() {
         this.fields = [];
-        this.paramFilter = [];
+        this.paramsFilter = [];
         this.filter = [];
         this.or = [];
         this.join = [];
@@ -16,8 +16,22 @@ class RequestQueryParser {
     static create() {
         return new RequestQueryParser();
     }
-    get options() {
+    get _options() {
         return request_query_builder_1.RequestQueryBuilder._options;
+    }
+    getParsed() {
+        return {
+            fields: this.fields,
+            paramsFilter: this.paramsFilter,
+            filter: this.filter,
+            or: this.or,
+            join: this.join,
+            sort: this.sort,
+            limit: this.limit,
+            offset: this.offset,
+            page: this.page,
+            cache: this.cache,
+        };
     }
     parseQuery(query) {
         if (util_1.isObject(query)) {
@@ -45,13 +59,13 @@ class RequestQueryParser {
             if (util_1.hasLength(paramNames)) {
                 this._params = params;
                 this._paramsOptions = options;
-                this.paramFilter = paramNames.map((name) => this.paramParser(name));
+                this.paramsFilter = paramNames.map((name) => this.paramParser(name));
             }
         }
         return this;
     }
     getParamNames(type) {
-        return this._paramNames.filter((p) => this.options.paramNamesMap[type].some((m) => m === p));
+        return this._paramNames.filter((p) => this._options.paramNamesMap[type].some((m) => m === p));
     }
     getParamValues(value, parser) {
         if (util_1.isStringFull(value)) {
@@ -90,17 +104,17 @@ class RequestQueryParser {
         }
     }
     fieldsParser(data) {
-        return data.split(this.options.delimStr);
+        return data.split(this._options.delimStr);
     }
     conditionParser(cond, data) {
         const isArrayValue = ['in', 'notin', 'between'];
         const isEmptyValue = ['isnull', 'notnull'];
-        const param = data.split(this.options.delim);
+        const param = data.split(this._options.delim);
         const field = param[0];
         const operator = param[1];
         let value = param[2] || '';
         if (isArrayValue.some((name) => name === operator)) {
-            value = value.split(this.options.delimStr);
+            value = value.split(this._options.delimStr);
         }
         value = this.parseValues(value);
         if (!util_1.hasLength(value) && !isEmptyValue.some((name) => name === operator)) {
@@ -111,16 +125,16 @@ class RequestQueryParser {
         return condition;
     }
     joinParser(data) {
-        const param = data.split(this.options.delim);
+        const param = data.split(this._options.delim);
         const join = {
             field: param[0],
-            select: util_1.isStringFull(param[1]) ? param[1].split(this.options.delimStr) : undefined,
+            select: util_1.isStringFull(param[1]) ? param[1].split(this._options.delimStr) : undefined,
         };
         request_query_validator_1.validateJoin(join);
         return join;
     }
     sortParser(data) {
-        const param = data.split(this.options.delimStr);
+        const param = data.split(this._options.delimStr);
         const sort = {
             field: param[0],
             order: param[1],
@@ -134,8 +148,8 @@ class RequestQueryParser {
         return val;
     }
     paramParser(name) {
+        request_query_validator_1.validateParamOption(this._paramsOptions, name);
         const option = this._paramsOptions[name];
-        request_query_validator_1.validateParamOption(option, name);
         const value = this.parseValue(this._params[name]);
         switch (option.type) {
             case 'number':

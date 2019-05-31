@@ -8,8 +8,9 @@ import {
 } from '@nestjsx/util';
 
 import { R } from './reflection.helper';
+import { N } from './nest.helper';
 import { CrudRequestInterceptor } from '../interceptors';
-import { BaseRoute, CrudOptions, ParamOption } from '../interfaces';
+import { BaseRoute, CrudOptions, CrudRequest } from '../interfaces';
 import { BaseRouteName } from '../types';
 
 export class CrudRoutesFactory {
@@ -26,22 +27,11 @@ export class CrudRoutesFactory {
   }
 
   private create() {
-    this.setOptionsDefaults();
-    this.onModuleInit();
-
     const routesSchema = this.getRoutesSchema();
-
+    this.setOptionsDefaults();
     this.createRoutes(routesSchema);
     this.overrideRoutes(routesSchema);
     this.enableRoutes(routesSchema);
-  }
-
-  private onModuleInit() {
-    const options = this.options;
-
-    this.targetProto['onModuleInit'] = function onModuleInit() {
-      this.service.options = options;
-    };
   }
 
   private setOptionsDefaults() {
@@ -137,20 +127,22 @@ export class CrudRoutesFactory {
   private getManyBase() {
     const name: BaseRouteName = 'getManyBase';
 
-    this.targetProto[name] = function getManyBase() {
+    this.targetProto[name] = function getManyBase(parsedRequest: CrudRequest) {
       return [];
     };
 
+    R.setRouteArgs({ ...N.setParsedRequest(0) }, this.target, name);
     R.setInterceptors([CrudRequestInterceptor], this.targetProto[name]);
   }
 
   private getOneBase() {
     const name: BaseRouteName = 'getOneBase';
 
-    this.targetProto[name] = function getOneBase() {
-      return {};
+    this.targetProto[name] = function getOneBase(parsedRequest: CrudRequest) {
+      return parsedRequest;
     };
 
+    R.setRouteArgs({ ...N.setParsedRequest(0) }, this.target, name);
     R.setInterceptors([CrudRequestInterceptor], this.targetProto[name]);
   }
 

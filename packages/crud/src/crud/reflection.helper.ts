@@ -12,12 +12,27 @@ import { BaseRoute, CrudOptions } from '../interfaces';
 import { CRUD_OPTIONS_METADATA } from '../constants';
 
 export class R {
-  static set(metadataKey: any, metadataValue: any, target: Object) {
-    Reflect.defineMetadata(metadataKey, metadataValue, target);
+  static set(
+    metadataKey: any,
+    metadataValue: any,
+    target: Object,
+    propertyKey: string | symbol = undefined,
+  ) {
+    if (propertyKey) {
+      Reflect.defineMetadata(metadataKey, metadataValue, target, propertyKey);
+    } else {
+      Reflect.defineMetadata(metadataKey, metadataValue, target);
+    }
   }
 
-  static get<T extends any>(metadataKey: any, target: Object): T {
-    return Reflect.getMetadata(metadataKey, target);
+  static get<T extends any>(
+    metadataKey: any,
+    target: Object,
+    propertyKey: string | symbol = undefined,
+  ): T {
+    return propertyKey
+      ? Reflect.getMetadata(metadataKey, target, propertyKey)
+      : Reflect.getMetadata(metadataKey, target);
   }
 
   static setCrudOptions(options: CrudOptions, target: any) {
@@ -31,6 +46,10 @@ export class R {
 
   static setInterceptors(interceptors: any[], func: Function) {
     R.set(INTERCEPTORS_METADATA, interceptors, func);
+  }
+
+  static setRouteArgs(metadata: any, target: any, name: string) {
+    R.set(ROUTE_ARGS_METADATA, metadata, target, name);
   }
 
   static getCrudOptions(target: any): CrudOptions {

@@ -2,7 +2,7 @@ import {
   QueryFields,
   QueryFilter,
   QuerySort,
-} from '@nestjsx/request-query/lib/types/request-query.types';
+} from '@nestjsx/crud-request/lib/types/request-query.types';
 
 export interface QueryOptions {
   allow?: QueryFields;

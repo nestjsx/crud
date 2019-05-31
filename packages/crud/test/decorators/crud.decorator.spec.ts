@@ -1,7 +1,7 @@
 import * as request from 'supertest';
 import { Test } from '@nestjs/testing';
 import { Controller, Get, INestApplication, Injectable, Param } from '@nestjs/common';
-import { RequestQueryBuilder } from '@nestjsx/request-query';
+import { RequestQueryBuilder } from '@nestjsx/crud-request';
 
 import { Crud } from '../../src/decorators/crud.decorator';
 

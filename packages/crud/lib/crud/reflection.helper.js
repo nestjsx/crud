@@ -3,11 +3,18 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const constants_1 = require("@nestjs/common/constants");
 const constants_2 = require("../constants");
 class R {
-    static set(metadataKey, metadataValue, target) {
-        Reflect.defineMetadata(metadataKey, metadataValue, target);
+    static set(metadataKey, metadataValue, target, propertyKey = undefined) {
+        if (propertyKey) {
+            Reflect.defineMetadata(metadataKey, metadataValue, target, propertyKey);
+        }
+        else {
+            Reflect.defineMetadata(metadataKey, metadataValue, target);
+        }
     }
-    static get(metadataKey, target) {
-        return Reflect.getMetadata(metadataKey, target);
+    static get(metadataKey, target, propertyKey = undefined) {
+        return propertyKey
+            ? Reflect.getMetadata(metadataKey, target, propertyKey)
+            : Reflect.getMetadata(metadataKey, target);
     }
     static setCrudOptions(options, target) {
         R.set(constants_2.CRUD_OPTIONS_METADATA, options, target);
@@ -18,6 +25,9 @@ class R {
     }
     static setInterceptors(interceptors, func) {
         R.set(constants_1.INTERCEPTORS_METADATA, interceptors, func);
+    }
+    static setRouteArgs(metadata, target, name) {
+        R.set(constants_1.ROUTE_ARGS_METADATA, metadata, target, name);
     }
     static getCrudOptions(target) {
         return R.get(constants_2.CRUD_OPTIONS_METADATA, target);

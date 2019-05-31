@@ -10,7 +10,11 @@ import {
   validateUUID,
 } from './request-query.validator';
 import { RequestQueryException } from './exceptions';
-import { RequestQueryBuilderOptions, ParamsOptions } from './interfaces';
+import {
+  RequestQueryBuilderOptions,
+  ParamsOptions,
+  ParsedRequestParams,
+} from './interfaces';
 import {
   QueryFields,
   QueryFilter,
@@ -19,7 +23,7 @@ import {
   ComparisonOperator,
 } from './types';
 
-export class RequestQueryParser {
+export class RequestQueryParser implements ParsedRequestParams {
   private _params: any;
   private _query: any;
   private _paramNames: string[];
@@ -40,8 +44,23 @@ export class RequestQueryParser {
     return new RequestQueryParser();
   }
 
-  get options(): RequestQueryBuilderOptions {
+  private get _options(): RequestQueryBuilderOptions {
     return (RequestQueryBuilder as any)._options;
+  }
+
+  getParsed(): ParsedRequestParams {
+    return {
+      fields: this.fields,
+      paramsFilter: this.paramsFilter,
+      filter: this.filter,
+      or: this.or,
+      join: this.join,
+      sort: this.sort,
+      limit: this.limit,
+      offset: this.offset,
+      page: this.page,
+      cache: this.cache,
+    };
   }
 
   parseQuery(query: any): this {
@@ -101,7 +120,7 @@ export class RequestQueryParser {
     type: keyof RequestQueryBuilderOptions['paramNamesMap'],
   ): string[] {
     return this._paramNames.filter((p) =>
-      this.options.paramNamesMap[type].some((m) => m === p),
+      this._options.paramNamesMap[type].some((m) => m === p),
     );
   }
 
@@ -157,19 +176,19 @@ export class RequestQueryParser {
   }
 
   private fieldsParser(data: string): QueryFields {
-    return data.split(this.options.delimStr);
+    return data.split(this._options.delimStr);
   }
 
   private conditionParser(cond: 'filter' | 'or', data: string): QueryFilter {
     const isArrayValue = ['in', 'notin', 'between'];
     const isEmptyValue = ['isnull', 'notnull'];
-    const param = data.split(this.options.delim);
+    const param = data.split(this._options.delim);
     const field = param[0];
     const operator = param[1] as ComparisonOperator;
     let value = param[2] || '';
 
     if (isArrayValue.some((name) => name === operator)) {
-      value = value.split(this.options.delimStr) as any;
+      value = value.split(this._options.delimStr) as any;
     }
 
     value = this.parseValues(value);
@@ -185,10 +204,10 @@ export class RequestQueryParser {
   }
 
   private joinParser(data: string): QueryJoin {
-    const param = data.split(this.options.delim);
+    const param = data.split(this._options.delim);
     const join: QueryJoin = {
       field: param[0],
-      select: isStringFull(param[1]) ? param[1].split(this.options.delimStr) : undefined,
+      select: isStringFull(param[1]) ? param[1].split(this._options.delimStr) : undefined,
     };
     validateJoin(join);
 
@@ -196,7 +215,7 @@ export class RequestQueryParser {
   }
 
   private sortParser(data: string): QuerySort {
-    const param = data.split(this.options.delimStr);
+    const param = data.split(this._options.delimStr);
     const sort: QuerySort = {
       field: param[0],
       order: param[1] as any,

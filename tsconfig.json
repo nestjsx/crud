@@ -17,7 +17,7 @@
     "paths": {
       "@nestjsx/crud": ["crud/src/*"],
       "@nestjsx/crud-typeorm": ["crud-typeorm/src/*"],
-      "@nestjsx/request-query": ["request-query/src/*"],
+      "@nestjsx/crud-request": ["crud-request/src/*"],
       "@nestjsx/restful": ["restful/src/*"],
       "@nestjsx/util": ["util/src/*"]
     }

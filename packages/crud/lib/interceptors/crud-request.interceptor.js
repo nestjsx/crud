@@ -7,16 +7,19 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const common_1 = require("@nestjs/common");
-const request_query_parser_1 = require("@nestjsx/request-query/lib/request-query.parser");
+const request_query_parser_1 = require("@nestjsx/crud-request/lib/request-query.parser");
 const reflection_helper_1 = require("../crud/reflection.helper");
+const constants_1 = require("../constants");
 let CrudRequestInterceptor = class CrudRequestInterceptor {
     intercept(context, next) {
         const req = context.switchToHttp().getRequest();
         const controller = context.getClass();
-        const crudOptions = reflection_helper_1.R.getCrudOptions(controller);
-        const query = request_query_parser_1.RequestQueryParser.create()
-            .parseParams(req.params, crudOptions.params)
-            .parseQuery(req.query);
+        const options = reflection_helper_1.R.getCrudOptions(controller);
+        const parsed = request_query_parser_1.RequestQueryParser.create()
+            .parseParams(req.params, options.params)
+            .parseQuery(req.query)
+            .getParsed();
+        req[constants_1.PARSED_CRUD_REQUEST_KEY] = Object.assign({}, parsed, { options });
         return next.handle();
     }
 };
