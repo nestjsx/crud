@@ -14,3 +14,7 @@ export const isObjectFull = (val: any) => isObject(val) && hasLength(objKeys(val
 export const isNumber = (val: any): boolean =>
   typeof val === 'number' && !Number.isNaN(val) && Number.isFinite(val);
 export const isEqual = (val: any, eq: any): boolean => val === eq;
+export const isFalse = (val: any): boolean => val === false;
+export const isTrue = (val: any): boolean => val === true;
+export const isIn = (val: any, arr: any[] = []): boolean =>
+  arr.some((o) => isEqual(val, o));

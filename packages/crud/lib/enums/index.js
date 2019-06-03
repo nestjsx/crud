@@ -4,4 +4,5 @@ function __export(m) {
 }
 Object.defineProperty(exports, "__esModule", { value: true });
 __export(require("./crud-actions.enum"));
+__export(require("./crud-validation-groups.enum"));
 //# sourceMappingURL=index.js.map

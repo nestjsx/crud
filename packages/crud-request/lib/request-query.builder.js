@@ -13,6 +13,9 @@ class RequestQueryBuilder {
     static setOptions(options) {
         RequestQueryBuilder._options = Object.assign({}, RequestQueryBuilder._options, options, { paramNamesMap: Object.assign({}, RequestQueryBuilder._options.paramNamesMap, (options.paramNamesMap ? options.paramNamesMap : {})) });
     }
+    static getOptions() {
+        return RequestQueryBuilder._options;
+    }
     static create() {
         return new RequestQueryBuilder();
     }

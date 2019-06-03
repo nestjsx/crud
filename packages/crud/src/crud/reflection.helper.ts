@@ -1,4 +1,4 @@
-import { RequestMethod, ReflectMetadata } from '@nestjs/common';
+import { RouteParamtypes } from '@nestjs/common/enums/route-paramtypes.enum';
 import {
   CUSTOM_ROUTE_AGRS_METADATA,
   INTERCEPTORS_METADATA,
@@ -7,13 +7,15 @@ import {
   PATH_METADATA,
   ROUTE_ARGS_METADATA,
 } from '@nestjs/common/constants';
-import { isArrayFull } from '@nestjsx/util';
 
 import { BaseRoute, CrudOptions } from '../interfaces';
+import { BaseRouteName } from '../types';
 import {
   CRUD_OPTIONS_METADATA,
   ACTION_NAME_METADATA,
   PARSED_CRUD_REQUEST_KEY,
+  PARSED_BODY_METADATA,
+  OVERRIDE_METHOD_METADATA,
 } from '../constants';
 import { CrudActions } from '../enums';
 
@@ -31,7 +33,17 @@ export class R {
     }
   }
 
-  static setCustomRouteDecorator(
+  static get<T extends any>(
+    metadataKey: any,
+    target: Object,
+    propertyKey: string | symbol = undefined,
+  ): T {
+    return propertyKey
+      ? Reflect.getMetadata(metadataKey, target, propertyKey)
+      : Reflect.getMetadata(metadataKey, target);
+  }
+
+  static createCustomRouteArg(
     paramtype: string,
     index: number,
     pipes: any[] = [],
@@ -47,18 +59,53 @@ export class R {
     };
   }
 
-  static setParsedRequest(index: number) {
-    return R.setCustomRouteDecorator(PARSED_CRUD_REQUEST_KEY, index);
+  static createRouteArg(
+    paramtype: RouteParamtypes,
+    index: number,
+    pipes: any[] = [],
+    data = undefined,
+  ): any {
+    return {
+      [`${paramtype}:${index}`]: {
+        index,
+        pipes,
+        data,
+      },
+    };
   }
 
-  static get<T extends any>(
-    metadataKey: any,
-    target: Object,
-    propertyKey: string | symbol = undefined,
-  ): T {
-    return propertyKey
-      ? Reflect.getMetadata(metadataKey, target, propertyKey)
-      : Reflect.getMetadata(metadataKey, target);
+  static setDecorators(
+    decorators: (PropertyDecorator | MethodDecorator)[],
+    target: object,
+    name: string,
+  ) {
+    // this makes proxy decorator works
+    Reflect.defineProperty(
+      target,
+      name,
+      Reflect.decorate(
+        decorators,
+        target,
+        name,
+        Reflect.getOwnPropertyDescriptor(target, name),
+      ),
+    );
+
+    // this makes metadata decorator works
+    Reflect.decorate(
+      decorators,
+      target,
+      name,
+      Reflect.getOwnPropertyDescriptor(target, name),
+    );
+  }
+
+  static setParsedRequestArg(index: number) {
+    return R.createCustomRouteArg(PARSED_CRUD_REQUEST_KEY, index);
+  }
+
+  static setBodyArg(index: number, pipes: any[] = []) {
+    return R.createRouteArg(RouteParamtypes.BODY, index, pipes);
   }
 
   static setCrudOptions(options: CrudOptions, target: any) {
@@ -78,6 +125,10 @@ export class R {
     R.set(ROUTE_ARGS_METADATA, metadata, target, name);
   }
 
+  static setRouteArgsTypes(metadata: any, target: any, name: string) {
+    R.set(PARAMTYPES_METADATA, metadata, target, name);
+  }
+
   static setAction(action: CrudActions, func: Function) {
     R.set(ACTION_NAME_METADATA, action, func);
   }
@@ -88,5 +139,25 @@ export class R {
 
   static getAction(func: Function): CrudActions {
     return R.get(ACTION_NAME_METADATA, func);
+  }
+
+  static getOverrideRoute(func: Function): BaseRouteName {
+    return R.get(OVERRIDE_METHOD_METADATA, func);
+  }
+
+  static getInterceptors(func: Function): any[] {
+    return R.get(INTERCEPTORS_METADATA, func) || [];
+  }
+
+  static getRouteArgs(target: any, name: string): any {
+    return R.get(ROUTE_ARGS_METADATA, target, name);
+  }
+
+  static getRouteArgsTypes(target: any, name: string): any[] {
+    return R.get(PARAMTYPES_METADATA, target, name) || [];
+  }
+
+  static getParsedBody(func: Function): any {
+    return R.get(PARSED_BODY_METADATA, func);
   }
 }

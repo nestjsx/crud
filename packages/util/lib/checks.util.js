@@ -13,4 +13,7 @@ exports.isObject = (val) => typeof val === 'object' && !exports.isNull(val);
 exports.isObjectFull = (val) => exports.isObject(val) && exports.hasLength(obj_util_1.objKeys(val));
 exports.isNumber = (val) => typeof val === 'number' && !Number.isNaN(val) && Number.isFinite(val);
 exports.isEqual = (val, eq) => val === eq;
+exports.isFalse = (val) => val === false;
+exports.isTrue = (val) => val === true;
+exports.isIn = (val, arr = []) => arr.some((o) => exports.isEqual(val, o));
 //# sourceMappingURL=checks.util.js.map

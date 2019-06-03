@@ -16,7 +16,7 @@ const getBuildCmd = (pkg) => {
 };
 
 const getTestUnitCmd = (pkg, coverage) =>
-  `npx jest -c=jest.config.js packages/${pkg ? pkg : ''} ${
+  `npx jest -c=jest.config.js packages/${pkg ? pkg + '/' : ''} ${
     coverage ? '--coverage' : ''
   } --verbose`;
 

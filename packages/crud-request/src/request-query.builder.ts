@@ -50,6 +50,10 @@ export class RequestQueryBuilder {
     };
   }
 
+  static getOptions(): RequestQueryBuilderOptions {
+    return RequestQueryBuilder._options;
+  }
+
   static create(): RequestQueryBuilder {
     return new RequestQueryBuilder();
   }

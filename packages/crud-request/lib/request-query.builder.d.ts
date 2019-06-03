@@ -13,6 +13,7 @@ export declare class RequestQueryBuilder {
     private _cache;
     queryString: string;
     static setOptions(options: RequestQueryBuilderOptions): void;
+    static getOptions(): RequestQueryBuilderOptions;
     static create(): RequestQueryBuilder;
     readonly options: RequestQueryBuilderOptions;
     query(): string;

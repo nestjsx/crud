@@ -17,7 +17,7 @@ class RequestQueryParser {
         return new RequestQueryParser();
     }
     get _options() {
-        return request_query_builder_1.RequestQueryBuilder._options;
+        return request_query_builder_1.RequestQueryBuilder.getOptions();
     }
     getParsed() {
         return {

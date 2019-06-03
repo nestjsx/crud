@@ -6,6 +6,7 @@ export declare class CrudRoutesFactory {
     static create(target: any, options: CrudOptions): CrudRoutesFactory;
     private readonly targetProto;
     private readonly modelName;
+    private readonly modelType;
     private readonly actionsMap;
     private create;
     private setOptionsDefaults;
@@ -20,10 +21,16 @@ export declare class CrudRoutesFactory {
     private createRoutes;
     private overrideRoutes;
     private enableRoutes;
+    private overrideParsedBodyDecorator;
     private getPrimaryParam;
-    private setArgs;
+    private setBaseRouteMeta;
+    private setRouteArgs;
+    private setRouteArgsTypes;
     private setInterceptors;
+    private setDecorators;
     private setAction;
     private setSwaggerOperation;
-    private setSwaggerParams;
+    private setSwaggerPathParams;
+    private setSwaggerQueryParams;
+    private setSwaggerResponseOk;
 }

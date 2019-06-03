@@ -1,9 +1,11 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const common_1 = require("@nestjs/common");
+const route_paramtypes_enum_1 = require("@nestjs/common/enums/route-paramtypes.enum");
 const util_1 = require("@nestjsx/util");
 const reflection_helper_1 = require("./reflection.helper");
 const swagger_helper_1 = require("./swagger.helper");
+const validation_helper_1 = require("./validation.helper");
 const interceptors_1 = require("../interceptors");
 const enums_1 = require("../enums");
 class CrudRoutesFactory {
@@ -20,6 +22,9 @@ class CrudRoutesFactory {
     }
     get modelName() {
         return this.options.model.type.name;
+    }
+    get modelType() {
+        return this.options.model.type;
     }
     get actionsMap() {
         return {
@@ -39,11 +44,8 @@ class CrudRoutesFactory {
         this.enableRoutes(routesSchema);
     }
     setOptionsDefaults() {
-        if (!util_1.isObjectFull(this.options.model)) {
-            this.options.model = {
-                type: {},
-                service: 'typeorm',
-            };
+        if (util_1.isUndefined(this.options.model.service)) {
+            this.options.model.service = 'typeorm';
         }
         if (!util_1.isObjectFull(this.options.params)) {
             this.options.params = {
@@ -132,33 +134,33 @@ class CrudRoutesFactory {
         ];
     }
     getManyBase(name) {
-        this.targetProto[name] = function getManyBase(parsedRequest) {
+        this.targetProto[name] = function getManyBase(req) {
             return [];
         };
     }
     getOneBase(name) {
-        this.targetProto[name] = function getOneBase(parsedRequest) {
-            return [];
+        this.targetProto[name] = function getOneBase(req) {
+            return {};
         };
     }
     createOneBase(name) {
-        this.targetProto[name] = function createOneBase(parsedRequest) {
-            return [];
+        this.targetProto[name] = function createOneBase(req, dto) {
+            return {};
         };
     }
     createManyBase(name) {
-        this.targetProto[name] = function createManyBase(parsedRequest) {
+        this.targetProto[name] = function createManyBase(req, dto) {
             return [];
         };
     }
     updateOneBase(name) {
-        this.targetProto[name] = function updateOneBase(parsedRequest) {
-            return [];
+        this.targetProto[name] = function updateOneBase(req, dto) {
+            return {};
         };
     }
     deleteOneBase(name) {
-        this.targetProto[name] = function deleteOneBase(parsedRequest) {
-            return [];
+        this.targetProto[name] = function deleteOneBase(req) {
+            return {};
         };
     }
     canCreateRoute(name) {
@@ -176,14 +178,9 @@ class CrudRoutesFactory {
         const primaryParam = this.getPrimaryParam();
         routesSchema.forEach((route) => {
             if (this.canCreateRoute(route.name)) {
-                const { name } = route;
-                this[name](name);
+                this[route.name](route.name);
                 route.enable = true;
-                this.setArgs(name);
-                this.setInterceptors(name);
-                this.setAction(name);
-                this.setSwaggerOperation(name);
-                this.setSwaggerParams(name);
+                this.setBaseRouteMeta(route.name);
             }
             if (!util_1.hasLength(route.path)) {
                 route.path = `/:${primaryParam}`;
@@ -191,6 +188,25 @@ class CrudRoutesFactory {
         });
     }
     overrideRoutes(routesSchema) {
+        util_1.getOwnPropNames(this.targetProto).forEach((name) => {
+            const override = reflection_helper_1.R.getOverrideRoute(this.targetProto[name]);
+            const route = routesSchema.find((r) => util_1.isEqual(r.name, override));
+            if (override && route && route.enable) {
+                const interceptors = reflection_helper_1.R.getInterceptors(this.targetProto[name]);
+                const baseInterceptors = reflection_helper_1.R.getInterceptors(this.targetProto[override]);
+                const baseAction = reflection_helper_1.R.getAction(this.targetProto[override]);
+                const baseSwaggerParams = swagger_helper_1.Swagger.getParams(this.targetProto[override]);
+                const baseResponseOk = swagger_helper_1.Swagger.getResponseOk(this.targetProto[override]);
+                reflection_helper_1.R.setInterceptors([...baseInterceptors, ...interceptors], this.targetProto[name]);
+                reflection_helper_1.R.setAction(baseAction, this.targetProto[name]);
+                swagger_helper_1.Swagger.setOperation(override, this.modelName, this.targetProto[name]);
+                swagger_helper_1.Swagger.setParams(baseSwaggerParams, this.targetProto[name]);
+                swagger_helper_1.Swagger.setResponseOk(baseResponseOk, this.targetProto[name]);
+                this.overrideParsedBodyDecorator(override, name);
+                reflection_helper_1.R.setRoute(route, this.targetProto[name]);
+                route.override = true;
+            }
+        });
     }
     enableRoutes(routesSchema) {
         routesSchema.forEach((route) => {
@@ -199,15 +215,80 @@ class CrudRoutesFactory {
             }
         });
     }
+    overrideParsedBodyDecorator(override, name) {
+        const allowed = [
+            'createManyBase',
+            'createOneBase',
+            'updateOneBase',
+        ];
+        const withBody = util_1.isIn(override, allowed);
+        const parsedBody = reflection_helper_1.R.getParsedBody(this.targetProto[name]);
+        if (withBody && parsedBody) {
+            const baseKey = `${route_paramtypes_enum_1.RouteParamtypes.BODY}:1`;
+            const key = `${route_paramtypes_enum_1.RouteParamtypes.BODY}:${parsedBody.index}`;
+            const baseRouteArgs = reflection_helper_1.R.getRouteArgs(this.target, override);
+            const routeArgs = reflection_helper_1.R.getRouteArgs(this.target, name);
+            const baseBodyArg = baseRouteArgs[baseKey];
+            reflection_helper_1.R.setRouteArgs(Object.assign({}, routeArgs, { [key]: Object.assign({}, baseBodyArg, { index: parsedBody.index }) }), this.target, name);
+            if (util_1.isEqual(override, 'createManyBase')) {
+                const paramTypes = reflection_helper_1.R.getRouteArgsTypes(this.targetProto, name);
+                const metatype = paramTypes[parsedBody.index];
+                const types = [String, Boolean, Number, Array, Object];
+                const toCopy = util_1.isIn(metatype, types) || util_1.isNil(metatype);
+                if (toCopy) {
+                    const baseParamTypes = reflection_helper_1.R.getRouteArgsTypes(this.targetProto, override);
+                    const baseMetatype = baseParamTypes[1];
+                    paramTypes.splice(parsedBody.index, 1, baseMetatype);
+                    reflection_helper_1.R.setRouteArgsTypes(paramTypes, this.targetProto, name);
+                }
+            }
+        }
+    }
     getPrimaryParam() {
         return util_1.objKeys(this.options.params).find((param) => this.options.params[param].primary);
     }
-    setArgs(name, rest = {}) {
-        reflection_helper_1.R.setRouteArgs(Object.assign({}, reflection_helper_1.R.setParsedRequest(0), rest), this.target, name);
+    setBaseRouteMeta(name) {
+        this.setRouteArgs(name);
+        this.setRouteArgsTypes(name);
+        this.setInterceptors(name);
+        this.setDecorators(name);
+        this.setAction(name);
+        this.setSwaggerOperation(name);
+        this.setSwaggerPathParams(name);
+        this.setSwaggerQueryParams(name);
+        this.setSwaggerResponseOk(name);
+    }
+    setRouteArgs(name) {
+        let rest = {};
+        const toValidate = [
+            'createManyBase',
+            'createOneBase',
+            'updateOneBase',
+        ];
+        if (util_1.isIn(name, toValidate)) {
+            const group = util_1.isEqual(name, 'updateOneBase')
+                ? enums_1.CrudValidationGroups.UPDATE
+                : enums_1.CrudValidationGroups.CREATE;
+            rest = reflection_helper_1.R.setBodyArg(1, [validation_helper_1.Validation.getValidationPipe(this.options, group)]);
+        }
+        reflection_helper_1.R.setRouteArgs(Object.assign({}, reflection_helper_1.R.setParsedRequestArg(0), rest), this.target, name);
+    }
+    setRouteArgsTypes(name) {
+        if (util_1.isEqual(name, 'createManyBase')) {
+            const bulkDto = validation_helper_1.Validation.createBulkDto(this.options);
+            reflection_helper_1.R.setRouteArgsTypes([Object, bulkDto], this.targetProto, name);
+        }
+        if (util_1.isEqual(name, 'createOneBase') || util_1.isEqual(name, 'updateOneBase')) {
+            reflection_helper_1.R.setRouteArgsTypes([Object, this.modelType], this.targetProto, name);
+        }
     }
     setInterceptors(name) {
         const interceptors = this.options.routes[name].interceptors;
         reflection_helper_1.R.setInterceptors([interceptors_1.CrudRequestInterceptor, ...(util_1.isArrayFull(interceptors) ? interceptors : [])], this.targetProto[name]);
+    }
+    setDecorators(name) {
+        const decorators = this.options.routes[name].decorators;
+        reflection_helper_1.R.setDecorators(util_1.isArrayFull(decorators) ? decorators : [], this.targetProto, name);
     }
     setAction(name) {
         reflection_helper_1.R.setAction(this.actionsMap[name], this.targetProto[name]);
@@ -215,10 +296,24 @@ class CrudRoutesFactory {
     setSwaggerOperation(name) {
         swagger_helper_1.Swagger.setOperation(name, this.modelName, this.targetProto[name]);
     }
-    setSwaggerParams(name) {
+    setSwaggerPathParams(name) {
         const metadata = swagger_helper_1.Swagger.getParams(this.targetProto[name]);
-        const pathParamsMeta = swagger_helper_1.Swagger.createPathParamMeta(this.options.params);
-        swagger_helper_1.Swagger.setParams([...metadata, pathParamsMeta], this.targetProto[name]);
+        const pathParamsMeta = swagger_helper_1.Swagger.createPathParasmMeta(this.options.params);
+        swagger_helper_1.Swagger.setParams([...metadata, ...pathParamsMeta], this.targetProto[name]);
+    }
+    setSwaggerQueryParams(name) {
+        const metadata = swagger_helper_1.Swagger.getParams(this.targetProto[name]);
+        const queryParamsMeta = swagger_helper_1.Swagger.createQueryParamsMeta(name);
+        swagger_helper_1.Swagger.setParams([...metadata, ...queryParamsMeta], this.targetProto[name]);
+    }
+    setSwaggerResponseOk(name) {
+        const status = util_1.isEqual(name, 'createManyBase') || util_1.isEqual(name, 'createOneBase')
+            ? common_1.HttpStatus.CREATED
+            : common_1.HttpStatus.OK;
+        const isArray = util_1.isEqual(name, 'createManyBase') || util_1.isEqual(name, 'getManyBase');
+        const metadata = swagger_helper_1.Swagger.getResponseOk(this.targetProto[name]);
+        const responseOkMeta = swagger_helper_1.Swagger.createReponseOkMeta(status, isArray, this.modelType);
+        swagger_helper_1.Swagger.setResponseOk(Object.assign({}, metadata, responseOkMeta), this.targetProto[name]);
     }
 }
 exports.CrudRoutesFactory = CrudRoutesFactory;

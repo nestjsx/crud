@@ -1,7 +1,7 @@
 import { RequestQueryParser } from '../src/request-query.parser';
 import { RequestQueryException } from '../src/exceptions/request-query.exception';
 import { QueryFilter, QueryJoin, QuerySort } from '../src/types';
-import { ParamsOptions } from '../src/interfaces/params-options.interface';
+import { ParamsOptions, ParsedRequestParams } from '../src/interfaces';
 
 describe('#request-query', () => {
   describe('RequestQueryParser', () => {
@@ -388,6 +388,25 @@ describe('#request-query', () => {
           { field: 'buz', operator: 'eq', value: 'string' },
         ];
         expect(test.paramsFilter).toMatchObject(expected);
+      });
+    });
+
+    describe('#getParsed', () => {
+      it('should return parsed params', () => {
+        const expected: ParsedRequestParams = {
+          fields: [],
+          paramsFilter: [],
+          filter: [],
+          or: [],
+          join: [],
+          sort: [],
+          limit: undefined,
+          offset: undefined,
+          page: undefined,
+          cache: undefined,
+        };
+        const test = qp.getParsed();
+        expect(test).toMatchObject(expected);
       });
     });
   });

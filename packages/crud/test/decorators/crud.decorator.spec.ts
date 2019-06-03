@@ -20,6 +20,9 @@ class TestService {}
       primary: true,
     },
   },
+  routes: {
+    only: ['getManyBase', 'getOneBase'],
+  },
 })
 @Controller('test')
 class TestController {

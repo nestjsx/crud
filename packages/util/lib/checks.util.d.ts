@@ -10,3 +10,6 @@ export declare const isObject: (val: any) => boolean;
 export declare const isObjectFull: (val: any) => boolean;
 export declare const isNumber: (val: any) => boolean;
 export declare const isEqual: (val: any, eq: any) => boolean;
+export declare const isFalse: (val: any) => boolean;
+export declare const isTrue: (val: any) => boolean;
+export declare const isIn: (val: any, arr?: any[]) => boolean;
