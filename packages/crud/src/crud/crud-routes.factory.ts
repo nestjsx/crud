@@ -61,9 +61,9 @@ export class CrudRoutesFactory {
   }
 
   private setOptionsDefaults() {
-    if (isUndefined(this.options.model.service)) {
-      this.options.model.service = 'typeorm';
-    }
+    // if (isUndefined(this.options.model.service)) {
+    //   this.options.model.service = 'typeorm';
+    // }
     if (!isObjectFull(this.options.params)) {
       this.options.params = {
         id: {
@@ -155,43 +155,37 @@ export class CrudRoutesFactory {
 
   private getManyBase(name: BaseRouteName) {
     this.targetProto[name] = function getManyBase(req: CrudRequest) {
-      // return this.service.getMany(req);
-      return [];
+      return this.service.getMany(req);
     };
   }
 
   private getOneBase(name: BaseRouteName) {
     this.targetProto[name] = function getOneBase(req: CrudRequest) {
-      // return this.service.getOne(req);
-      return {};
+      return this.service.getOne(req);
     };
   }
 
   private createOneBase(name: BaseRouteName) {
     this.targetProto[name] = function createOneBase(req: CrudRequest, dto: any) {
-      // return this.service.createOne(req, dto);
-      return {};
+      return this.service.createOne(req, dto);
     };
   }
 
   private createManyBase(name: BaseRouteName) {
     this.targetProto[name] = function createManyBase(req: CrudRequest, dto: any) {
-      // return this.service.createMany(req, dto);
-      return [];
+      return this.service.createMany(req, dto);
     };
   }
 
   private updateOneBase(name: BaseRouteName) {
     this.targetProto[name] = function updateOneBase(req: CrudRequest, dto: any) {
-      // return this.service.updateOne(req, dto);
-      return {};
+      return this.service.updateOne(req, dto);
     };
   }
 
   private deleteOneBase(name: BaseRouteName) {
     this.targetProto[name] = function deleteOneBase(req: CrudRequest) {
-      // return this.service.deleteOne(req);
-      return {};
+      return this.service.deleteOne(req);
     };
   }
 
@@ -289,12 +283,15 @@ export class CrudRoutesFactory {
         name,
       );
 
+      /* istanbul ignore else */
       if (isEqual(override, 'createManyBase')) {
         const paramTypes = R.getRouteArgsTypes(this.targetProto, name);
         const metatype = paramTypes[parsedBody.index];
         const types = [String, Boolean, Number, Array, Object];
-        const toCopy = isIn(metatype, types) || isNil(metatype);
+        const toCopy =
+          isIn(metatype, types) || /* istanbul ignore next */ isNil(metatype);
 
+        /* istanbul ignore else */
         if (toCopy) {
           const baseParamTypes = R.getRouteArgsTypes(this.targetProto, override);
           const baseMetatype = baseParamTypes[1];
@@ -355,14 +352,21 @@ export class CrudRoutesFactory {
   private setInterceptors(name: BaseRouteName) {
     const interceptors = this.options.routes[name].interceptors;
     R.setInterceptors(
-      [CrudRequestInterceptor, ...(isArrayFull(interceptors) ? interceptors : [])],
+      [
+        CrudRequestInterceptor,
+        ...(isArrayFull(interceptors) ? /* istanbul ignore next */ interceptors : []),
+      ],
       this.targetProto[name],
     );
   }
 
   private setDecorators(name: BaseRouteName) {
     const decorators = this.options.routes[name].decorators;
-    R.setDecorators(isArrayFull(decorators) ? decorators : [], this.targetProto, name);
+    R.setDecorators(
+      isArrayFull(decorators) ? /* istanbul ignore next */ decorators : [],
+      this.targetProto,
+      name,
+    );
   }
 
   private setAction(name: BaseRouteName) {

@@ -44,9 +44,6 @@ class CrudRoutesFactory {
         this.enableRoutes(routesSchema);
     }
     setOptionsDefaults() {
-        if (util_1.isUndefined(this.options.model.service)) {
-            this.options.model.service = 'typeorm';
-        }
         if (!util_1.isObjectFull(this.options.params)) {
             this.options.params = {
                 id: {
@@ -135,32 +132,32 @@ class CrudRoutesFactory {
     }
     getManyBase(name) {
         this.targetProto[name] = function getManyBase(req) {
-            return [];
+            return this.service.getMany(req);
         };
     }
     getOneBase(name) {
         this.targetProto[name] = function getOneBase(req) {
-            return {};
+            return this.service.getOne(req);
         };
     }
     createOneBase(name) {
         this.targetProto[name] = function createOneBase(req, dto) {
-            return {};
+            return this.service.createOne(req, dto);
         };
     }
     createManyBase(name) {
         this.targetProto[name] = function createManyBase(req, dto) {
-            return [];
+            return this.service.createMany(req, dto);
         };
     }
     updateOneBase(name) {
         this.targetProto[name] = function updateOneBase(req, dto) {
-            return {};
+            return this.service.updateOne(req, dto);
         };
     }
     deleteOneBase(name) {
         this.targetProto[name] = function deleteOneBase(req) {
-            return {};
+            return this.service.deleteOne(req);
         };
     }
     canCreateRoute(name) {
@@ -284,7 +281,10 @@ class CrudRoutesFactory {
     }
     setInterceptors(name) {
         const interceptors = this.options.routes[name].interceptors;
-        reflection_helper_1.R.setInterceptors([interceptors_1.CrudRequestInterceptor, ...(util_1.isArrayFull(interceptors) ? interceptors : [])], this.targetProto[name]);
+        reflection_helper_1.R.setInterceptors([
+            interceptors_1.CrudRequestInterceptor,
+            ...(util_1.isArrayFull(interceptors) ? interceptors : []),
+        ], this.targetProto[name]);
     }
     setDecorators(name) {
         const decorators = this.options.routes[name].decorators;

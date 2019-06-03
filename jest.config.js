@@ -19,5 +19,6 @@ module.exports = {
     '!packages/**/*.interface.ts',
     '!**/node_modules/**',
     '!**/__stubs__/**',
+    '!**/__fixture__/**',
   ],
 };

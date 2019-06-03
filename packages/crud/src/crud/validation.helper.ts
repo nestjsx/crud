@@ -15,18 +15,19 @@ export class Validation {
   ): ValidationPipe {
     return validator && !isFalse(options.validation)
       ? new ValidationPipe({ ...(options.validation || {}), groups: [group] })
-      : undefined;
+      : /* istanbul ignore next */ undefined;
   }
 
   static createBulkDto<T = any>(options: CrudOptions): any {
+    /* istanbul ignore else */
     if (validator && transformer && !isFalse(options.validation)) {
-      const { IsArray, IsNotEmpty, ValidateNested } = validator;
+      const { IsArray, ArrayNotEmpty, ValidateNested } = validator;
       const { Type } = transformer;
       const groups = [CrudValidationGroups.CREATE];
 
       class BulkDto implements CreateManyDto<T> {
-        @IsArray({ each: true, groups })
-        @IsNotEmpty({ groups })
+        @IsArray({ groups })
+        @ArrayNotEmpty({ groups })
         @ValidateNested({ each: true, groups })
         @Type((t) => options.model.type)
         bulk: T[];

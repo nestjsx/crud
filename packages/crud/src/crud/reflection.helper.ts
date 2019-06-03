@@ -46,6 +46,7 @@ export class R {
   static createCustomRouteArg(
     paramtype: string,
     index: number,
+    /* istanbul ignore next */
     pipes: any[] = [],
     data = undefined,
   ): any {
@@ -62,6 +63,7 @@ export class R {
   static createRouteArg(
     paramtype: RouteParamtypes,
     index: number,
+    /* istanbul ignore next */
     pipes: any[] = [],
     data = undefined,
   ): any {
@@ -104,7 +106,7 @@ export class R {
     return R.createCustomRouteArg(PARSED_CRUD_REQUEST_KEY, index);
   }
 
-  static setBodyArg(index: number, pipes: any[] = []) {
+  static setBodyArg(index: number, /* istanbul ignore next */ pipes: any[] = []) {
     return R.createRouteArg(RouteParamtypes.BODY, index, pipes);
   }
 
@@ -154,7 +156,7 @@ export class R {
   }
 
   static getRouteArgsTypes(target: any, name: string): any[] {
-    return R.get(PARAMTYPES_METADATA, target, name) || [];
+    return R.get(PARAMTYPES_METADATA, target, name) || /* istanbul ignore next */ [];
   }
 
   static getParsedBody(func: Function): any {

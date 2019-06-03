@@ -23,14 +23,14 @@ class Validation {
     }
     static createBulkDto(options) {
         if (validator && transformer && !util_1.isFalse(options.validation)) {
-            const { IsArray, IsNotEmpty, ValidateNested } = validator;
+            const { IsArray, ArrayNotEmpty, ValidateNested } = validator;
             const { Type } = transformer;
             const groups = [enums_1.CrudValidationGroups.CREATE];
             class BulkDto {
             }
             __decorate([
-                IsArray({ each: true, groups }),
-                IsNotEmpty({ groups }),
+                IsArray({ groups }),
+                ArrayNotEmpty({ groups }),
                 ValidateNested({ each: true, groups }),
                 Type((t) => options.model.type),
                 __metadata("design:type", Array)

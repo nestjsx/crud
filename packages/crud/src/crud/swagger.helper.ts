@@ -22,6 +22,7 @@ export class Swagger {
   }
 
   static setOperation(name: BaseRouteName, modelName: string, func: Function) {
+    /* istanbul ignore else */
     if (swaggerPkg) {
       const summary = Swagger.operationsMap(modelName)[name];
       R.set(swaggerPkg.DECORATORS.API_OPERATION, { summary }, func);
@@ -29,26 +30,31 @@ export class Swagger {
   }
 
   static setParams(metadata: any, func: Function) {
+    /* istanbul ignore else */
     if (swaggerPkg) {
       R.set(swaggerPkg.DECORATORS.API_PARAMETERS, metadata, func);
     }
   }
 
   static setResponseOk(metadata: any, func: Function) {
+    /* istanbul ignore else */
     if (swaggerPkg) {
       R.set(swaggerPkg.DECORATORS.API_RESPONSE, metadata, func);
     }
   }
 
   static getOperation(func: Function): any {
+    /* istanbul ignore next */
     return swaggerPkg ? R.get(swaggerPkg.DECORATORS.API_OPERATION, func) || {} : {};
   }
 
   static getParams(func: Function): any[] {
+    /* istanbul ignore next */
     return swaggerPkg ? R.get(swaggerPkg.DECORATORS.API_PARAMETERS, func) || [] : [];
   }
 
   static getResponseOk(func: Function): any {
+    /* istanbul ignore next */
     return swaggerPkg ? R.get(swaggerPkg.DECORATORS.API_RESPONSE, func) || {} : {};
   }
 
@@ -61,7 +67,7 @@ export class Swagger {
             description: '',
           },
         }
-      : {};
+      : /* istanbul ignore next */ {};
   }
 
   static createPathParasmMeta(options: ParamsOptions): any[] {
@@ -72,10 +78,11 @@ export class Swagger {
           in: 'path',
           type: options[param].type === 'number' ? Number : String,
         }))
-      : [];
+      : /* istanbul ignore next */ [];
   }
 
   static createQueryParamsMeta(name: BaseRouteName) {
+    /* istanbul ignore if */
     if (!swaggerPkg) {
       return [];
     }

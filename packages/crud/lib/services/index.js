@@ -3,8 +3,5 @@ function __export(m) {
     for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
 }
 Object.defineProperty(exports, "__esModule", { value: true });
-__export(require("./crud-routes.factory"));
-__export(require("./reflection.helper"));
-__export(require("./swagger.helper"));
-__export(require("./validation.helper"));
+__export(require("./crud-service.abstract"));
 //# sourceMappingURL=index.js.map
