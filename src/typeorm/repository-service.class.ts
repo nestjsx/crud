@@ -341,6 +341,9 @@ export class RepositoryService<T> extends RestfulService<T> {
       this.entityColumnsHash[prop.propertyName] = true;
       return prop.propertyName;
     });
+    this.entityPrimaryColumns = this.repo.metadata.columns
+      .filter((prop) => prop.isPrimary)
+      .map((prop) => prop.propertyName);
   }
 
   private onInitMapRelations() {
@@ -523,7 +526,7 @@ export class RepositoryService<T> extends RestfulService<T> {
     const select = [
       ...(options.persist && options.persist.length ? options.persist : []),
       ...columns,
-      'id', // always persist ids
+      ...this.entityPrimaryColumns, // always persist primary keys
     ].map((col) => `${this.alias}.${col}`);
 
     return select;
