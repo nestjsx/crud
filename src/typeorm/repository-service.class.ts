@@ -22,6 +22,7 @@ export class RepositoryService<T> extends RestfulService<T> {
   protected options: RestfulOptions = {};
 
   private entityColumns: string[];
+  private entityPrimaryColumns: string[];
   private entityColumnsHash: ObjectLiteral = {};
   private entityRelationsHash: ObjectLiteral = {};
 
