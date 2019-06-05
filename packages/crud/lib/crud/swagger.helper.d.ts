@@ -14,13 +14,19 @@ export declare class Swagger {
     static getResponseOk(func: Function): any;
     static createReponseOkMeta(status: HttpStatus, isArray: boolean, dto: any): any;
     static createPathParasmMeta(options: ParamsOptions): any[];
-    static createQueryParamsMeta(name: BaseRouteName): {
+    static createQueryParamsMeta(name: BaseRouteName): ({
         name: any;
         description: string;
         required: boolean;
         in: string;
         type: StringConstructor;
-    }[];
+    } | {
+        name: any;
+        description: string;
+        required: boolean;
+        in: string;
+        type: NumberConstructor;
+    })[];
     static getQueryParamsNames(): {
         delim: string;
         delimStr: string;

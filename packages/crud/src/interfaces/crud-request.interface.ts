@@ -1,7 +1,8 @@
 import { ParsedRequestParams } from '@nestjsx/crud-request/lib/interfaces';
 
-import { CrudOptions } from '../interfaces';
+import { CrudRequestOptions } from '../interfaces';
 
-export interface CrudRequest extends ParsedRequestParams {
-  options: CrudOptions;
+export interface CrudRequest {
+  parsed: ParsedRequestParams;
+  options: CrudRequestOptions;
 }

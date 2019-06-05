@@ -8,6 +8,7 @@ import { RequestQueryParser } from '@nestjsx/crud-request/lib/request-query.pars
 
 import { R } from '../crud/reflection.helper';
 import { PARSED_CRUD_REQUEST_KEY } from '../constants';
+import { CrudRequest } from '../interfaces';
 
 @Injectable()
 export class CrudRequestInterceptor implements NestInterceptor {
@@ -15,14 +16,21 @@ export class CrudRequestInterceptor implements NestInterceptor {
     const req = context.switchToHttp().getRequest();
     const controller = context.getClass();
     const options = R.getCrudOptions(controller);
-    const { query, routes, params } = options;
-
     const parsed = RequestQueryParser.create()
       .parseParams(req.params, options.params)
       .parseQuery(req.query)
       .getParsed();
 
-    req[PARSED_CRUD_REQUEST_KEY] = { ...parsed, options: { query, routes, params } };
+    const crudReq: CrudRequest = {
+      parsed,
+      options: {
+        query: options.query,
+        routes: options.routes,
+        params: options.params,
+      },
+    };
+
+    req[PARSED_CRUD_REQUEST_KEY] = crudReq;
 
     return next.handle();
   }
