@@ -1,5 +1,6 @@
 import { Repository, ObjectLiteral, SelectQueryBuilder, Brackets } from 'typeorm';
 import { RelationMetadata } from 'typeorm/metadata/RelationMetadata';
+import { plainToClass } from 'class-transformer';
 import { ClassType } from 'class-transformer/ClassTransformer';
 import {
   CrudRequest,
@@ -16,7 +17,7 @@ import {
   QuerySort,
   ParsedRequestParams,
 } from '@nestjsx/crud-request';
-import { isArrayFull } from '@nestjsx/util';
+import { isArrayFull, isObject, hasLength, objKeys, isUndefined } from '@nestjsx/util';
 
 export class TypeOrmCrudService<T> extends CrudService<T> {
   private entityColumns: string[];
@@ -47,6 +48,10 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     return this.repo.metadata.targetName;
   }
 
+  /**
+   * Get many
+   * @param req
+   */
   public async getMany(req: CrudRequest): Promise<GetManyDefaultResponse<T> | T[]> {
     const { parsed, options } = req;
     const builder = await this.createBuilder(parsed, options);
@@ -62,24 +67,86 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     return builder.getMany();
   }
 
+  /**
+   * Get one
+   * @param req
+   */
   public async getOne(req: CrudRequest): Promise<T> {
-    return undefined;
+    return this.getOneOrFail(req);
   }
 
+  /**
+   * Create one
+   * @param req
+   * @param dto
+   */
   public async createOne(req: CrudRequest, dto: T): Promise<T> {
-    return undefined;
+    const entity = this.prepareEntityBeforeSave(dto, req.parsed.paramsFilter);
+
+    if (!entity) {
+      this.throwBadRequestException(`Empty data. Nothing to save.`);
+    }
+
+    return this.repo.save<any>(entity);
   }
 
+  /**
+   * Create many
+   * @param req
+   * @param dto
+   */
   public async createMany(req: CrudRequest, dto: CreateManyDto<T>): Promise<T[]> {
-    return [];
+    if (!isObject(dto) || !isArrayFull(dto.bulk)) {
+      this.throwBadRequestException(`Empty data. Nothing to save.`);
+    }
+
+    const bulk = dto.bulk
+      .map((one) => this.prepareEntityBeforeSave(one, req.parsed.paramsFilter))
+      .filter((d) => !isUndefined(d));
+
+    if (!hasLength(bulk)) {
+      this.throwBadRequestException(`Empty data. Nothing to save.`);
+    }
+
+    return this.repo.save<any>(bulk, { chunk: 50 });
   }
 
+  /**
+   * Update one
+   * @param req
+   * @param dto
+   */
   public async updateOne(req: CrudRequest, dto: T): Promise<T> {
-    return undefined;
+    const found = await this.getOneOrFail(req);
+
+    if (
+      hasLength(req.parsed.paramsFilter) &&
+      !req.options.routes.updateOneBase.allowParamsOverride
+    ) {
+      for (const filter of req.parsed.paramsFilter) {
+        dto[filter.field] = filter.value;
+      }
+    }
+
+    return this.repo.save<any>({ ...found, ...dto });
   }
 
+  /**
+   * Delete one
+   * @param req
+   */
   public async deleteOne(req: CrudRequest): Promise<void | T> {
-    return undefined;
+    const found = await this.getOneOrFail(req);
+    const deleted = await this.repo.remove(found);
+
+    if (req.options.routes.deleteOneBase.returnDeleted) {
+      // set params, because id is undefined
+      for (const filter of req.parsed.paramsFilter) {
+        deleted[filter.field] = filter.value;
+      }
+
+      return deleted;
+    }
   }
 
   public decidePagination(
@@ -92,6 +159,12 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     );
   }
 
+  /**
+   * Create TypeOrm QueryBuilder
+   * @param parsed
+   * @param options
+   * @param many
+   */
   public async createBuilder(
     parsed: ParsedRequestParams,
     options: CrudRequestOptions,
@@ -242,6 +315,36 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
       default:
         return 'leftJoin';
     }
+  }
+
+  private async getOneOrFail(req: CrudRequest): Promise<T> {
+    const { parsed, options } = req;
+    const builder = await this.createBuilder(parsed, options);
+    const found = await builder.getOne();
+
+    if (!found) {
+      this.throwNotFoundException(this.alias);
+    }
+
+    return found;
+  }
+
+  private prepareEntityBeforeSave(dto: T, paramsFilter: QueryFilter[]): T {
+    if (!isObject(dto)) {
+      return undefined;
+    }
+
+    if (hasLength(paramsFilter)) {
+      for (const filter of paramsFilter) {
+        dto[filter.field] = filter.value;
+      }
+    }
+
+    if (!hasLength(objKeys(dto))) {
+      return undefined;
+    }
+
+    return dto instanceof this.entityType ? dto : plainToClass(this.entityType, dto);
   }
 
   private hasColumn(column: string): boolean {
