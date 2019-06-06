@@ -138,11 +138,24 @@ class TypeOrmCrudService extends services_1.CrudService {
                 this.setAndWhere(filters[i], `filter${i}`, builder);
             }
         }
-        if (util_1.isArrayFull(parsed.join)) {
-            const joinOptions = options.query.join || {};
-            if (Object.keys(joinOptions).length) {
+        const joinOptions = options.query.join || {};
+        const allowedJoins = util_1.objKeys(joinOptions);
+        if (util_1.hasLength(allowedJoins)) {
+            let eagerJoins = {};
+            for (let i = 0; i < allowedJoins.length; i++) {
+                if (joinOptions[allowedJoins[i]].eager) {
+                    const cond = parsed.join.find((j) => j && j.field === allowedJoins[i]) || {
+                        field: allowedJoins[i],
+                    };
+                    this.setJoin(cond, joinOptions, builder);
+                    eagerJoins[allowedJoins[i]] = true;
+                }
+            }
+            if (util_1.isArrayFull(parsed.join)) {
                 for (let i = 0; i < parsed.join.length; i++) {
-                    this.setJoin(parsed.join[i], joinOptions, builder);
+                    if (!eagerJoins[parsed.join[i].field]) {
+                        this.setJoin(parsed.join[i], joinOptions, builder);
+                    }
                 }
             }
         }

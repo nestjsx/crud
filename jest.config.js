@@ -20,5 +20,6 @@ module.exports = {
     '!**/node_modules/**',
     '!**/__stubs__/**',
     '!**/__fixture__/**',
+    '!integration/*',
   ],
 };

@@ -3,12 +3,12 @@ import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { RequestQueryBuilder } from '@nestjsx/crud-request';
 
-RequestQueryBuilder.setOptions({
-  paramNamesMap: {
-    fields: ['select'],
-    join: ['relation'],
-  },
-});
+// RequestQueryBuilder.setOptions({
+//   paramNamesMap: {
+//     fields: ['select'],
+//     join: ['relation'],
+//   },
+// });
 
 import { HttpExceptionFilter } from '../shared/https-exception.filter';
 import { AppModule } from './app.module';

@@ -2,11 +2,10 @@ import { Entity, Column, OneToMany } from 'typeorm';
 import { IsOptional, IsString, MaxLength, IsNotEmpty } from 'class-validator';
 import { Type } from 'class-transformer';
 import { CrudValidationGroups } from '@nestjsx/crud';
-// import { CREATE_UPDATE, CrudValidate } from '@nestjsx/crud';
 
 import { BaseEntity } from '../base-entity';
-// import { User } from '../users/user.entity';
-// import { Project } from '../projects/project.entity';
+import { User } from '../users/user.entity';
+import { Project } from '../projects/project.entity';
 // import { Task } from '../tasks/task.entity';
 
 const { CREATE, UPDATE } = CrudValidationGroups;
@@ -36,12 +35,12 @@ export class Company extends BaseEntity {
    * Relations
    */
 
-  // @OneToMany((type) => User, (u) => u.company)
-  // @Type((t) => User)
-  // users: User[];
+  @OneToMany((type) => User, (u) => u.company)
+  @Type((t) => User)
+  users: User[];
 
-  // @OneToMany((type) => Project, (p) => p.company)
-  // projects: Project[];
+  @OneToMany((type) => Project, (p) => p.company)
+  projects: Project[];
 
   // @OneToMany((type) => Task, (t) => t.company)
   // tasks: Task[];

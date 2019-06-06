@@ -242,12 +242,27 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     }
 
     // set joins
-    if (isArrayFull(parsed.join)) {
-      const joinOptions = options.query.join || {};
+    const joinOptions = options.query.join || {};
+    const allowedJoins = objKeys(joinOptions);
 
-      if (Object.keys(joinOptions).length) {
+    if (hasLength(allowedJoins)) {
+      let eagerJoins: any = {};
+
+      for (let i = 0; i < allowedJoins.length; i++) {
+        if (joinOptions[allowedJoins[i]].eager) {
+          const cond = parsed.join.find((j) => j && j.field === allowedJoins[i]) || {
+            field: allowedJoins[i],
+          };
+          this.setJoin(cond, joinOptions, builder);
+          eagerJoins[allowedJoins[i]] = true;
+        }
+      }
+
+      if (isArrayFull(parsed.join)) {
         for (let i = 0; i < parsed.join.length; i++) {
-          this.setJoin(parsed.join[i], joinOptions, builder);
+          if (!eagerJoins[parsed.join[i].field]) {
+            this.setJoin(parsed.join[i], joinOptions, builder);
+          }
         }
       }
     }
