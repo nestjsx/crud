@@ -61,9 +61,9 @@ export class CrudRoutesFactory {
   }
 
   private setOptionsDefaults() {
-    // if (isUndefined(this.options.model.service)) {
-    //   this.options.model.service = 'typeorm';
-    // }
+    if (!isObjectFull(this.options.query)) {
+      this.options.query = {};
+    }
     if (!isObjectFull(this.options.params)) {
       this.options.params = {
         id: {
@@ -342,10 +342,10 @@ export class CrudRoutesFactory {
     if (isEqual(name, 'createManyBase')) {
       const bulkDto = Validation.createBulkDto(this.options);
       R.setRouteArgsTypes([Object, bulkDto], this.targetProto, name);
-    }
-
-    if (isEqual(name, 'createOneBase') || isEqual(name, 'updateOneBase')) {
+    } else if (isEqual(name, 'createOneBase') || isEqual(name, 'updateOneBase')) {
       R.setRouteArgsTypes([Object, this.modelType], this.targetProto, name);
+    } else {
+      R.setRouteArgsTypes([Object], this.targetProto, name);
     }
   }
 

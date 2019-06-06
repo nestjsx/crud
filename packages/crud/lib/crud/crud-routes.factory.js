@@ -44,6 +44,9 @@ class CrudRoutesFactory {
         this.enableRoutes(routesSchema);
     }
     setOptionsDefaults() {
+        if (!util_1.isObjectFull(this.options.query)) {
+            this.options.query = {};
+        }
         if (!util_1.isObjectFull(this.options.params)) {
             this.options.params = {
                 id: {
@@ -275,8 +278,11 @@ class CrudRoutesFactory {
             const bulkDto = validation_helper_1.Validation.createBulkDto(this.options);
             reflection_helper_1.R.setRouteArgsTypes([Object, bulkDto], this.targetProto, name);
         }
-        if (util_1.isEqual(name, 'createOneBase') || util_1.isEqual(name, 'updateOneBase')) {
+        else if (util_1.isEqual(name, 'createOneBase') || util_1.isEqual(name, 'updateOneBase')) {
             reflection_helper_1.R.setRouteArgsTypes([Object, this.modelType], this.targetProto, name);
+        }
+        else {
+            reflection_helper_1.R.setRouteArgsTypes([Object], this.targetProto, name);
         }
     }
     setInterceptors(name) {

@@ -1,2 +1,1 @@
-declare const _default: {};
-export default _default;
+export * from './typeorm-crud.service';
