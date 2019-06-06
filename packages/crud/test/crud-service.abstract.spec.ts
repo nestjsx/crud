@@ -25,5 +25,18 @@ describe('#crud', () => {
         );
       });
     });
+
+    describe('#createPageInfo', () => {
+      it('should return an object', () => {
+        const expected = {
+          count: 0,
+          data: [],
+          page: 2,
+          pageCount: 10,
+          total: 100,
+        };
+        expect(service.createPageInfo([], 100, 10, 10)).toMatchObject(expected);
+      });
+    });
   });
 });

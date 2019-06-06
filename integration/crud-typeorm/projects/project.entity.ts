@@ -1,9 +1,8 @@
-import { Entity, Column, ManyToOne, ManyToMany, OneToMany, JoinTable } from 'typeorm';
+import { Entity, Column, ManyToOne, ManyToMany, JoinTable } from 'typeorm';
 
 import { BaseEntity } from '../base-entity';
 import { Company } from '../companies/company.entity';
 import { User } from '../users/user.entity';
-// import { Task } from '../tasks/task.entity';
 
 @Entity('projects')
 export class Project extends BaseEntity {
@@ -26,7 +25,4 @@ export class Project extends BaseEntity {
   @ManyToMany((type) => User, (u) => u.projects, { cascade: true })
   @JoinTable()
   users: User[];
-
-  // @OneToMany((type) => Task, (t) => t.project)
-  // tasks: Task[];
 }

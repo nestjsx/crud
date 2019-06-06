@@ -4,8 +4,6 @@ import { HttpException, InternalServerErrorException } from '@nestjs/common';
 @Catch()
 export class HttpExceptionFilter implements ExceptionFilter {
   catch(exception: HttpException, host: ArgumentsHost) {
-    console.error(exception);
-
     const ctx = host.switchToHttp();
     const response = ctx.getResponse();
     const { status, json } = this.prepareException(exception);
