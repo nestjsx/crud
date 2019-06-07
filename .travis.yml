@@ -12,15 +12,14 @@ before_install:
   - chmod +x docker-compose
   - sudo mv docker-compose /usr/local/bin
 
-before_script:
-  - npm i -g npm@latest
+cache:
+  yarn: true
+  directories:
+    - node_modules
 
 install:
   - docker-compose up -d
-  - cd integration/typeorm
-  - npm i
-  - cd ../../
-  - npm i
+  - yarn bootstrap
 
 script:
-  - npm run test:e2e -- --coverageReporters=text-lcov | coveralls
+  - yarn test
