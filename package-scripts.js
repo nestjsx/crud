@@ -25,6 +25,7 @@ const setBuild = () =>
 const setTest = () =>
   packagesNames.reduce((a, c) => ({ ...a, [c]: getTestCmd(c) }), {
     default: getTestCmd(false, true),
+    coveralls: getTestCmd(false, true) + ' --coverageReporters=text-lcov | coveralls',
   });
 
 module.exports = {
