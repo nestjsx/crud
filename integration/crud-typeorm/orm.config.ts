@@ -4,7 +4,7 @@ import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 export const withCache: TypeOrmModuleOptions = {
   type: 'postgres',
   host: '127.0.0.1',
-  port: 5432,
+  port: 5455,
   username: 'root',
   password: 'root',
   database: 'nestjsx_crud',
@@ -14,7 +14,7 @@ export const withCache: TypeOrmModuleOptions = {
     type: 'redis',
     options: {
       host: '127.0.0.1',
-      port: 6379,
+      port: 6399,
     },
   },
   entities: [join(__dirname, './**/*.entity{.ts,.js}')],
