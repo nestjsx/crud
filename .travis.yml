@@ -22,4 +22,4 @@ install:
   - yarn bootstrap
 
 script:
-  - yarn test
+  - yarn test | coveralls

@@ -33,6 +33,7 @@
     "@types/supertest": "^2.0.7",
     "class-transformer": "^0.2.3",
     "class-validator": "^0.9.1",
+    "coveralls": "^3.0.4",
     "jest": "^24.8.0",
     "lerna": "^3.14.1",
     "nodemon": "^1.19.1",
