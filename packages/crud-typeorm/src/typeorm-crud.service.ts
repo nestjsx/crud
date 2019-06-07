@@ -83,6 +83,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
   public async createOne(req: CrudRequest, dto: T): Promise<T> {
     const entity = this.prepareEntityBeforeSave(dto, req.parsed.paramsFilter);
 
+    /* istanbul ignore if */
     if (!entity) {
       this.throwBadRequestException(`Empty data. Nothing to save.`);
     }
@@ -96,6 +97,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
    * @param dto
    */
   public async createMany(req: CrudRequest, dto: CreateManyDto<T>): Promise<T[]> {
+    /* istanbul ignore if */
     if (!isObject(dto) || !isArrayFull(dto.bulk)) {
       this.throwBadRequestException(`Empty data. Nothing to save.`);
     }
@@ -104,6 +106,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
       .map((one) => this.prepareEntityBeforeSave(one, req.parsed.paramsFilter))
       .filter((d) => !isUndefined(d));
 
+    /* istanbul ignore if */
     if (!hasLength(bulk)) {
       this.throwBadRequestException(`Empty data. Nothing to save.`);
     }
@@ -119,6 +122,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
   public async updateOne(req: CrudRequest, dto: T): Promise<T> {
     const found = await this.getOneOrFail(req);
 
+    /* istanbul ignore else */
     if (
       hasLength(req.parsed.paramsFilter) &&
       !req.options.routes.updateOneBase.allowParamsOverride
@@ -139,6 +143,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     const found = await this.getOneOrFail(req);
     const deleted = await this.repo.remove(found);
 
+    /* istanbul ignore else */
     if (req.options.routes.deleteOneBase.returnDeleted) {
       // set params, because id is undefined
       for (const filter of req.parsed.paramsFilter) {
@@ -249,6 +254,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
       let eagerJoins: any = {};
 
       for (let i = 0; i < allowedJoins.length; i++) {
+        /* istanbul ignore else */
         if (joinOptions[allowedJoins[i]].eager) {
           const cond = parsed.join.find((j) => j && j.field === allowedJoins[i]) || {
             field: allowedJoins[i],
@@ -260,6 +266,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
 
       if (isArrayFull(parsed.join)) {
         for (let i = 0; i < parsed.join.length; i++) {
+          /* istanbul ignore else */
           if (!eagerJoins[parsed.join[i].field]) {
             this.setJoin(parsed.join[i], joinOptions, builder);
           }
@@ -267,6 +274,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
       }
     }
 
+    /* istanbul ignore else */
     if (many) {
       // set sort (order by)
       const sort = this.getSort(parsed, options.query);
@@ -274,18 +282,21 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
 
       // set take
       const take = this.getTake(parsed, options.query);
+      /* istanbul ignore else */
       if (isFinite(take)) {
         builder.take(take);
       }
 
       // set skip
       const skip = this.getSkip(parsed, take);
+      /* istanbul ignore else */
       if (isFinite(skip)) {
         builder.skip(skip);
       }
     }
 
     // set cache
+    /* istanbul ignore else */
     if (options.query.cache && parsed.cache !== 0) {
       builder.cache(builder.getQueryAndParameters(), options.query.cache);
     }
@@ -345,6 +356,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
   }
 
   private prepareEntityBeforeSave(dto: T, paramsFilter: QueryFilter[]): T {
+    /* istanbul ignore if */
     if (!isObject(dto)) {
       return undefined;
     }
@@ -355,6 +367,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
       }
     }
 
+    /* istanbul ignore if */
     if (!hasLength(objKeys(dto))) {
       return undefined;
     }
@@ -406,16 +419,16 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
 
   private getAllowedColumns(columns: string[], options: QueryOptions): string[] {
     return (!options.exclude || !options.exclude.length) &&
-      (!options.allow || !options.allow.length)
+      (!options.allow || /* istanbul ignore next */ !options.allow.length)
       ? columns
       : columns.filter(
           (column) =>
             (options.exclude && options.exclude.length
               ? !options.exclude.some((col) => col === column)
-              : true) &&
+              : /* istanbul ignore next */ true) &&
             (options.allow && options.allow.length
               ? options.allow.some((col) => col === column)
-              : true),
+              : /* istanbul ignore next */ true),
         );
   }
 
@@ -461,18 +474,20 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
         type: this.getJoinType(curr.relationType),
         columns: curr.inverseEntityMetadata.columns.map((col) => col.propertyName),
         referencedColumn: (curr.joinColumns.length
-          ? curr.joinColumns[0]
+          ? /* istanbul ignore next */ curr.joinColumns[0]
           : curr.inverseRelation.joinColumns[0]
         ).referencedColumn.propertyName,
         nestedRelation: curr.nestedRelation,
       };
     }
 
+    /* istanbul ignore else */
     if (cond.field && this.entityRelationsHash[cond.field] && joinOptions[cond.field]) {
       const relation = this.entityRelationsHash[cond.field];
       const options = joinOptions[cond.field];
       const allowed = this.getAllowedColumns(relation.columns, options);
 
+      /* istanbul ignore if */
       if (!allowed.length) {
         return true;
       }
@@ -541,7 +556,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
           : options.maxLimit
         : query.limit;
     }
-
+    /* istanbul ignore if */
     if (options.limit) {
       return options.maxLimit
         ? options.limit <= options.maxLimit
@@ -626,6 +641,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
         break;
 
       case 'in':
+        /* istanbul ignore if */
         if (!Array.isArray(cond.value) || !cond.value.length) {
           this.throwBadRequestException(`Invalid column '${cond.field}' value`);
         }
@@ -633,6 +649,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
         break;
 
       case 'notin':
+        /* istanbul ignore if */
         if (!Array.isArray(cond.value) || !cond.value.length) {
           this.throwBadRequestException(`Invalid column '${cond.field}' value`);
         }
@@ -650,6 +667,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
         break;
 
       case 'between':
+        /* istanbul ignore if */
         if (!Array.isArray(cond.value) || !cond.value.length || cond.value.length !== 2) {
           this.throwBadRequestException(`Invalid column '${cond.field}' value`);
         }
@@ -660,6 +678,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
         };
         break;
 
+      /* istanbul ignore next */
       default:
         str = `${field} = :${param}`;
         break;

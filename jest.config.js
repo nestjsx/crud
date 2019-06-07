@@ -10,7 +10,7 @@ module.exports = {
       tsConfig: 'tsconfig.jest.json',
     },
   },
-  coverageReporters: ['lcov', 'text-summary'],
+  coverageReporters: ['json', 'lcov', 'text-summary'],
   coverageDirectory: 'coverage',
   collectCoverageFrom: [
     'packages/**/*.ts',

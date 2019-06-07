@@ -19,27 +19,27 @@ export class Seeds1544303473346 implements MigrationInterface {
 
     // projects
     await queryRunner.query(`
-      INSERT INTO public.projects ("name", "companyId") VALUES
-      ('Project1', 1),
-      ('Project2', 1),
-      ('Project3', 2),
-      ('Project4', 2),
-      ('Project5', 3),
-      ('Project6', 3),
-      ('Project7', 4),
-      ('Project8', 4),
-      ('Project9', 5),
-      ('Project10', 5),
-      ('Project11', 6),
-      ('Project12', 6),
-      ('Project13', 7),
-      ('Project14', 7),
-      ('Project15', 8),
-      ('Project16', 8),
-      ('Project17', 9),
-      ('Project18', 9),
-      ('Project19', 10),
-      ('Project20', 10);
+      INSERT INTO public.projects ("name", "description", "isActive", "companyId") VALUES
+      ('Project1', 'description1', true, 1),
+      ('Project2', 'description2', true, 1),
+      ('Project3', 'description3', true, 2),
+      ('Project4', 'description4', true, 2),
+      ('Project5', 'description5', true, 3),
+      ('Project6', 'description6', true, 3),
+      ('Project7', 'description7', true, 4),
+      ('Project8', 'description8', true, 4),
+      ('Project9', 'description9', true, 5),
+      ('Project10', 'description10', true, 5),
+      ('Project11', 'description11', false, 6),
+      ('Project12', 'description12', false, 6),
+      ('Project13', 'description13', false, 7),
+      ('Project14', 'description14', false, 7),
+      ('Project15', 'description15', false, 8),
+      ('Project16', 'description16', false, 8),
+      ('Project17', 'description17', false, 9),
+      ('Project18', 'description18', false, 9),
+      ('Project19', 'description19', false, 10),
+      ('Project20', 'description20', false, 10);
     `);
 
     // users-profiles

@@ -35,10 +35,10 @@ export class User extends BaseEntity {
   isActive: boolean;
 
   @Column({ nullable: true })
-  profileId: number;
+  profileId?: number;
 
   @Column({ nullable: false })
-  companyId: number;
+  companyId?: number;
 
   /**
    * Relations
@@ -50,11 +50,11 @@ export class User extends BaseEntity {
   @Type((t) => UserProfile)
   @OneToOne((type) => UserProfile, (p) => p.user, { cascade: true })
   @JoinColumn()
-  profile: UserProfile;
+  profile?: UserProfile;
 
   @ManyToOne((type) => Company, (c) => c.users)
-  company: Company;
+  company?: Company;
 
   @ManyToMany((type) => Project, (c) => c.users)
-  projects: Project[];
+  projects?: Project[];
 }

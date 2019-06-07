@@ -2,11 +2,11 @@ import { PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn } from 'type
 
 export class BaseEntity {
   @PrimaryGeneratedColumn()
-  id: number;
+  id?: number;
 
   @CreateDateColumn({ nullable: true })
-  createdAt: Date;
+  createdAt?: Date;
 
   @UpdateDateColumn({ nullable: true })
-  updatedAt: Date;
+  updatedAt?: Date;
 }

@@ -64,10 +64,10 @@ export class RequestQueryBuilder {
 
   query(): string {
     this.queryString = (
-      this.getFields() +
+      this.getJoin() +
       this.getCondition('filter') +
       this.getCondition('or') +
-      this.getJoin() +
+      this.getFields() +
       this.getSort() +
       this.getNumeric('limit') +
       this.getNumeric('offset') +
