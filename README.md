@@ -8,6 +8,8 @@
   <a href="https://coveralls.io/github/nestjsx/crud?branch=master"><img src="https://coveralls.io/repos/github/nestjsx/crud/badge.svg?branch=master" alt="Build" /></a>
   <a href="https://travis-ci.org/nestjsx/crud"><img src="https://travis-ci.org/nestjsx/crud.svg?branch=master" alt="Coverage" /></a>
   <a href="https://github.com/nestjsx/crud/blob/master/LICENSE"><img src="https://img.shields.io/github/license/nestjsx/crud.svg" alt="License" /></a>
+  <a href="https://github.com/marmelab/awesome-rest#nodejs"><img src="https://github.com/nestjsx/crud/raw/next/img/awesome-rest.svg" alt="Awesome REST" /></a>
+  <a href="https://github.com/juliandavidmr/awesome-nestjs#components--libraries"><img src="https://github.com/nestjsx/crud/raw/next/img/awesome-nest.svg" alt="Awesome Nest" /></a>
 </p>
 
 # NestJs CRUD for RESTful APIs
