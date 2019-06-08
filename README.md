@@ -1,9 +1,12 @@
-<p align="center">
+<!-- <p align="center">
   <a href="https://github.com/nestjsx" target="blank"><img src="img/nestjsx-logo.png" width="160" alt="Nestjsx Logo" /></a>
-</p>
+</p> -->
 
 <div align="center">
   <h1>CRUD</h1>
+</div>
+<div align="center">
+  :star2: :eyes: :zap: :boom:
 </div>
 <div align="center">
   <strong>for RESTful APIs built with NestJs</strong>
@@ -33,3 +36,5 @@
     Contributors
   </a>
 </div>
+
+:electric_plug: easy to start cracking
