@@ -21,6 +21,7 @@
   </a>
   <a href="https://npm.packagequality.com/#?package=@nestjsx%2Fcrud"><img src="https://npm.packagequality.com/shield/%40nestjsx%2Fcrud.svg" alt="Package Quality"/></a>
   <a href="https://greenkeeper.io/"><img src="https://badges.greenkeeper.io/nestjsx/crud.svg" alt="Greenkeeper" /></a>
+  <a href="http://makeapullrequest.com"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square" alt="PRs welcome" /></a>
   <a href="https://github.com/marmelab/awesome-rest#nodejs"><img src="img/awesome-rest.svg" alt="Awesome REST" /></a>
   <a href="https://github.com/juliandavidmr/awesome-nestjs#components--libraries"><img src="img/awesome-nest.svg" alt="Awesome Nest" /></a>
   <a href="https://github.com/nestjs/nest"><img src="img/nest-powered.svg" alt="Nest Powered" /></a>
@@ -52,5 +53,7 @@
 :space_invader: Query, path params and DTOs validation included
 
 :clapper: Overriding controller methods with ease
+
+:wrench: Tiny config (including globally)
 
 :gift: Additional helper decorators
