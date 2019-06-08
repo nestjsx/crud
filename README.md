@@ -37,4 +37,9 @@
   </a>
 </div>
 
-:electric_plug: easy to start cracking
+## Features
+
+<img align="right" src="img/crud-usage.png" alt="CRUD usage" />
+
+:electric_plug: super easy to install and start using :point_right:  
+:octopus: DB agnostic CRUD endpoints generation
