@@ -10,6 +10,7 @@
   <a href="https://github.com/nestjsx/crud/blob/master/LICENSE"><img src="https://img.shields.io/github/license/nestjsx/crud.svg" alt="License" /></a>
   <a href="https://github.com/marmelab/awesome-rest#nodejs"><img src="img/awesome-rest.svg" alt="Awesome REST" /></a>
   <a href="https://github.com/juliandavidmr/awesome-nestjs#components--libraries"><img src="img/awesome-nest.svg" alt="Awesome Nest" /></a>
+  <a href="https://github.com/juliandavidmr/awesome-nestjs#components--libraries"><img src="img/nest-powered.svg" alt="Nest Powered" /></a>
 </p>
 
 # NestJs CRUD for RESTful APIs
