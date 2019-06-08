@@ -1,0 +1,11 @@
+{
+  "groups": {
+    "default": {
+      "packages": [
+        "dist/package.json",
+        "integration/typeorm/package.json",
+        "package.json"
+      ]
+    }
+  }
+}
