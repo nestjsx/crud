@@ -44,3 +44,13 @@
 :electric_plug: Super easy to install and start using the full-featured controllers and services :point_right:
 
 :octopus: DB and service agnostic extendable CRUD controllers
+
+:mag_right: Reach query parsing with filtering, pagination, sorting, relations, nested relations, cache, etc.
+
+:telescope: Framework agnostic package with query builder for a front-end usage
+
+:space_invader: Query, path params and DTOs validation included
+
+:clapper: Overriding controller methods with ease
+
+:gift: Additional helper decorators
