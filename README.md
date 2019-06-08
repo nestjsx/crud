@@ -1,7 +1,3 @@
-<!-- <p align="center">
-  <a href="https://github.com/nestjsx" target="blank"><img src="img/nestjsx-logo.png" width="160" alt="Nestjsx Logo" /></a>
-</p> -->
-
 <div align="center">
   <h1>CRUD</h1>
 </div>
@@ -38,9 +34,13 @@
   </div>
 </div>
 
+<br />
+
+I believe that everyone who's working with NestJs and building some RESTful services and especially some CRUD functionality will find `@nestjsx/crud` microframework very useful.
+
 ## Features
 
-<img align="right" src="img/crud-usage1.png" alt="CRUD usage" />
+<img align="right" src="img/crud-usage2.png" alt="CRUD usage" />
 
 :electric_plug: Super easy to install and start using the full-featured controllers and services :point_right:
 
@@ -57,3 +57,5 @@
 :wrench: Tiny config (including globally)
 
 :gift: Additional helper decorators
+
+## Install
