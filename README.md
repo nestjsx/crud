@@ -6,9 +6,6 @@
   <h1>CRUD</h1>
 </div>
 <div align="center">
-  :star2: :eyes: :zap: :boom:
-</div>
-<div align="center">
   <strong>for RESTful APIs built with NestJs</strong>
 </div>
 
@@ -35,11 +32,15 @@
   <a href="https://github.com/nestjsx/crud/graphs/contributors">
     Contributors
   </a>
+  <div align="center">
+    :star2: :eyes: :zap: :boom:
+  </div>
 </div>
 
 ## Features
 
-<img align="right" src="img/crud-usage.png" alt="CRUD usage" />
+<img align="right" src="img/crud-usage1.png" alt="CRUD usage" />
 
-:electric_plug: super easy to install and start using :point_right:  
-:octopus: DB agnostic CRUD endpoints generation
+:electric_plug: Super easy to install and start using the full-featured controllers and services :point_right:
+
+:octopus: DB and service agnostic extendable CRUD controllers
