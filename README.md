@@ -12,6 +12,8 @@
 
 # NestJs CRUD for RESTful APIs
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/nestjsx/crud.svg)](https://greenkeeper.io/)
+
 `@nestjsx/crud` has been designed for creating CRUD controllers and services for RESTful applications built with NestJs. It can be used with TypeORM repositories for now, but Mongoose functionality perhaps will be available in the future.
 
 ## Features and merits
