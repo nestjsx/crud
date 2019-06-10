@@ -42,27 +42,33 @@ We believe that everyone who's working with NestJs and building some RESTful ser
 
 <img align="right" src="img/crud-usage2.png" alt="CRUD usage" />
 
-:electric_plug: Super easy to install and start using the full-featured controllers and services :point_right:
+- :electric_plug: Super easy to install and start using the full-featured controllers and services :point_right:
 
-:octopus: DB and service agnostic extendable CRUD controllers
+- :octopus: DB and service agnostic extendable CRUD controllers
 
-:mag_right: Reach query parsing with filtering, pagination, sorting, relations, nested relations, cache, etc.
+- :mag_right: Reach query parsing with filtering, pagination, sorting, relations, nested relations, cache, etc.
 
-:telescope: Framework agnostic package with query builder for a frontend usage
+- :telescope: Framework agnostic package with query builder for a frontend usage
 
-:space_invader: Query, path params and DTOs validation included
+- :space_invader: Query, path params and DTOs validation included
 
-:clapper: Overriding controller methods with ease
+- :clapper: Overriding controller methods with ease
 
-:wrench: Tiny config (including globally)
+- :wrench: Tiny config (including globally)
 
-:gift: Additional helper decorators
+- :gift: Additional helper decorators
+
+- :pencil2: Swagger documentation
 
 ## Packages
 
 - [**@nestjsx/crud**]() - core package which provides `@Crud()` decorator for endpoints generation, global configuration, validation, helper decorators ([docs]())
 - [**@nestjsx/crud-typeorm**]() - TypeORM package which provides base `TypeOrmCrudService` with methods for CRUD database operations ([docs]())
 - [**@nestjsx/crud-request**]() - request builder/parser package wich provides `RequestQueryBuilder` class for a frontend usage and `RequestQueryParser` that is being used internaly for handling and validating query/path params on a backend side ([docs]())
+
+## Documentation
+
+Use [Wiki]()
 
 ## Roadmap
 
@@ -71,6 +77,28 @@ We believe that everyone who's working with NestJs and building some RESTful ser
 - [ ] Mongoose
 - [ ] Sequelize
 - [ ] JSON API standard
+
+## Support
+
+Any support is wellcome.
+
+### Contribution
+
+Please open an [issue](https://github.com/nestjsx/crud/issues) or submit a [PR](https://github.com/nestjsx/crud/pulls) if you want to improve the functionality or help with testing edge cases.
+
+### Sponsorship
+
+<a href="https://opencollective.com/nestjsx/donate" target="_blank">
+  <img src="https://opencollective.com/nestjsx/donate/button@2x.png?color=blue" width=200 />
+</a>
+
+## Tests
+
+```shell
+docker-compose up -d
+yarn bootstrap
+yarn test
+```
 
 ## License
 
