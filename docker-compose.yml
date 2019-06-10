@@ -1,7 +1,7 @@
 version: '3'
 
 networks:
-  nestjsx_crud_e2e:
+  nestjsx_crud:
 
 services:
   postresql:
@@ -11,9 +11,9 @@ services:
     environment:
       POSTGRES_USER: root
       POSTGRES_PASSWORD: root
-      POSTGRES_DB: nestjsx_crud_e2e
+      POSTGRES_DB: nestjsx_crud
     networks:
-      - nestjsx_crud_e2e
+      - nestjsx_crud
 
   redis:
     image: redis:alpine
@@ -21,4 +21,4 @@ services:
       - 6399:6379
     command: redis-server
     networks:
-      - nestjsx_crud_e2e
+      - nestjsx_crud

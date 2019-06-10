@@ -1,0 +1,48 @@
+{
+  "name": "@nestjsx/crud-request",
+  "description": "NestJs request query builder for RESTful APIs",
+  "version": "4.0.0",
+  "license": "MIT",
+  "main": "lib/index.js",
+  "typings": "lib/index.d.ts",
+  "files": [
+    "lib"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nestjsx/crud.git"
+  },
+  "bugs": {
+    "url": "https://github.com/nestjsx/crud/issues"
+  },
+  "keywords": [
+    "typescript",
+    "typeorm",
+    "nest",
+    "nestjs",
+    "rest",
+    "restful",
+    "api",
+    "crud",
+    "crud-generator",
+    "http",
+    "request",
+    "request-query",
+    "requestquery",
+    "get",
+    "query",
+    "query-string",
+    "querystring",
+    "query-builder",
+    "querybuilder"
+  ],
+  "author": {
+    "name": "Michael Yali",
+    "email": "mihon4ik@gmail.com"
+  },
+  "scripts": {
+    "prebuild": "npx rimraf ./lib",
+    "build": "tsc -b"
+  },
+  "dependencies": {}
+}
