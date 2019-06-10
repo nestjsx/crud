@@ -64,13 +64,13 @@ We believe that everyone who's working with NestJs and building some RESTful ser
 - [**@nestjsx/crud-typeorm**]() - TypeORM package which provides base `TypeOrmCrudService` with methods for CRUD database operations ([docs]())
 - [**@nestjsx/crud-request**]() - request builder/parser package wich provides `RequestQueryBuilder` class for a frontend usage and `RequestQueryParser` that is being used internaly for handling and validating query/path params on a backend side ([docs]())
 
-## Rodamap
+## Roadmap
 
 - [x] Monorepository
 - [x] TypeORM
-- [] Mongoose
-- [] Sequelize
-- [] JSON API standard
+- [ ] Mongoose
+- [ ] Sequelize
+- [ ] JSON API standard
 
 ## License
 
