@@ -9,7 +9,7 @@
 
 <div align="center">
   <a href="https://travis-ci.org/nestjsx/crud"><img src="https://travis-ci.org/nestjsx/crud.svg?branch=master" alt="Build" /></a>
-  <a href="https://coveralls.io/github/nestjsx/crud?branch=master"><img src="https://coveralls.io/repos/github/nestjsx/crud/badge.svg?branch=master" alt="Coverage" /></a>
+  <a href="https://coveralls.io/github/nestjsx/crud?branch=master"><img src="https://coveralls.io/repos/github/nestjsx/crud/badge.svg" alt="Coverage" /></a>
   <a href="https://github.com/nestjsx/crud/blob/master/LICENSE"><img src="https://img.shields.io/github/license/nestjsx/crud.svg" alt="License" /></a>
   <a href=""><img src="https://img.shields.io/npm/v/@nestjsx/crud.svg" alt="npm" /></a>
   <a href="https://www.npmjs.com/org/nestjsx">
