@@ -34,5 +34,7 @@
     "prebuild": "npx rimraf ./lib",
     "build": "tsc -b"
   },
-  "dependencies": {}
+  "dependencies": {
+    "deepmerge": "^3.2.0"
+  }
 }

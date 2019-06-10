@@ -3,11 +3,13 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const common_1 = require("@nestjs/common");
 const route_paramtypes_enum_1 = require("@nestjs/common/enums/route-paramtypes.enum");
 const util_1 = require("@nestjsx/util");
+const deepmerge = require("deepmerge");
 const reflection_helper_1 = require("./reflection.helper");
 const swagger_helper_1 = require("./swagger.helper");
 const validation_helper_1 = require("./validation.helper");
 const interceptors_1 = require("../interceptors");
 const enums_1 = require("../enums");
+const module_1 = require("../module");
 class CrudRoutesFactory {
     constructor(target, options) {
         this.target = target;
@@ -38,53 +40,20 @@ class CrudRoutesFactory {
     }
     create() {
         const routesSchema = this.getRoutesSchema();
-        this.setOptionsDefaults();
+        this.mergeOptions();
         this.createRoutes(routesSchema);
         this.overrideRoutes(routesSchema);
         this.enableRoutes(routesSchema);
     }
-    setOptionsDefaults() {
-        if (!util_1.isObjectFull(this.options.query)) {
-            this.options.query = {};
-        }
-        if (!util_1.isObjectFull(this.options.params)) {
-            this.options.params = {
-                id: {
-                    field: 'id',
-                    type: 'number',
-                    primary: true,
-                },
-            };
-        }
-        if (!util_1.isObjectFull(this.options.routes)) {
-            this.options.routes = {};
-        }
-        if (!util_1.isObjectFull(this.options.routes.getManyBase)) {
-            this.options.routes.getManyBase = { interceptors: [], decorators: [] };
-        }
-        if (!util_1.isObjectFull(this.options.routes.getOneBase)) {
-            this.options.routes.getOneBase = { interceptors: [], decorators: [] };
-        }
-        if (!util_1.isObjectFull(this.options.routes.createOneBase)) {
-            this.options.routes.createOneBase = { interceptors: [], decorators: [] };
-        }
-        if (!util_1.isObjectFull(this.options.routes.createManyBase)) {
-            this.options.routes.createManyBase = { interceptors: [], decorators: [] };
-        }
-        if (!util_1.isObjectFull(this.options.routes.updateOneBase)) {
-            this.options.routes.updateOneBase = {
-                allowParamsOverride: false,
-                interceptors: [],
-                decorators: [],
-            };
-        }
-        if (!util_1.isObjectFull(this.options.routes.deleteOneBase)) {
-            this.options.routes.deleteOneBase = {
-                returnDeleted: false,
-                interceptors: [],
-                decorators: [],
-            };
-        }
+    mergeOptions() {
+        const query = util_1.isObjectFull(this.options.query) ? this.options.query : {};
+        this.options.query = Object.assign({}, module_1.CrudConfigService.config.query, query);
+        const routes = util_1.isObjectFull(this.options.routes) ? this.options.routes : {};
+        this.options.routes = deepmerge(module_1.CrudConfigService.config.routes, routes, {
+            arrayMerge: (a, b, c) => b,
+        });
+        const params = util_1.isObjectFull(this.options.params) ? this.options.params : {};
+        this.options.params = Object.assign({}, module_1.CrudConfigService.config.params, params);
         reflection_helper_1.R.setCrudOptions(this.options, this.target);
     }
     getRoutesSchema() {

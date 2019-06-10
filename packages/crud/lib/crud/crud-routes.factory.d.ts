@@ -9,7 +9,7 @@ export declare class CrudRoutesFactory {
     private readonly modelType;
     private readonly actionsMap;
     private create;
-    private setOptionsDefaults;
+    private mergeOptions;
     private getRoutesSchema;
     private getManyBase;
     private getOneBase;
