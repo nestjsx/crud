@@ -8,19 +8,39 @@
 <br />
 
 <div align="center">
-  <a href="https://travis-ci.org/nestjsx/crud"><img src="https://travis-ci.org/nestjsx/crud.svg?branch=master" alt="Build" /></a>
-  <a href="https://coveralls.io/github/nestjsx/crud?branch=master"><img src="https://coveralls.io/repos/github/nestjsx/crud/badge.svg" alt="Coverage" /></a>
-  <a href="https://github.com/nestjsx/crud/blob/master/LICENSE"><img src="https://img.shields.io/github/license/nestjsx/crud.svg" alt="License" /></a>
-  <a href=""><img src="https://img.shields.io/npm/v/@nestjsx/crud.svg" alt="npm" /></a>
-  <a href="https://www.npmjs.com/org/nestjsx">
-  <img alt="npm downloads" src="https://img.shields.io/npm/dm/@nestjsx/crud.svg">
+  <a href="https://travis-ci.org/nestjsx/crud">
+    <img src="https://travis-ci.org/nestjsx/crud.svg?branch=master" alt="Build" />
   </a>
-  <a href="https://npm.packagequality.com/#?package=@nestjsx%2Fcrud"><img src="https://npm.packagequality.com/shield/%40nestjsx%2Fcrud.svg" alt="Package Quality"/></a>
-  <a href="https://greenkeeper.io/"><img src="https://badges.greenkeeper.io/nestjsx/crud.svg" alt="Greenkeeper" /></a>
-  <a href="http://makeapullrequest.com"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square" alt="PRs welcome" /></a>
-  <a href="https://github.com/marmelab/awesome-rest#nodejs"><img src="img/awesome-rest.svg" alt="Awesome REST" /></a>
-  <a href="https://github.com/juliandavidmr/awesome-nestjs#components--libraries"><img src="img/awesome-nest.svg" alt="Awesome Nest" /></a>
-  <a href="https://github.com/nestjs/nest"><img src="img/nest-powered.svg" alt="Nest Powered" /></a>
+  <a href="https://coveralls.io/github/nestjsx/crud?branch=master">
+    <img src="https://coveralls.io/repos/github/nestjsx/crud/badge.svg" alt="Coverage" />
+  </a>
+  <a href="https://github.com/nestjsx/crud/blob/master/LICENSE">
+    <img src="https://img.shields.io/github/license/nestjsx/crud.svg" alt="License" />
+  </a>
+  <a href="https://www.npmjs.com/package/@nestjsx/crud">
+    <img src="https://img.shields.io/npm/v/@nestjsx/crud.svg" alt="npm version" />
+  </a>
+  <a href="https://www.npmjs.com/org/nestjsx">
+    <img src="https://img.shields.io/npm/dm/@nestjsx/crud.svg" alt="npm downloads" />
+  </a>
+  <a href="https://npm.packagequality.com/#?package=@nestjsx%2Fcrud">
+    <img src="https://npm.packagequality.com/shield/%40nestjsx%2Fcrud.svg" alt="Package Quality" />
+  </a>
+  <a href="https://greenkeeper.io/">
+    <img src="https://badges.greenkeeper.io/nestjsx/crud.svg" alt="Greenkeeper" />
+  </a>
+  <a href="http://makeapullrequest.com">
+    <img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square" alt="PRs welcome" />
+  </a>
+  <a href="https://github.com/marmelab/awesome-rest#nodejs">
+    <img src="https://raw.githubusercontent.com/nestjsx/crud/master/img/awesome-rest.svg?sanitize=true" alt="Awesome REST" />
+  </a>
+  <a href="https://github.com/juliandavidmr/awesome-nestjs#components--libraries">
+    <img src="https://raw.githubusercontent.com/nestjsx/crud/master/img/awesome-nest.svg?sanitize=true" alt="Awesome Nest" />
+  </a>
+  <a href="https://github.com/nestjs/nest">
+    <img src="https://raw.githubusercontent.com/nestjsx/crud/master/img/nest-powered.svg?sanitize=true" alt="Nest Powered" />
+  </a>
 </div>
 
 <div align="center">
@@ -62,13 +82,13 @@ We believe that everyone who's working with NestJs and building some RESTful ser
 
 ## Packages
 
-- [**@nestjsx/crud**]() - core package which provides `@Crud()` decorator for endpoints generation, global configuration, validation, helper decorators ([docs]())
-- [**@nestjsx/crud-typeorm**]() - TypeORM package which provides base `TypeOrmCrudService` with methods for CRUD database operations ([docs]())
-- [**@nestjsx/crud-request**]() - request builder/parser package wich provides `RequestQueryBuilder` class for a frontend usage and `RequestQueryParser` that is being used internaly for handling and validating query/path params on a backend side ([docs]())
+- [**@nestjsx/crud**](https://www.npmjs.com/package/@nestjsx/crud) - core package which provides `@Crud()` decorator for endpoints generation, global configuration, validation, helper decorators ([docs]())
+- [**@nestjsx/crud-typeorm**](https://www.npmjs.com/package/@nestjsx/crud-typeorm) - TypeORM package which provides base `TypeOrmCrudService` with methods for CRUD database operations ([docs]())
+- [**@nestjsx/crud-request**](https://www.npmjs.com/package/@nestjsx/crud-request) - request builder/parser package wich provides `RequestQueryBuilder` class for a frontend usage and `RequestQueryParser` that is being used internaly for handling and validating query/path params on a backend side ([docs]())
 
 ## Documentation
 
-Use [Wiki]()
+Use [Wiki](https://github.com/nestjsx/crud/wiki)
 
 ## Roadmap
 
