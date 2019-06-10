@@ -1,6 +1,6 @@
 {
   "name": "@nestjsx/crud-request",
-  "description": "NestJs request query builder for RESTful APIs",
+  "description": "NestJs CRUD for RESTful APIs - request query builder",
   "version": "4.0.0",
   "license": "MIT",
   "main": "lib/index.js",

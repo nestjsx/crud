@@ -1,6 +1,6 @@
 {
   "name": "@nestjsx/util",
-  "description": "NestJs util",
+  "description": "NestJs CRUD for RESTful APIs - util",
   "version": "4.0.0",
   "license": "MIT",
   "main": "lib/index.js",
@@ -24,15 +24,7 @@
     "restful",
     "api",
     "crud",
-    "crud-generator",
-    "http",
-    "request",
-    "get",
-    "query",
-    "query-string",
-    "querystring",
-    "query-builder",
-    "querybuilder"
+    "crud-generator"
   ],
   "author": {
     "name": "Michael Yali",

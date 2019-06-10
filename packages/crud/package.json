@@ -24,7 +24,9 @@
     "restful",
     "api",
     "crud",
-    "crud-generator"
+    "crud-generator",
+    "backend",
+    "frameworks"
   ],
   "author": {
     "name": "Michael Yali",
@@ -35,6 +37,12 @@
     "build": "tsc -b"
   },
   "dependencies": {
+    "@nestjsx/crud-request": "*",
+    "@nestjsx/util": "*",
     "deepmerge": "^3.2.0"
+  },
+  "peerDependencies": {
+    "class-transformer": "*",
+    "class-validator": "*"
   }
 }

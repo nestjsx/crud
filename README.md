@@ -72,7 +72,6 @@ Use [Wiki]()
 
 ## Roadmap
 
-- [x] Monorepository
 - [x] TypeORM
 - [ ] Mongoose
 - [ ] Sequelize

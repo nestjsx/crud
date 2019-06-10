@@ -1,6 +1,6 @@
 {
   "name": "@nestjsx/crud-typeorm",
-  "description": "NestJs CRUD TypeORM",
+  "description": "NestJs CRUD for RESTful APIs - TypeORM",
   "version": "4.0.0",
   "license": "MIT",
   "main": "lib/index.js",
@@ -25,14 +25,8 @@
     "api",
     "crud",
     "crud-generator",
-    "http",
-    "request",
-    "get",
-    "query",
-    "query-string",
-    "querystring",
-    "query-builder",
-    "querybuilder"
+    "backend",
+    "frameworks"
   ],
   "author": {
     "name": "Michael Yali",
