@@ -36,7 +36,7 @@
 
 <br />
 
-I believe that everyone who's working with NestJs and building some RESTful services and especially some CRUD functionality will find `@nestjsx/crud` microframework very useful.
+We believe that everyone who's working with NestJs and building some RESTful services and especially some CRUD functionality will find `@nestjsx/crud` microframework very useful.
 
 ## Features
 
@@ -48,7 +48,7 @@ I believe that everyone who's working with NestJs and building some RESTful serv
 
 :mag_right: Reach query parsing with filtering, pagination, sorting, relations, nested relations, cache, etc.
 
-:telescope: Framework agnostic package with query builder for a front-end usage
+:telescope: Framework agnostic package with query builder for a frontend usage
 
 :space_invader: Query, path params and DTOs validation included
 
@@ -58,4 +58,20 @@ I believe that everyone who's working with NestJs and building some RESTful serv
 
 :gift: Additional helper decorators
 
-## Install
+## Packages
+
+- [**@nestjsx/crud**]() - core package which provides `@Crud()` decorator for endpoints generation, global configuration, validation, helper decorators ([docs]())
+- [**@nestjsx/crud-typeorm**]() - TypeORM package which provides base `TypeOrmCrudService` with methods for CRUD database operations ([docs]())
+- [**@nestjsx/crud-request**]() - request builder/parser package wich provides `RequestQueryBuilder` class for a frontend usage and `RequestQueryParser` that is being used internaly for handling and validating query/path params on a backend side ([docs]())
+
+## Rodamap
+
+- [x] Monorepository
+- [x] TypeORM
+- [] Mongoose
+- [] Sequelize
+- [] JSON API standard
+
+## License
+
+[MIT](LICENSE)
