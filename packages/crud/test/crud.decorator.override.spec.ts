@@ -5,7 +5,7 @@ import { APP_FILTER } from '@nestjs/core';
 import { RequestQueryBuilder } from '@nestjsx/crud-request';
 
 import { Crud, Override, ParsedRequest, ParsedBody } from '../src/decorators';
-import { CrudRequest, CreateManyDto } from '../src/interfaces';
+import { CrudController, CrudRequest, CreateManyDto } from '../src/interfaces';
 import { R, Swagger } from '../src/crud';
 import { CrudActions } from '../src/enums';
 import { HttpExceptionFilter } from './__fixture__/exception.filter';
@@ -22,8 +22,12 @@ describe('#crud', () => {
       model: { type: TestModel },
     })
     @Controller('test')
-    class TestController {
+    class TestController implements CrudController<TestModel> {
       constructor(public service: TestService<TestModel>) {}
+
+      get base(): CrudController<TestModel> {
+        return this;
+      }
 
       @Override()
       getMany(@ParsedRequest() req: CrudRequest) {
@@ -35,7 +39,7 @@ describe('#crud', () => {
         @ParsedBody() dto: CreateManyDto<TestModel>,
         @ParsedRequest() req: CrudRequest,
       ) {
-        return { dto, req };
+        return this.base.createManyBase(req, dto);
       }
     }
 
