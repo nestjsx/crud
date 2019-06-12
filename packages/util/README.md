@@ -79,42 +79,26 @@ We believe that everyone who's working with NestJs and building some RESTful ser
 
 ## Packages
 
-- [**@nestjsx/crud**](https://www.npmjs.com/package/@nestjsx/crud) - core package which provides `@Crud()` decorator for endpoints generation, global configuration, validation, helper decorators ([docs]())
-- [**@nestjsx/crud-typeorm**](https://www.npmjs.com/package/@nestjsx/crud-typeorm) - TypeORM package which provides base `TypeOrmCrudService` with methods for CRUD database operations ([docs]())
-- [**@nestjsx/crud-request**](https://www.npmjs.com/package/@nestjsx/crud-request) - request builder/parser package wich provides `RequestQueryBuilder` class for a frontend usage and `RequestQueryParser` that is being used internaly for handling and validating query/path params on a backend side ([docs]())
+- [**@nestjsx/crud**](https://www.npmjs.com/package/@nestjsx/crud) - core package which provides `@Crud()` decorator for endpoints generation, global configuration, validation, helper decorators ([docs](https://github.com/nestjsx/crud/wiki/Controllers#description))
+- [**@nestjsx/crud-typeorm**](https://www.npmjs.com/package/@nestjsx/crud-typeorm) - TypeORM package which provides base `TypeOrmCrudService` with methods for CRUD database operations ([docs](https://github.com/nestjsx/crud/wiki/ServiceTypeorm))
+- [**@nestjsx/crud-request**](https://www.npmjs.com/package/@nestjsx/crud-request) - request builder/parser package wich provides `RequestQueryBuilder` class for a frontend usage and `RequestQueryParser` that is being used internaly for handling and validating query/path params on a backend side ([docs](https://github.com/nestjsx/crud/wiki/Requests#frontend-usage))
 
 ## Documentation
 
-Use [Wiki](https://github.com/nestjsx/crud/wiki)
-
-## Roadmap
-
-- [x] TypeORM
-- [ ] Mongoose
-- [ ] Sequelize
-- [ ] JSON API standard
+[Wiki](https://github.com/nestjsx/crud/wiki)
 
 ## Support
 
-Any support is wellcome.
+Any support is wellcome.  
+You can give us a star, contribute or [donate](https://opencollective.com/nestjsx).
 
 ### Contribution
 
 Please open an [issue](https://github.com/nestjsx/crud/issues) or submit a [PR](https://github.com/nestjsx/crud/pulls) if you want to improve the functionality or help with testing edge cases.
 
-### Sponsorship
+### Backers
 
-<a href="https://opencollective.com/nestjsx/donate" target="_blank">
-  <img src="https://opencollective.com/nestjsx/donate/button@2x.png?color=blue" width=200 />
-</a>
-
-## Tests
-
-```shell
-docker-compose up -d
-yarn bootstrap
-yarn test
-```
+<a href="https://opencollective.com/nestjsx" target="_blank"><img src="https://opencollective.com/nestjsx/backers.svg?width=1600"></a>
 
 ## License
 

@@ -6,4 +6,5 @@ Object.defineProperty(exports, "__esModule", { value: true });
 __export(require("./decorators"));
 __export(require("./enums"));
 __export(require("./module"));
+__export(require("./interceptors"));
 //# sourceMappingURL=index.js.map
