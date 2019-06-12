@@ -273,7 +273,15 @@ class CrudRoutesFactory {
     }
     setSwaggerPathParams(name) {
         const metadata = swagger_helper_1.Swagger.getParams(this.targetProto[name]);
-        const pathParamsMeta = swagger_helper_1.Swagger.createPathParasmMeta(this.options.params);
+        const withoutPrimary = [
+            'createManyBase',
+            'createOneBase',
+            'getManyBase',
+        ];
+        const params = util_1.isIn(name, withoutPrimary)
+            ? util_1.objKeys(this.options.params).reduce((a, c) => this.options.params[c].primary ? a : Object.assign({}, a, { [c]: this.options.params[c] }), {})
+            : this.options.params;
+        const pathParamsMeta = swagger_helper_1.Swagger.createPathParasmMeta(params);
         swagger_helper_1.Swagger.setParams([...metadata, ...pathParamsMeta], this.targetProto[name]);
     }
     setSwaggerQueryParams(name) {

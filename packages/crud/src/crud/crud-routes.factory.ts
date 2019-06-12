@@ -16,7 +16,7 @@ import { R } from './reflection.helper';
 import { Swagger } from './swagger.helper';
 import { Validation } from './validation.helper';
 import { CrudRequestInterceptor } from '../interceptors';
-import { BaseRoute, CrudOptions, CrudRequest } from '../interfaces';
+import { BaseRoute, CrudOptions, CrudRequest, ParamsOptions } from '../interfaces';
 import { BaseRouteName } from '../types';
 import { CrudActions, CrudValidationGroups } from '../enums';
 import { CrudConfigService } from '../module';
@@ -352,7 +352,19 @@ export class CrudRoutesFactory {
 
   private setSwaggerPathParams(name: BaseRouteName) {
     const metadata = Swagger.getParams(this.targetProto[name]);
-    const pathParamsMeta = Swagger.createPathParasmMeta(this.options.params);
+    const withoutPrimary: BaseRouteName[] = [
+      'createManyBase',
+      'createOneBase',
+      'getManyBase',
+    ];
+    const params = isIn(name, withoutPrimary)
+      ? objKeys(this.options.params).reduce(
+          (a, c) =>
+            this.options.params[c].primary ? a : { ...a, [c]: this.options.params[c] },
+          {},
+        )
+      : this.options.params;
+    const pathParamsMeta = Swagger.createPathParasmMeta(params);
     Swagger.setParams([...metadata, ...pathParamsMeta], this.targetProto[name]);
   }
 
