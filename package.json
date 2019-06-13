@@ -20,6 +20,8 @@
     "db:drop:typeorm": "cd ./integration/crud-typeorm && npx ts-node -r tsconfig-paths/register ../../node_modules/.bin/typeorm schema:drop -f=orm",
     "db:seeds:typeorm": "cd ./integration/crud-typeorm && npx ts-node -r tsconfig-paths/register ../../node_modules/.bin/typeorm migration:run -f=orm",
     "db:prepare:typeorm": "npm run db:drop:typeorm && npm run db:sync:typeorm && npm run db:seeds:typeorm",
+    "format": "npx pretty-quick",
+    "lint": "npx tslint 'packages/**/*.ts'",
     "commit": "npx git-cz"
   },
   "config": {
@@ -29,6 +31,13 @@
     "validate-commit-msg": {
       "types": "conventional-commit-types",
       "helpMessage": "Use \"yarn commit\" instead, we use conventional-changelog format :) (https://github.com/commitizen/cz-cli)"
+    }
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "yarn format --staged",
+      "pre-push": "yarn test",
+      "commit-msg": "npx validate-commit-msg"
     }
   },
   "peerDependencies": {},
@@ -57,6 +66,7 @@
     "nps-utils": "^1.7.0",
     "pg": "^7.11.0",
     "prettier": "^1.18.2",
+    "pretty-quick": "^1.11.0",
     "redis": "^2.8.0",
     "reflect-metadata": "^0.1.13",
     "rimraf": "^2.6.3",
