@@ -19,7 +19,17 @@
     "db:sync:typeorm": "cd ./integration/crud-typeorm && npx ts-node -r tsconfig-paths/register ../../node_modules/.bin/typeorm schema:sync -f=orm",
     "db:drop:typeorm": "cd ./integration/crud-typeorm && npx ts-node -r tsconfig-paths/register ../../node_modules/.bin/typeorm schema:drop -f=orm",
     "db:seeds:typeorm": "cd ./integration/crud-typeorm && npx ts-node -r tsconfig-paths/register ../../node_modules/.bin/typeorm migration:run -f=orm",
-    "db:prepare:typeorm": "npm run db:drop:typeorm && npm run db:sync:typeorm && npm run db:seeds:typeorm"
+    "db:prepare:typeorm": "npm run db:drop:typeorm && npm run db:sync:typeorm && npm run db:seeds:typeorm",
+    "commit": "npx git-cz"
+  },
+  "config": {
+    "commitizen": {
+      "path": "node_modules/cz-conventional-changelog"
+    },
+    "validate-commit-msg": {
+      "types": "conventional-commit-types",
+      "helpMessage": "Use \"yarn commit\" instead, we use conventional-changelog format :) (https://github.com/commitizen/cz-cli)"
+    }
   },
   "peerDependencies": {},
   "optionalDependencies": {},
@@ -35,7 +45,9 @@
     "@types/supertest": "^2.0.7",
     "class-transformer": "^0.2.3",
     "class-validator": "^0.9.1",
+    "commitizen": "^3.1.1",
     "coveralls": "^3.0.4",
+    "cz-conventional-changelog": "^2.1.0",
     "jest": "^24.8.0",
     "lerna": "^3.14.1",
     "nodemon": "^1.19.1",
@@ -43,6 +55,7 @@
     "nps": "^5.9.5",
     "nps-utils": "^1.7.0",
     "pg": "^7.11.0",
+    "prettier": "^1.18.2",
     "redis": "^2.8.0",
     "reflect-metadata": "^0.1.13",
     "rimraf": "^2.6.3",
@@ -52,8 +65,11 @@
     "ts-jest": "^24.0.2",
     "ts-node": "^8.2.0",
     "tsconfig-paths": "^3.8.0",
+    "tslint": "^5.17.0",
+    "tslint-config-prettier": "^1.18.0",
     "typeorm": "^0.2.17",
-    "typescript": "3.3.3"
+    "typescript": "3.3.3",
+    "validate-commit-msg": "^2.14.0"
   },
   "devDependencies": {},
   "author": {
