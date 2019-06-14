@@ -37,6 +37,6 @@
   },
   "scripts": {
     "prebuild": "npx rimraf ./lib",
-    "build": "tsc -b"
+    "build": "npx tsc -b"
   }
 }

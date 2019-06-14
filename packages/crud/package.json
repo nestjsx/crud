@@ -37,7 +37,7 @@
   },
   "scripts": {
     "prebuild": "npx rimraf ./lib",
-    "build": "tsc -b"
+    "build": "npx tsc -b"
   },
   "dependencies": {
     "@nestjsx/crud-request": "^4.0.0",
