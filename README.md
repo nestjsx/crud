@@ -41,6 +41,12 @@
   <a href="https://github.com/nestjs/nest">
     <img src="https://raw.githubusercontent.com/nestjsx/crud/master/img/nest-powered.svg?sanitize=true" alt="Nest Powered" />
   </a>
+  <a href="#backers" alt="sponsors on Open Collective">
+    <img src="https://opencollective.com/nestjsx/backers/badge.svg" />
+  </a>
+  <a href="#sponsors" alt="Sponsors on Open Collective">
+    <img src="https://opencollective.com/nestjsx/sponsors/badge.svg" />
+  </a> 
 </div>
 
 <div align="center">
@@ -58,7 +64,7 @@
 
 We believe that everyone who's working with NestJs and building some RESTful services and especially some CRUD functionality will find `@nestjsx/crud` microframework very useful.
 
-## Features :fire:
+## Features
 
 <img align="right" src="img/crud-usage2.png" alt="CRUD usage" />
 
@@ -80,28 +86,48 @@ We believe that everyone who's working with NestJs and building some RESTful ser
 
 - :pencil2: Swagger documentation
 
-## Packages :package:
+## Packages
 
 - [**@nestjsx/crud**](https://www.npmjs.com/package/@nestjsx/crud) - core package which provides `@Crud()` decorator for endpoints generation, global configuration, validation, helper decorators ([docs](https://github.com/nestjsx/crud/wiki/Controllers#description))
-- [**@nestjsx/crud-typeorm**](https://www.npmjs.com/package/@nestjsx/crud-typeorm) - TypeORM package which provides base `TypeOrmCrudService` with methods for CRUD database operations ([docs](https://github.com/nestjsx/crud/wiki/ServiceTypeorm))
 - [**@nestjsx/crud-request**](https://www.npmjs.com/package/@nestjsx/crud-request) - request builder/parser package wich provides `RequestQueryBuilder` class for a frontend usage and `RequestQueryParser` that is being used internaly for handling and validating query/path params on a backend side ([docs](https://github.com/nestjsx/crud/wiki/Requests#frontend-usage))
+- [**@nestjsx/crud-typeorm**](https://www.npmjs.com/package/@nestjsx/crud-typeorm) - TypeORM package which provides base `TypeOrmCrudService` with methods for CRUD database operations ([docs](https://github.com/nestjsx/crud/wiki/ServiceTypeorm))
 
-## Documentation :books:
+## Documentation
 
-[Wiki](https://github.com/nestjsx/crud/wiki)
+- :dart: [General Information](https://github.com/nestjsx/crud/wiki#why)
+- :video_game: [CRUD Controllers](https://github.com/nestjsx/crud/wiki/Controllers#description)
+- :horse_racing: [CRUD ORM Services](https://github.com/nestjsx/crud/wiki/Services#description)
+- :trumpet: [Handling Requests](https://github.com/nestjsx/crud/wiki/Requests#description)
 
-## Support :raised_hands:
+## Support
 
-Any support is wellcome.  
-You can give us a :star:, contribute or [donate](https://opencollective.com/nestjsx).
+Any support is wellcome. At least you can give us a star :star:
 
-### Contribution
+## Contributors
 
-Please open an [issue](https://github.com/nestjsx/crud/issues) or submit a [PR](https://github.com/nestjsx/crud/pulls) if you want to improve the functionality or help with testing edge cases.
+This project exists thanks to all the people who contribute. [[Contribute](CONTRIBUTING.md)].
+<a href="https://github.com/undefined/undefinedgraphs/contributors"><img src="https://opencollective.com/nestjsx/contributors.svg?width=890&button=false" /></a>
 
-### Backers
+## Backers
 
-<a href="https://opencollective.com/nestjsx" target="_blank"><img src="https://opencollective.com/nestjsx/backers.svg?width=1600"></a>
+Thank you to all our backers! 🙏 [[Become a backer](https://opencollective.com/nestjsx#backer)]
+
+<a href="https://opencollective.com/nestjsx#backers" target="_blank"><img src="https://opencollective.com/nestjsx/backers.svg?width=890"></a>
+
+## Sponsors
+
+Support this project by becoming a sponsor. Your logo will show up here with a link to your website. [[Become a sponsor](https://opencollective.com/nestjsx#sponsor)]
+
+<a href="https://opencollective.com/nestjsx/sponsor/0/website" target="_blank"><img src="https://opencollective.com/nestjsx/sponsor/0/avatar.svg"></a>
+<a href="https://opencollective.com/nestjsx/sponsor/1/website" target="_blank"><img src="https://opencollective.com/nestjsx/sponsor/1/avatar.svg"></a>
+<a href="https://opencollective.com/nestjsx/sponsor/2/website" target="_blank"><img src="https://opencollective.com/nestjsx/sponsor/2/avatar.svg"></a>
+<a href="https://opencollective.com/nestjsx/sponsor/3/website" target="_blank"><img src="https://opencollective.com/nestjsx/sponsor/3/avatar.svg"></a>
+<a href="https://opencollective.com/nestjsx/sponsor/4/website" target="_blank"><img src="https://opencollective.com/nestjsx/sponsor/4/avatar.svg"></a>
+<a href="https://opencollective.com/nestjsx/sponsor/5/website" target="_blank"><img src="https://opencollective.com/nestjsx/sponsor/5/avatar.svg"></a>
+<a href="https://opencollective.com/nestjsx/sponsor/6/website" target="_blank"><img src="https://opencollective.com/nestjsx/sponsor/6/avatar.svg"></a>
+<a href="https://opencollective.com/nestjsx/sponsor/7/website" target="_blank"><img src="https://opencollective.com/nestjsx/sponsor/7/avatar.svg"></a>
+<a href="https://opencollective.com/nestjsx/sponsor/8/website" target="_blank"><img src="https://opencollective.com/nestjsx/sponsor/8/avatar.svg"></a>
+<a href="https://opencollective.com/nestjsx/sponsor/9/website" target="_blank"><img src="https://opencollective.com/nestjsx/sponsor/9/avatar.svg"></a>
 
 ## License
 
