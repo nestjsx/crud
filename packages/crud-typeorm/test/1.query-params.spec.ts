@@ -226,6 +226,17 @@ describe('#crud-typeorm', () => {
             done();
           });
       });
+      it('should return with filter, 1', (done) => {
+        const query = qb.setOr({ field: 'companyId', operator: 'eq', value: 1 }).query();
+        return request(server)
+          .get('/projects')
+          .query(query)
+          .end((_, res) => {
+            expect(res.status).toBe(200);
+            expect(res.body.length).toBe(2);
+            done();
+          });
+      });
     });
 
     describe('#query join', () => {
