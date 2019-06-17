@@ -41,10 +41,10 @@
   <a href="https://github.com/nestjs/nest">
     <img src="https://raw.githubusercontent.com/nestjsx/crud/master/img/nest-powered.svg?sanitize=true" alt="Nest Powered" />
   </a>
-  <a href="#backers" alt="sponsors on Open Collective">
+  <a href="#individuals" alt="Sponsors on Open Collective">
     <img src="https://opencollective.com/nestjsx/backers/badge.svg" />
   </a>
-  <a href="#sponsors" alt="Sponsors on Open Collective">
+  <a href="#organizations" alt="Sponsors on Open Collective">
     <img src="https://opencollective.com/nestjsx/sponsors/badge.svg" />
   </a> 
 </div>
@@ -105,18 +105,22 @@ Any support is wellcome. At least you can give us a star :star:
 
 ## Contributors
 
+### Code Contributors
+
 This project exists thanks to all the people who contribute. [[Contribute](CONTRIBUTING.md)].
-<a href="https://github.com/undefined/undefinedgraphs/contributors"><img src="https://opencollective.com/nestjsx/contributors.svg?width=890&button=false" /></a>
+<a href="https://github.com/nestjsx/crud/graphs/contributors"><img src="https://opencollective.com/nestjsx/contributors.svg?width=890&button=false" /></a>
 
-## Backers
+### Financial Contributors
 
-Thank you to all our backers! 🙏 [[Become a backer](https://opencollective.com/nestjsx#backer)]
+Become a financial contributor and help us sustain our community. [[Contribute](https://opencollective.com/nestjsx#backer)]
 
-<a href="https://opencollective.com/nestjsx#backers" target="_blank"><img src="https://opencollective.com/nestjsx/backers.svg?width=890"></a>
+#### Individuals
 
-## Sponsors
+<a href="https://opencollective.com/nestjsx#backers" target="_blank"><img src="https://opencollective.com/nestjsx/backers.svg?width=890&button=false"></a>
 
-Support this project by becoming a sponsor. Your logo will show up here with a link to your website. [[Become a sponsor](https://opencollective.com/nestjsx#sponsor)]
+#### Organizations
+
+Support this project with your organization. Your logo will show up here with a link to your website. [[Contribute](https://opencollective.com/nestjsx#sponsor)]
 
 <a href="https://opencollective.com/nestjsx/sponsor/0/website" target="_blank"><img src="https://opencollective.com/nestjsx/sponsor/0/avatar.svg"></a>
 <a href="https://opencollective.com/nestjsx/sponsor/1/website" target="_blank"><img src="https://opencollective.com/nestjsx/sponsor/1/avatar.svg"></a>
