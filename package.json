@@ -22,7 +22,8 @@
     "db:prepare:typeorm": "npm run db:drop:typeorm && npm run db:sync:typeorm && npm run db:seeds:typeorm",
     "format": "npx pretty-quick",
     "lint": "npx tslint 'packages/**/*.ts'",
-    "commit": "npx git-cz"
+    "commit": "npx git-cz",
+    "postinstall": "npx opencollective"
   },
   "config": {
     "commitizen": {
@@ -40,6 +41,13 @@
       "commit-msg": "npx validate-commit-msg"
     }
   },
+  "collective": {
+    "type": "opencollective",
+    "url": "https://opencollective.com/nestjsx",
+    "donation": {
+      "text": "Become a partner:"
+    }
+  },
   "peerDependencies": {},
   "optionalDependencies": {},
   "dependencies": {
@@ -49,6 +57,7 @@
     "@nestjs/swagger": "^3.0.2",
     "@nestjs/testing": "^6.2.4",
     "@nestjs/typeorm": "^6.1.2",
+    "@nuxtjs/opencollective": "^0.2.2",
     "@types/jest": "^24.0.13",
     "@types/node": "^12.0.2",
     "@types/supertest": "^2.0.7",
