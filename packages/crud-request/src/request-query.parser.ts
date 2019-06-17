@@ -193,7 +193,11 @@ export class RequestQueryParser implements ParsedRequestParams {
 
     value = this.parseValues(value);
 
-    if (!hasLength(value) && !isEmptyValue.some((name) => name === operator)) {
+    if (
+      !hasLength(value) &&
+      !isEmptyValue.some((name) => name === operator) &&
+      ['boolean', 'number'].indexOf(typeof value) < 0
+    ) {
       throw new RequestQueryException(`Invalid ${cond} value`);
     }
 

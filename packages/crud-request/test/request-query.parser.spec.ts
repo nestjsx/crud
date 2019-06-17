@@ -107,6 +107,12 @@ describe('#request-query', () => {
           const test = qp.parseQuery(query);
           expect(test.filter[0]).toMatchObject(expected[0]);
         });
+        it('should set array, 6', () => {
+          const query = { 'filter[]': ['foo||eq||1'] };
+          const expected: QueryFilter[] = [{ field: 'foo', operator: 'eq', value: 1 }];
+          const test = qp.parseQuery(query);
+          expect(test.filter[0]).toMatchObject(expected[0]);
+        });
       });
 
       describe('#parse or', () => {
