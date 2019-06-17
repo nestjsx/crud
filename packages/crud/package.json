@@ -40,8 +40,6 @@
     "build": "tsc -b"
   },
   "dependencies": {
-    "@nestjsx/crud-request": "^4.0.0",
-    "@nestjsx/util": "^4.0.0",
     "deepmerge": "^3.2.0"
   },
   "peerDependencies": {
