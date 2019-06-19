@@ -50,7 +50,7 @@ export class CrudRoutesFactory {
       createOneBase: CrudActions.CreateOne,
       updateOneBase: CrudActions.UpdateOne,
       deleteOneBase: CrudActions.DeleteOne,
-      replaceOneBase: CrudActions.replaceOne,
+      replaceOneBase: CrudActions.ReplaceOne,
     };
   }
 

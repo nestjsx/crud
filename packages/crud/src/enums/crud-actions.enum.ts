@@ -4,7 +4,7 @@ export enum CrudActions {
   CreateOne = 'Create-One',
   CreateMany = 'Create-Many',
   UpdateOne = 'Update-One',
-  replaceOne = 'Replace-One',
+  ReplaceOne = 'Replace-One',
   DeleteOne = 'Delete-One',
   DeleteAll = 'Delete-All',
 }

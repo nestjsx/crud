@@ -136,12 +136,16 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
   }
 
   /**
-   * Update one
+   * Replace one
    * @param req
    * @param dto
    */
   public async replaceOne(req: CrudRequest, dto: T): Promise<T> {
     const entity = this.prepareEntityBeforeSave(dto, req.parsed.paramsFilter);
+
+    if (!entity || !Object.keys(entity).includes('id')) {
+      this.throwBadRequestException(`Id not present in entity. Nothing to save.`);
+    }
 
     return this.repo.save<any>(entity);
   }
