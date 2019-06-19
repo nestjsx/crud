@@ -8,6 +8,7 @@ export interface RoutesOptions {
   createOneBase?: CreateOneRouteOptions;
   createManyBase?: CreateManyRouteOptions;
   updateOneBase?: UpdateOneRouteOptions;
+  replaceOneBase?: ReplaceOneRouteOptions;
   deleteOneBase?: DeleteOneRouteOptions;
 }
 
@@ -16,17 +17,15 @@ export interface BaseRouteOptions {
   decorators?: (PropertyDecorator | MethodDecorator)[];
 }
 
-export interface GetMayRouteOptions extends BaseRouteOptions {
-}
+export interface GetMayRouteOptions extends BaseRouteOptions {}
 
-export interface GetOneRouteOptions extends BaseRouteOptions {
-}
+export interface GetOneRouteOptions extends BaseRouteOptions {}
 
-export interface CreateOneRouteOptions extends BaseRouteOptions {
-}
+export interface CreateOneRouteOptions extends BaseRouteOptions {}
 
-export interface CreateManyRouteOptions extends BaseRouteOptions {
-}
+export interface CreateManyRouteOptions extends BaseRouteOptions {}
+
+export interface ReplaceOneRouteOptions extends BaseRouteOptions {}
 
 export interface UpdateOneRouteOptions extends BaseRouteOptions {
   allowParamsOverride?: boolean;

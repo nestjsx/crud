@@ -136,6 +136,17 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
   }
 
   /**
+   * Update one
+   * @param req
+   * @param dto
+   */
+  public async replaceOne(req: CrudRequest, dto: T): Promise<T> {
+    const entity = this.prepareEntityBeforeSave(dto, req.parsed.paramsFilter);
+
+    return this.repo.save<any>(entity);
+  }
+
+  /**
    * Delete one
    * @param req
    */
