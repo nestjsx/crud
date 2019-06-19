@@ -1,34 +1,39 @@
-import { isObject, objKeys, isStringFull, isArrayFull, hasLength } from '@nestjsx/util';
+import {
+  hasLength,
+  hasValue,
+  isArrayFull,
+  isDate,
+  isDateString,
+  isObject,
+  isStringFull,
+  objKeys,
+} from '@nestjsx/util';
 
+import { RequestQueryException } from './exceptions';
+import {
+  ParamsOptions,
+  ParsedRequestParams,
+  RequestQueryBuilderOptions,
+} from './interfaces';
 import { RequestQueryBuilder } from './request-query.builder';
 import {
   validateCondition,
   validateJoin,
-  validateSort,
   validateNumeric,
   validateParamOption,
+  validateSort,
   validateUUID,
 } from './request-query.validator';
-import { RequestQueryException } from './exceptions';
 import {
-  RequestQueryBuilderOptions,
-  ParamsOptions,
-  ParsedRequestParams,
-} from './interfaces';
-import {
+  ComparisonOperator,
   QueryFields,
   QueryFilter,
   QueryJoin,
   QuerySort,
-  ComparisonOperator,
 } from './types';
 
+// tslint:disable:variable-name ban-types
 export class RequestQueryParser implements ParsedRequestParams {
-  private _params: any;
-  private _query: any;
-  private _paramNames: string[];
-  private _paramsOptions: ParamsOptions;
-
   public fields: QueryFields = [];
   public paramsFilter: QueryFilter[] = [];
   public filter: QueryFilter[] = [];
@@ -40,12 +45,17 @@ export class RequestQueryParser implements ParsedRequestParams {
   public page: number;
   public cache: number;
 
-  static create(): RequestQueryParser {
-    return new RequestQueryParser();
-  }
+  private _params: any;
+  private _query: any;
+  private _paramNames: string[];
+  private _paramsOptions: ParamsOptions;
 
   private get _options(): RequestQueryBuilderOptions {
     return RequestQueryBuilder.getOptions();
+  }
+
+  static create(): RequestQueryParser {
+    return new RequestQueryParser();
   }
 
   getParsed(): ParsedRequestParams {
@@ -156,13 +166,17 @@ export class RequestQueryParser implements ParsedRequestParams {
     try {
       const parsed = JSON.parse(val);
 
-      if (isObject(parsed)) {
+      if (!isDate(parsed) && isObject(parsed)) {
         // throw new Error('Don\'t support object now');
         return val;
       }
 
       return parsed;
     } catch (ignored) {
+      if (isDateString(val)) {
+        return new Date(val);
+      }
+
       return val;
     }
   }
@@ -193,11 +207,7 @@ export class RequestQueryParser implements ParsedRequestParams {
 
     value = this.parseValues(value);
 
-    if (
-      !hasLength(value) &&
-      !isEmptyValue.some((name) => name === operator) &&
-      ['boolean', 'number'].indexOf(typeof value) < 0
-    ) {
+    if (!isEmptyValue.some((name) => name === operator) && !hasValue(value)) {
       throw new RequestQueryException(`Invalid ${cond} value`);
     }
 

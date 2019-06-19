@@ -1,21 +1,22 @@
-import * as request from 'supertest';
-import { Test } from '@nestjs/testing';
 import { Controller, INestApplication } from '@nestjs/common';
 import { APP_FILTER } from '@nestjs/core';
+import { Test } from '@nestjs/testing';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { RequestQueryBuilder } from '@nestjsx/crud-request';
+import * as request from 'supertest';
 
-import { Crud } from '../../crud/src/decorators/crud.decorator';
-import { HttpExceptionFilter } from '../../../integration/shared/https-exception.filter';
-import { withCache } from '../../../integration/crud-typeorm/orm.config';
 import { Company } from '../../../integration/crud-typeorm/companies';
+import { withCache } from '../../../integration/crud-typeorm/orm.config';
 import { Project } from '../../../integration/crud-typeorm/projects';
 import { User } from '../../../integration/crud-typeorm/users';
 import { UserProfile } from '../../../integration/crud-typeorm/users-profiles';
+import { HttpExceptionFilter } from '../../../integration/shared/https-exception.filter';
+import { Crud } from '../../crud/src/decorators/crud.decorator';
 import { CompaniesService } from './__fixture__/companies.service';
-import { UsersService } from './__fixture__/users.service';
 import { ProjectsService } from './__fixture__/projects.service';
+import { UsersService } from './__fixture__/users.service';
 
+// tslint:disable:max-classes-per-file
 describe('#crud-typeorm', () => {
   describe('#query params', () => {
     let app: INestApplication;
@@ -145,7 +146,7 @@ describe('#crud-typeorm', () => {
       it('should return with filter and or, 1', (done) => {
         const query = qb
           .setFilter({ field: 'name', operator: 'notin', value: ['Name2', 'Name3'] })
-          .setOr({ field: 'domain', operator: 'cont', value: '"5"' })
+          .setOr({ field: 'domain', operator: 'cont', value: 5 })
           .query();
         return request(server)
           .get('/companies')
@@ -158,9 +159,9 @@ describe('#crud-typeorm', () => {
       });
       it('should return with filter and or, 2', (done) => {
         const query = qb
-          .setFilter({ field: 'name', operator: 'ends', value: '"foo"' })
-          .setOr({ field: 'name', operator: 'starts', value: '"P"' })
-          .setOr({ field: 'isActive', operator: 'eq', value: '"true"' })
+          .setFilter({ field: 'name', operator: 'ends', value: 'foo' })
+          .setOr({ field: 'name', operator: 'starts', value: 'P' })
+          .setOr({ field: 'isActive', operator: 'eq', value: true })
           .query();
         return request(server)
           .get('/projects')
@@ -173,9 +174,9 @@ describe('#crud-typeorm', () => {
       });
       it('should return with filter and or, 3', (done) => {
         const query = qb
-          .setOr({ field: 'companyId', operator: 'gt', value: '"22"' })
-          .setFilter({ field: 'companyId', operator: 'gte', value: '"6"' })
-          .setFilter({ field: 'companyId', operator: 'lt', value: '"10"' })
+          .setOr({ field: 'companyId', operator: 'gt', value: 22 })
+          .setFilter({ field: 'companyId', operator: 'gte', value: 6 })
+          .setFilter({ field: 'companyId', operator: 'lt', value: 10 })
           .query();
         return request(server)
           .get('/projects')
@@ -189,8 +190,8 @@ describe('#crud-typeorm', () => {
       it('should return with filter and or, 4', (done) => {
         const query = qb
           .setOr({ field: 'companyId', operator: 'in', value: [6, 10] })
-          .setOr({ field: 'companyId', operator: 'lte', value: '"10"' })
-          .setFilter({ field: 'isActive', operator: 'eq', value: '"false"' })
+          .setOr({ field: 'companyId', operator: 'lte', value: 10 })
+          .setFilter({ field: 'isActive', operator: 'eq', value: false })
           .setFilter({ field: 'description', operator: 'notnull' })
           .query();
         return request(server)
@@ -273,7 +274,7 @@ describe('#crud-typeorm', () => {
           .setFilter({
             field: 'company.projects.foo',
             operator: 'excl',
-            value: '"invalid"',
+            value: 'invalid',
           })
           .query();
         return request(server)
@@ -291,7 +292,7 @@ describe('#crud-typeorm', () => {
           .setFilter({
             field: 'invalid.projects',
             operator: 'excl',
-            value: '"invalid"',
+            value: 'invalid',
           })
           .query();
         return request(server)
@@ -309,7 +310,7 @@ describe('#crud-typeorm', () => {
           .setFilter({
             field: 'company.foo',
             operator: 'excl',
-            value: '"invalid"',
+            value: 'invalid',
           })
           .query();
         return request(server)
@@ -335,7 +336,7 @@ describe('#crud-typeorm', () => {
       });
       it('should return joined entity, 1', (done) => {
         const query = qb
-          .setFilter({ field: 'company.name', operator: 'excl', value: '"invalid"' })
+          .setFilter({ field: 'company.name', operator: 'excl', value: 'invalid' })
           .setJoin({ field: 'company' })
           .setJoin({ field: 'company.projects' })
           .query();

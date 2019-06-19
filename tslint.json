@@ -3,7 +3,10 @@
   "extends": ["tslint:latest", "tslint-config-prettier"],
   "jsRules": {},
   "rules": {
-    "object-literal-sort-keys": false
+    "object-literal-sort-keys": false,
+    "member-access": false,
+    "no-implicit-dependencies": false,
+    "member-ordering": false
   },
   "rulesDirectory": []
 }

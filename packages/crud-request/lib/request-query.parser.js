@@ -1,9 +1,9 @@
 'use strict';
 Object.defineProperty(exports, '__esModule', { value: true });
 const util_1 = require('@nestjsx/util');
+const exceptions_1 = require('./exceptions');
 const request_query_builder_1 = require('./request-query.builder');
 const request_query_validator_1 = require('./request-query.validator');
-const exceptions_1 = require('./exceptions');
 class RequestQueryParser {
   constructor() {
     this.fields = [];
@@ -13,11 +13,11 @@ class RequestQueryParser {
     this.join = [];
     this.sort = [];
   }
-  static create() {
-    return new RequestQueryParser();
-  }
   get _options() {
     return request_query_builder_1.RequestQueryBuilder.getOptions();
+  }
+  static create() {
+    return new RequestQueryParser();
   }
   getParsed() {
     return {
@@ -106,11 +106,14 @@ class RequestQueryParser {
   parseValue(val) {
     try {
       const parsed = JSON.parse(val);
-      if (util_1.isObject(parsed)) {
+      if (!util_1.isDate(parsed) && util_1.isObject(parsed)) {
         return val;
       }
       return parsed;
     } catch (ignored) {
+      if (util_1.isDateString(val)) {
+        return new Date(val);
+      }
       return val;
     }
   }
@@ -135,11 +138,7 @@ class RequestQueryParser {
       value = value.split(this._options.delimStr);
     }
     value = this.parseValues(value);
-    if (
-      !util_1.hasLength(value) &&
-      !isEmptyValue.some((name) => name === operator) &&
-      ['boolean', 'number'].indexOf(typeof value) < 0
-    ) {
+    if (!isEmptyValue.some((name) => name === operator) && !util_1.hasValue(value)) {
       throw new exceptions_1.RequestQueryException(`Invalid ${cond} value`);
     }
     const condition = { field, operator, value };
