@@ -1,7 +1,7 @@
-import { RequestQueryParser } from '../src/request-query.parser';
 import { RequestQueryException } from '../src/exceptions/request-query.exception';
-import { QueryFilter, QueryJoin, QuerySort } from '../src/types';
 import { ParamsOptions, ParsedRequestParams } from '../src/interfaces';
+import { RequestQueryParser } from '../src/request-query.parser';
+import { QueryFilter, QueryJoin, QuerySort } from '../src/types';
 
 describe('#request-query', () => {
   describe('RequestQueryParser', () => {
@@ -110,6 +110,35 @@ describe('#request-query', () => {
         it('should set array, 6', () => {
           const query = { 'filter[]': ['foo||eq||1'] };
           const expected: QueryFilter[] = [{ field: 'foo', operator: 'eq', value: 1 }];
+          const test = qp.parseQuery(query);
+          expect(test.filter[0]).toMatchObject(expected[0]);
+        });
+        it('should set date, 7', () => {
+          const now = new Date();
+          const query = { 'filter[]': [`foo||eq||${now.toJSON()}`] };
+          const expected: QueryFilter[] = [{ field: 'foo', operator: 'eq', value: now }];
+          const test = qp.parseQuery(query);
+          expect(test.filter[0]).toMatchObject(expected[0]);
+        });
+        it('should set false, 8', () => {
+          const query = { 'filter[]': [`foo||eq||false`] };
+          const expected: QueryFilter[] = [
+            { field: 'foo', operator: 'eq', value: false },
+          ];
+          const test = qp.parseQuery(query);
+          expect(test.filter[0]).toMatchObject(expected[0]);
+        });
+        it('should set true, 9', () => {
+          const query = { 'filter[]': [`foo||eq||true`] };
+          const expected: QueryFilter[] = [{ field: 'foo', operator: 'eq', value: true }];
+          const test = qp.parseQuery(query);
+          expect(test.filter[0]).toMatchObject(expected[0]);
+        });
+        it('should set number, 10', () => {
+          const query = { 'filter[]': [`foo||eq||12345`] };
+          const expected: QueryFilter[] = [
+            { field: 'foo', operator: 'eq', value: 12345 },
+          ];
           const test = qp.parseQuery(query);
           expect(test.filter[0]).toMatchObject(expected[0]);
         });
