@@ -18,3 +18,12 @@ export const isFalse = (val: any): boolean => val === false;
 export const isTrue = (val: any): boolean => val === true;
 export const isIn = (val: any, arr: any[] = []): boolean =>
   arr.some((o) => isEqual(val, o));
+export const isBoolean = (val: any): boolean => typeof val === 'boolean';
+export const isNumeric = (val: any): boolean => /^[+-]?([0-9]*[.])?[0-9]+$/.test(val);
+export const isDateString = (val: any): boolean =>
+  isStringFull(val) && !isNumeric(val) && isNumber(+new Date(val));
+export const isDate = (val: any): val is Date => val instanceof Date;
+export const isValue = (val: any): boolean =>
+  isStringFull(val) || isNumber(val) || isBoolean(val) || isDate(val);
+export const hasValue = (val: any): boolean =>
+  isArrayFull(val) ? (val as any[]).every((o) => isValue(o)) : isValue(val);

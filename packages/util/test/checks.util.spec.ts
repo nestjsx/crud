@@ -1,19 +1,25 @@
 import {
-  isUndefined,
-  isNull,
-  isNil,
-  isString,
   hasLength,
-  isStringFull,
+  hasValue,
   isArrayFull,
   isArrayStrings,
-  isObject,
-  isObjectFull,
-  isNumber,
+  isBoolean,
+  isDate,
+  isDateString,
   isEqual,
   isFalse,
-  isTrue,
   isIn,
+  isNil,
+  isNull,
+  isNumber,
+  isNumeric,
+  isObject,
+  isObjectFull,
+  isString,
+  isStringFull,
+  isTrue,
+  isUndefined,
+  isValue,
 } from '../src/';
 
 describe('#util', () => {
@@ -158,6 +164,86 @@ describe('#util', () => {
     it('should return false', () => {
       expect(isIn(1, [])).toBe(false);
       expect(isIn(1)).toBe(false);
+    });
+  });
+
+  describe('#isBoolean', () => {
+    it('should return true', () => {
+      for (const val of [true, false]) {
+        expect(isBoolean(val)).toBe(true);
+      }
+    });
+    it('should return false', () => {
+      for (const val of [1, null, undefined, {}, [], NaN]) {
+        expect(isBoolean(val)).toBe(false);
+      }
+    });
+  });
+
+  describe('#isNumeric', () => {
+    it('should return true', () => {
+      for (const val of [1, 0, '123', '-9.6']) {
+        expect(isNumeric(val)).toBe(true);
+      }
+    });
+    it('should return false', () => {
+      for (const val of ['', [], {}, null, undefined]) {
+        expect(isNumeric(val)).toBe(false);
+      }
+    });
+  });
+
+  describe('#isDateString', () => {
+    it('should return true', () => {
+      for (const val of [
+        '2019-06-19',
+        '2019-06-19T12:30:00+0800',
+        '2019-06-19T00:00:00Z',
+      ]) {
+        expect(isDateString(val)).toBe(true);
+      }
+    });
+    it('should return false', () => {
+      for (const val of ['20190619', [], {}, null, undefined]) {
+        expect(isDateString(val)).toBe(false);
+      }
+    });
+  });
+
+  describe('#isDate', () => {
+    it('should return true', () => {
+      for (const val of [new Date()]) {
+        expect(isDate(val)).toBe(true);
+      }
+    });
+    it('should return false', () => {
+      for (const val of ['2019-06-19', [], {}, null, undefined]) {
+        expect(isDate(val)).toBe(false);
+      }
+    });
+  });
+
+  describe('#isValue', () => {
+    it('should return true', () => {
+      for (const val of [new Date(), 'test', -1, 0, true, false]) {
+        expect(isValue(val)).toBe(true);
+      }
+    });
+    it('should return false', () => {
+      for (const val of ['', [], {}, null, undefined]) {
+        expect(isValue(val)).toBe(false);
+      }
+    });
+  });
+
+  describe('#hasValue', () => {
+    it('should return true', () => {
+      expect(hasValue([new Date(), 'test', -1, 0, true, false])).toBe(true);
+      expect(hasValue(false)).toBe(true);
+    });
+    it('should return false', () => {
+      expect(hasValue(['', [], {}, null, undefined])).toBe(false);
+      expect(hasValue(null)).toBe(false);
     });
   });
 });
