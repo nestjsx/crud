@@ -20,6 +20,9 @@ export class TestService<T> extends CrudService<T> {
   async updateOne(req: CrudRequest, dto: T): Promise<any> {
     return { req, dto };
   }
+  async replaceOne(req: CrudRequest, dto: T): Promise<any> {
+    return { req, dto };
+  }
   async deleteOne(req: CrudRequest): Promise<any> {
     return { req };
   }

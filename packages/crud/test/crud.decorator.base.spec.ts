@@ -153,6 +153,37 @@ describe('#crud', () => {
       });
     });
 
+    describe('#replaceOneBase', () => {
+      it('should return status 200', () => {
+        const send: TestModel = {
+          id: 1,
+          firstName: 'firstName',
+          lastName: 'lastName',
+          email: 'test@test.com',
+          age: 15,
+        };
+        return request(server)
+          .put('/test/1')
+          .send(send)
+          .expect(200);
+      });
+      it('should return status 400', (done) => {
+        const send: TestModel = {
+          firstName: 'firstName',
+          lastName: 'lastName',
+          email: 'test@test.com',
+        };
+        return request(server)
+          .put('/test/1')
+          .send(send)
+          .expect(400)
+          .end((_, res) => {
+            expect(res.body.message[0].property).toBe('id');
+            done();
+          });
+      });
+    });
+
     describe('#updateOneBase', () => {
       it('should return status 200', () => {
         const send: TestModel = {
