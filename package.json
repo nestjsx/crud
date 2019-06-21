@@ -20,7 +20,7 @@
     "db:drop:typeorm": "cd ./integration/crud-typeorm && npx ts-node -r tsconfig-paths/register ../../node_modules/typeorm/cli.js schema:drop -f=orm",
     "db:seeds:typeorm": "cd ./integration/crud-typeorm && npx ts-node -r tsconfig-paths/register ../../node_modules/typeorm/cli.js migration:run -f=orm",
     "db:prepare:typeorm": "npm run db:drop:typeorm && npm run db:sync:typeorm && npm run db:seeds:typeorm",
-    "format": "npx pretty-quick",
+    "format": "npx pretty-quick --pattern \"packages/**/!(*.d).ts\"",
     "lint": "npx tslint 'packages/**/*.ts'",
     "commit": "npx git-cz",
     "postinstall": "npx opencollective"
