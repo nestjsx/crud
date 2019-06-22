@@ -96,7 +96,7 @@ class RequestQueryBuilder {
         const param = this.getParamName(cond);
         const d = this.options.delim;
         return (this[`_${cond}`]
-            .map((f) => `${param}=${f.field}${d}${f.operator}${f.value ? d + f.value : ''}`)
+            .map((f) => `${param}=${f.field}${d}${f.operator}${util_1.hasValue(f.value) ? d + f.value : ''}`)
             .join('&') + '&');
     }
     getJoin() {

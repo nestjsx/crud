@@ -2,6 +2,11 @@
   "defaultSeverity": "error",
   "extends": ["tslint:latest", "tslint-config-prettier"],
   "jsRules": {},
-  "rules": {},
+  "rules": {
+    "object-literal-sort-keys": false,
+    "member-access": false,
+    "no-implicit-dependencies": false,
+    "member-ordering": false
+  },
   "rulesDirectory": []
 }

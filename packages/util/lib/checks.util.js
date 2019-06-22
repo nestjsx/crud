@@ -16,4 +16,10 @@ exports.isEqual = (val, eq) => val === eq;
 exports.isFalse = (val) => val === false;
 exports.isTrue = (val) => val === true;
 exports.isIn = (val, arr = []) => arr.some((o) => exports.isEqual(val, o));
+exports.isBoolean = (val) => typeof val === 'boolean';
+exports.isNumeric = (val) => /^[+-]?([0-9]*[.])?[0-9]+$/.test(val);
+exports.isDateString = (val) => exports.isStringFull(val) && !exports.isNumeric(val) && exports.isNumber(+new Date(val));
+exports.isDate = (val) => val instanceof Date;
+exports.isValue = (val) => exports.isStringFull(val) || exports.isNumber(val) || exports.isBoolean(val) || exports.isDate(val);
+exports.hasValue = (val) => exports.isArrayFull(val) ? val.every((o) => exports.isValue(o)) : exports.isValue(val);
 //# sourceMappingURL=checks.util.js.map

@@ -220,12 +220,12 @@ class CrudRoutesFactory {
         this.setRouteArgs(name);
         this.setRouteArgsTypes(name);
         this.setInterceptors(name);
-        this.setDecorators(name);
         this.setAction(name);
         this.setSwaggerOperation(name);
         this.setSwaggerPathParams(name);
         this.setSwaggerQueryParams(name);
         this.setSwaggerResponseOk(name);
+        this.setDecorators(name);
     }
     setRouteArgs(name) {
         let rest = {};

@@ -1,15 +1,16 @@
-import { isNil, isArrayFull, hasLength } from '@nestjsx/util';
+import { hasLength, hasValue, isArrayFull, isNil } from '@nestjsx/util';
 
-import {
-  validateFields,
-  validateCondition,
-  validateJoin,
-  validateSort,
-  validateNumeric,
-} from './request-query.validator';
 import { RequestQueryBuilderOptions } from './interfaces';
+import {
+  validateCondition,
+  validateFields,
+  validateJoin,
+  validateNumeric,
+  validateSort,
+} from './request-query.validator';
 import { QueryFields, QueryFilter, QueryJoin, QuerySort } from './types';
 
+// tslint:disable:variable-name ban-types
 export class RequestQueryBuilder {
   private static _options: RequestQueryBuilderOptions = {
     delim: '||',
@@ -157,7 +158,7 @@ export class RequestQueryBuilder {
       this[`_${cond}`]
         .map(
           (f: QueryFilter) =>
-            `${param}=${f.field}${d}${f.operator}${f.value ? d + f.value : ''}`,
+            `${param}=${f.field}${d}${f.operator}${hasValue(f.value) ? d + f.value : ''}`,
         )
         .join('&') + '&'
     );
