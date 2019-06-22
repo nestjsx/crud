@@ -285,12 +285,13 @@ export class CrudRoutesFactory {
     this.setRouteArgs(name);
     this.setRouteArgsTypes(name);
     this.setInterceptors(name);
-    this.setDecorators(name);
     this.setAction(name);
     this.setSwaggerOperation(name);
     this.setSwaggerPathParams(name);
     this.setSwaggerQueryParams(name);
     this.setSwaggerResponseOk(name);
+    // set decorators after Swagger so metadata can be overwritten
+    this.setDecorators(name);
   }
 
   private setRouteArgs(name: BaseRouteName) {

@@ -186,6 +186,3 @@ class RequestQueryParser {
     }
     return { field: option.field, operator: 'eq', value };
   }
-}
-exports.RequestQueryParser = RequestQueryParser;
-//# sourceMappingURL=request-query.parser.js.map
