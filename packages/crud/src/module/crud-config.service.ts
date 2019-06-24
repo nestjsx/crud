@@ -13,7 +13,7 @@ export class CrudConfigService {
       createOneBase: { interceptors: [], decorators: [] },
       createManyBase: { interceptors: [], decorators: [] },
       updateOneBase: { interceptors: [], decorators: [], allowParamsOverride: false },
-      replaceOneBase: { interceptors: [], decorators: [] },
+      replaceOneBase: { interceptors: [], decorators: [], allowParamsOverride: false },
       deleteOneBase: { interceptors: [], decorators: [], returnDeleted: false },
     },
     params: {

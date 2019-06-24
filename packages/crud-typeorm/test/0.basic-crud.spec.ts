@@ -315,7 +315,7 @@ describe('#crud-typeorm', () => {
       });
     });
 
-    describe('#removeOneBase', () => {
+    describe('#replaceOneBase', () => {
       it('should create entity', (done) => {
         const dto = { name: 'updated0', domain: 'domain0' };
         return request(server)

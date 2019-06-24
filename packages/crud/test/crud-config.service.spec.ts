@@ -51,6 +51,9 @@ describe('#crud', () => {
           updateOneBase: {
             allowParamsOverride: true,
           },
+          replaceOneBase: {
+            allowParamsOverride: true,
+          },
           getManyBase: {
             interceptors: [() => {}],
           },
@@ -77,7 +80,11 @@ describe('#crud', () => {
             decorators: [],
             allowParamsOverride: true,
           },
-          replaceOneBase: { interceptors: [], decorators: [] },
+          replaceOneBase: {
+            interceptors: [],
+            decorators: [],
+            allowParamsOverride: true,
+          },
           deleteOneBase: { interceptors: [], decorators: [], returnDeleted: false },
         },
       };
