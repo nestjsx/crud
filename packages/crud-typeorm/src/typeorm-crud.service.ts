@@ -144,7 +144,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     /* istanbul ignore else */
     if (
       hasLength(req.parsed.paramsFilter) &&
-      !req.options.routes.updateOneBase.allowParamsOverride
+      !req.options.routes.replaceOneBase.allowParamsOverride
     ) {
       for (const filter of req.parsed.paramsFilter) {
         dto[filter.field] = filter.value;
