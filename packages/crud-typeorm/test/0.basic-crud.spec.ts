@@ -315,6 +315,31 @@ describe('#crud-typeorm', () => {
       });
     });
 
+    describe('#replaceOneBase', () => {
+      it('should create entity', (done) => {
+        const dto = { name: 'updated0', domain: 'domain0' };
+        return request(server)
+          .put('/companies/333')
+          .send(dto)
+          .end((_, res) => {
+            expect(res.status).toBe(200);
+            expect(res.body.name).toBe('updated0');
+            done();
+          });
+      });
+      it('should return updated entity, 1', (done) => {
+        const dto = { name: 'updated0' };
+        return request(server)
+          .put('/companies/1')
+          .send(dto)
+          .end((_, res) => {
+            expect(res.status).toBe(200);
+            expect(res.body.name).toBe('updated0');
+            done();
+          });
+      });
+    });
+
     describe('#deleteOneBase', () => {
       it('should return status 404', (done) => {
         return request(server)

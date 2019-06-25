@@ -136,6 +136,25 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
   }
 
   /**
+   * Replace one
+   * @param req
+   * @param dto
+   */
+  public async replaceOne(req: CrudRequest, dto: T): Promise<T> {
+    /* istanbul ignore else */
+    if (
+      hasLength(req.parsed.paramsFilter) &&
+      !req.options.routes.updateOneBase.allowParamsOverride
+    ) {
+      for (const filter of req.parsed.paramsFilter) {
+        dto[filter.field] = filter.value;
+      }
+    }
+
+    return this.repo.save<any>(dto);
+  }
+
+  /**
    * Delete one
    * @param req
    */

@@ -24,6 +24,9 @@ const conf: CrudGlobalConfig = {
     updateOneBase: {
       allowParamsOverride: true,
     },
+    replaceOneBase: {
+      allowParamsOverride: true,
+    },
   },
 };
 
@@ -63,6 +66,9 @@ describe('#crud', () => {
         updateOneBase: {
           allowParamsOverride: false,
         },
+        replaceOneBase: {
+          allowParamsOverride: false,
+        },
         deleteOneBase: {
           returnDeleted: true,
         },
@@ -99,6 +105,9 @@ describe('#crud', () => {
           expect(res.body.req.options.routes.updateOneBase.allowParamsOverride).toBe(
             true,
           );
+          expect(res.body.req.options.routes.replaceOneBase.allowParamsOverride).toBe(
+            true,
+          );
           done();
         });
     });
@@ -118,6 +127,9 @@ describe('#crud', () => {
             },
           });
           expect(res.body.req.options.routes.updateOneBase.allowParamsOverride).toBe(
+            false,
+          );
+          expect(res.body.req.options.routes.replaceOneBase.allowParamsOverride).toBe(
             false,
           );
           expect(res.body.req.options.routes.deleteOneBase.returnDeleted).toBe(true);

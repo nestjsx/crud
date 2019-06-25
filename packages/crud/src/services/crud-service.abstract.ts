@@ -10,6 +10,7 @@ export abstract class CrudService<T> {
   abstract createOne(req: CrudRequest, dto: T): Promise<T>;
   abstract createMany(req: CrudRequest, dto: CreateManyDto): Promise<T[]>;
   abstract updateOne(req: CrudRequest, dto: T): Promise<T>;
+  abstract replaceOne(req: CrudRequest, dto: T): Promise<T>;
   abstract deleteOne(req: CrudRequest): Promise<void | T>;
   throwBadRequestException(msg?: any): BadRequestException {
     throw new BadRequestException(msg);

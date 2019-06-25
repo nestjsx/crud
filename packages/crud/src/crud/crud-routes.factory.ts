@@ -50,6 +50,7 @@ export class CrudRoutesFactory {
       createOneBase: CrudActions.CreateOne,
       updateOneBase: CrudActions.UpdateOne,
       deleteOneBase: CrudActions.DeleteOne,
+      replaceOneBase: CrudActions.ReplaceOne,
     };
   }
 
@@ -117,6 +118,13 @@ export class CrudRoutesFactory {
         override: false,
       },
       {
+        name: 'replaceOneBase',
+        path: '',
+        method: RequestMethod.PUT,
+        enable: false,
+        override: false,
+      },
+      {
         name: 'deleteOneBase',
         path: '',
         method: RequestMethod.DELETE,
@@ -153,6 +161,12 @@ export class CrudRoutesFactory {
   private updateOneBase(name: BaseRouteName) {
     this.targetProto[name] = function updateOneBase(req: CrudRequest, dto: any) {
       return this.service.updateOne(req, dto);
+    };
+  }
+
+  private replaceOneBase(name: BaseRouteName) {
+    this.targetProto[name] = function replaceOneBase(req: CrudRequest, dto: any) {
+      return this.service.replaceOne(req, dto);
     };
   }
 
@@ -234,6 +248,7 @@ export class CrudRoutesFactory {
       'createManyBase',
       'createOneBase',
       'updateOneBase',
+      'replaceOneBase',
     ] as BaseRouteName[];
     const withBody = isIn(override, allowed);
     const parsedBody = R.getParsedBody(this.targetProto[name]);
@@ -300,12 +315,14 @@ export class CrudRoutesFactory {
       'createManyBase',
       'createOneBase',
       'updateOneBase',
+      'replaceOneBase',
     ];
 
     if (isIn(name, toValidate)) {
-      const group = isEqual(name, 'updateOneBase')
-        ? CrudValidationGroups.UPDATE
-        : CrudValidationGroups.CREATE;
+      const group =
+        isEqual(name, 'updateOneBase') || isEqual(name, 'replaceOneBase')
+          ? CrudValidationGroups.UPDATE
+          : CrudValidationGroups.CREATE;
       rest = R.setBodyArg(1, [Validation.getValidationPipe(this.options, group)]);
     }
 
@@ -316,7 +333,11 @@ export class CrudRoutesFactory {
     if (isEqual(name, 'createManyBase')) {
       const bulkDto = Validation.createBulkDto(this.options);
       R.setRouteArgsTypes([Object, bulkDto], this.targetProto, name);
-    } else if (isEqual(name, 'createOneBase') || isEqual(name, 'updateOneBase')) {
+    } else if (
+      isEqual(name, 'createOneBase') ||
+      isEqual(name, 'updateOneBase') ||
+      isEqual(name, 'replaceOneBase')
+    ) {
       R.setRouteArgsTypes([Object, this.modelType], this.targetProto, name);
     } else {
       R.setRouteArgsTypes([Object], this.targetProto, name);

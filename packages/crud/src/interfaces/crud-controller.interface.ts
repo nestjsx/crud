@@ -8,5 +8,6 @@ export interface CrudController<T> {
   createOneBase?(req: CrudRequest, dto: T): Promise<T>;
   createManyBase?(req: CrudRequest, dto: CreateManyDto<T>): Promise<T>;
   updateOneBase?(req: CrudRequest, dto: T): Promise<T>;
+  replaceOnBase?(req: CrudRequest, dto: T): Promise<T>;
   deleteOneBase?(req: CrudRequest): Promise<void | T>;
 }

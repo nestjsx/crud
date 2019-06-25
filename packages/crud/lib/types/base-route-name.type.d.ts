@@ -1,1 +1,8 @@
-export declare type BaseRouteName = 'getManyBase' | 'getOneBase' | 'createOneBase' | 'createManyBase' | 'updateOneBase' | 'deleteOneBase';
+export declare type BaseRouteName =
+  | 'getManyBase'
+  | 'getOneBase'
+  | 'createOneBase'
+  | 'createManyBase'
+  | 'updateOneBase'
+  | 'replaceOneBase'
+  | 'deleteOneBase';

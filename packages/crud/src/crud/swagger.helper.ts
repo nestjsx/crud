@@ -17,6 +17,7 @@ export class Swagger {
       createManyBase: `Create many ${modelName}`,
       createOneBase: `Create one ${modelName}`,
       updateOneBase: `Update one ${modelName}`,
+      replaceOneBase: `Replace one ${modelName}`,
       deleteOneBase: `Delete one ${modelName}`,
     };
   }
