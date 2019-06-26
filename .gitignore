@@ -16,3 +16,6 @@ lerna-debug.log
 # tests
 /coverage
 /.nyc_output
+
+# dist
+packages/**/lib

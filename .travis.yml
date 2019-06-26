@@ -12,14 +12,10 @@ before_install:
   - chmod +x docker-compose
   - sudo mv docker-compose /usr/local/bin
 
-cache:
-  yarn: true
-  directories:
-    - node_modules
-
 install:
   - docker-compose up -d
   - yarn bootstrap
+  - yarn build
 
 script:
   - yarn test:coveralls
