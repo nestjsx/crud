@@ -1,6 +1,13 @@
-import { hasLength, hasValue, isString, isArrayFull, isNil } from '@nestjsx/util';
+import {
+  hasLength,
+  hasValue,
+  isObject,
+  isString,
+  isArrayFull,
+  isNil,
+} from '@nestjsx/util';
 
-import { RequestQueryBuilderOptions } from './interfaces';
+import { RequestQueryBuilderOptions, CreateQueryParams } from './interfaces';
 import {
   validateCondition,
   validateFields,
@@ -55,8 +62,9 @@ export class RequestQueryBuilder {
     return RequestQueryBuilder._options;
   }
 
-  static create(): RequestQueryBuilder {
-    return new RequestQueryBuilder();
+  static create(params?: CreateQueryParams): RequestQueryBuilder {
+    const qb = new RequestQueryBuilder();
+    return isObject(params) ? qb.createFromParams(params) : qb;
   }
 
   get options(): RequestQueryBuilderOptions {
@@ -128,6 +136,47 @@ export class RequestQueryBuilder {
 
   resetCache(): this {
     this._cache = 0;
+    return this;
+  }
+
+  private createFromParams(params: CreateQueryParams): this {
+    /* istanbul ignore else */
+    if (isArrayFull(params.fields)) {
+      this.select(params.fields);
+    }
+    /* istanbul ignore else */
+    if (isArrayFull(params.filter)) {
+      params.filter.forEach((filter) => this.setFilter(filter));
+    }
+    /* istanbul ignore else */
+    if (isArrayFull(params.or)) {
+      params.or.forEach((or) => this.setOr(or));
+    }
+    /* istanbul ignore else */
+    if (isArrayFull(params.join)) {
+      params.join.forEach((join) => this.setJoin(join));
+    }
+    /* istanbul ignore else */
+    if (isArrayFull(params.sort)) {
+      params.sort.forEach((sort) => this.sortBy(sort));
+    }
+    /* istanbul ignore else */
+    if (!isNil(params.limit)) {
+      this.setLimit(params.limit);
+    }
+    /* istanbul ignore else */
+    if (!isNil(params.offset)) {
+      this.setOffset(params.offset);
+    }
+    /* istanbul ignore else */
+    if (!isNil(params.page)) {
+      this.setPage(params.page);
+    }
+    /* istanbul ignore else */
+    if (params.resetCache) {
+      this.resetCache();
+    }
+
     return this;
   }
 
