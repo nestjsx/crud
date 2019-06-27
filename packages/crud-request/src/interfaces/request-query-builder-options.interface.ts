@@ -2,14 +2,14 @@ export interface RequestQueryBuilderOptions {
   delim?: string;
   delimStr?: string;
   paramNamesMap?: {
-    fields?: string[];
-    filter?: string[];
-    or?: string[];
-    join?: string[];
-    sort?: string[];
-    limit?: string[];
-    offset?: string[];
-    page?: string[];
-    cache?: string[];
+    fields?: string | string[];
+    filter?: string | string[];
+    or?: string | string[];
+    join?: string | string[];
+    sort?: string | string[];
+    limit?: string | string[];
+    offset?: string | string[];
+    page?: string | string[];
+    cache?: string | string[];
   };
 }

@@ -1,4 +1,4 @@
-import { hasLength, hasValue, isArrayFull, isNil } from '@nestjsx/util';
+import { hasLength, hasValue, isString, isArrayFull, isNil } from '@nestjsx/util';
 
 import { RequestQueryBuilderOptions } from './interfaces';
 import {
@@ -17,14 +17,14 @@ export class RequestQueryBuilder {
     delimStr: ',',
     paramNamesMap: {
       fields: ['fields', 'select'],
-      filter: ['filter[]', 'filter'],
-      or: ['or[]', 'or'],
-      join: ['join[]', 'join'],
-      sort: ['sort[]', 'sort'],
+      filter: 'filter',
+      or: 'or',
+      join: 'join',
+      sort: 'sort',
       limit: ['per_page', 'limit'],
-      offset: ['offset'],
-      page: ['page'],
-      cache: ['cache'],
+      offset: 'offset',
+      page: 'page',
+      cache: 'cache',
     },
   };
 
@@ -132,7 +132,8 @@ export class RequestQueryBuilder {
   }
 
   private getParamName(param: keyof RequestQueryBuilderOptions['paramNamesMap']): string {
-    return this.options.paramNamesMap[param][0];
+    const name = this.options.paramNamesMap[param];
+    return isString(name) ? (name as string) : (name[0] as string);
   }
 
   private getFields(): string {
@@ -153,12 +154,15 @@ export class RequestQueryBuilder {
 
     const param = this.getParamName(cond);
     const d = this.options.delim;
+    const br = this.addBrackets(this[`_${cond}`]);
 
     return (
       this[`_${cond}`]
         .map(
           (f: QueryFilter) =>
-            `${param}=${f.field}${d}${f.operator}${hasValue(f.value) ? d + f.value : ''}`,
+            `${param}${br}=${f.field}${d}${f.operator}${
+              hasValue(f.value) ? d + f.value : ''
+            }`,
         )
         .join('&') + '&'
     );
@@ -172,12 +176,15 @@ export class RequestQueryBuilder {
     const param = this.getParamName('join');
     const d = this.options.delim;
     const ds = this.options.delimStr;
+    const br = this.addBrackets(this._join);
 
     return (
       this._join
         .map(
           (j: QueryJoin) =>
-            `${param}=${j.field}${isArrayFull(j.select) ? d + j.select.join(ds) : ''}`,
+            `${param}${br}=${j.field}${
+              isArrayFull(j.select) ? d + j.select.join(ds) : ''
+            }`,
         )
         .join('&') + '&'
     );
@@ -190,10 +197,12 @@ export class RequestQueryBuilder {
 
     const param = this.getParamName('sort');
     const ds = this.options.delimStr;
+    const br = this.addBrackets(this._sort);
 
     return (
-      this._sort.map((s: QuerySort) => `${param}=${s.field}${ds}${s.order}`).join('&') +
-      '&'
+      this._sort
+        .map((s: QuerySort) => `${param}${br}=${s.field}${ds}${s.order}`)
+        .join('&') + '&'
     );
   }
 
@@ -206,5 +215,9 @@ export class RequestQueryBuilder {
     const value = this[`_${num}`];
 
     return `${param}=${value}&`;
+  }
+
+  private addBrackets(arr: any[]): string {
+    return arr.length > 1 ? '[]' : '';
   }
 }

@@ -34,7 +34,7 @@ describe('#request-query', () => {
         });
         const paramNamesMap = (RequestQueryBuilder as any)._options.paramNamesMap;
         expect(paramNamesMap.fields[0]).toBe(override);
-        expect(paramNamesMap.page[0]).toBe('page');
+        expect(paramNamesMap.page).toBe('page');
       });
       it('should merge options, 2', () => {
         const override = 'override';
@@ -190,12 +190,19 @@ describe('#request-query', () => {
         const expected = 'override=foo,bar';
         expect(test).toBe(expected);
       });
-      it('should return query with filter conditions', () => {
+      it('should return query with filter conditions, 1', () => {
         const test = qb
           .setFilter({ field: 'foo', operator: 'eq', value: 'test' })
           .setFilter({ field: 'bar', operator: 'notnull' })
           .query();
         const expected = 'filter[]=foo||eq||test&filter[]=bar||notnull';
+        expect(test).toBe(expected);
+      });
+      it('should return query with filter conditions, 2', () => {
+        const test = qb
+          .setFilter({ field: 'foo', operator: 'eq', value: 'test' })
+          .query();
+        const expected = 'filter=foo||eq||test';
         expect(test).toBe(expected);
       });
       it('should return query with or conditions', () => {
