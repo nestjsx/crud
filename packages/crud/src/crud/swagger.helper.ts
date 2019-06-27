@@ -1,5 +1,5 @@
 import { HttpStatus } from '@nestjs/common';
-import { objKeys } from '@nestjsx/util';
+import { objKeys, isString } from '@nestjsx/util';
 import { RequestQueryBuilder } from '@nestjsx/crud-request';
 
 import { safeRequire } from '../util';
@@ -196,7 +196,10 @@ export class Swagger {
 
   static getQueryParamsNames() {
     const qbOptions = RequestQueryBuilder.getOptions();
-    const name = (n) => qbOptions.paramNamesMap[n][0];
+    const name = (n) => {
+      const selected = qbOptions.paramNamesMap[n];
+      return isString(selected) ? selected : selected[0];
+    };
 
     return {
       delim: qbOptions.delim,

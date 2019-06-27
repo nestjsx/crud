@@ -1,6 +1,7 @@
 import {
   hasLength,
   hasValue,
+  isString,
   isArrayFull,
   isDate,
   isDateString,
@@ -129,9 +130,10 @@ export class RequestQueryParser implements ParsedRequestParams {
   private getParamNames(
     type: keyof RequestQueryBuilderOptions['paramNamesMap'],
   ): string[] {
-    return this._paramNames.filter((p) =>
-      this._options.paramNamesMap[type].some((m) => m === p),
-    );
+    return this._paramNames.filter((p) => {
+      const name = this._options.paramNamesMap[type];
+      return isString(name) ? name === p : (name as string[]).some((m) => m === p);
+    });
   }
 
   private getParamValues(value: string | string[], parser: Function): string[] {

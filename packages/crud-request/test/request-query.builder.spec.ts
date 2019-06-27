@@ -34,7 +34,7 @@ describe('#request-query', () => {
         });
         const paramNamesMap = (RequestQueryBuilder as any)._options.paramNamesMap;
         expect(paramNamesMap.fields[0]).toBe(override);
-        expect(paramNamesMap.page[0]).toBe('page');
+        expect(paramNamesMap.page).toBe('page');
       });
       it('should merge options, 2', () => {
         const override = 'override';
@@ -190,12 +190,19 @@ describe('#request-query', () => {
         const expected = 'override=foo,bar';
         expect(test).toBe(expected);
       });
-      it('should return query with filter conditions', () => {
+      it('should return query with filter conditions, 1', () => {
         const test = qb
           .setFilter({ field: 'foo', operator: 'eq', value: 'test' })
           .setFilter({ field: 'bar', operator: 'notnull' })
           .query();
         const expected = 'filter[]=foo||eq||test&filter[]=bar||notnull';
+        expect(test).toBe(expected);
+      });
+      it('should return query with filter conditions, 2', () => {
+        const test = qb
+          .setFilter({ field: 'foo', operator: 'eq', value: 'test' })
+          .query();
+        const expected = 'filter=foo||eq||test';
         expect(test).toBe(expected);
       });
       it('should return query with or conditions', () => {
@@ -241,6 +248,72 @@ describe('#request-query', () => {
         const test = qb.resetCache().query();
         const expected = 'cache=0';
         expect(test).toBe(expected);
+      });
+    });
+
+    describe('#createFromParams', () => {
+      it('should set _fields', () => {
+        const expected: QueryFields = ['geee', 'vooo'];
+        let qb = RequestQueryBuilder.create({
+          fields: expected,
+        });
+        expect((qb as any)._fields).toMatchObject(expected);
+      });
+      it('should set _filter', () => {
+        const expected: QueryFilter = { field: 'foo', operator: CondOperator.EQUALS };
+        let qb = RequestQueryBuilder.create({
+          filter: [expected],
+        });
+        expect((qb as any)._filter[0]).toMatchObject(expected);
+      });
+      it('should set _or', () => {
+        const expected: QueryFilter = { field: 'foo', operator: 'eq' };
+        let qb = RequestQueryBuilder.create({
+          or: [expected],
+        });
+        expect((qb as any)._or[0]).toMatchObject(expected);
+      });
+      it('should set _join', () => {
+        const expected: QueryJoin = { field: 'foo', select: ['bar'] };
+        let qb = RequestQueryBuilder.create({
+          join: [expected],
+        });
+        expect((qb as any)._join[0]).toMatchObject(expected);
+      });
+      it('should set _sort', () => {
+        const expected: QuerySort = { field: 'foo', order: 'ASC' };
+        let qb = RequestQueryBuilder.create({
+          sort: [expected],
+        });
+        expect((qb as any)._sort[0]).toMatchObject(expected);
+      });
+      it('should set _limit', () => {
+        const expected = 10;
+        let qb = RequestQueryBuilder.create({
+          limit: expected,
+        });
+        expect((qb as any)._limit).toBe(expected);
+      });
+      it('should set _offset', () => {
+        const expected = 10;
+        let qb = RequestQueryBuilder.create({
+          offset: expected,
+        });
+        expect((qb as any)._offset).toBe(expected);
+      });
+      it('should set _page', () => {
+        const expected = 10;
+        let qb = RequestQueryBuilder.create({
+          page: expected,
+        });
+        expect((qb as any)._page).toBe(expected);
+      });
+      it('should set _cache', () => {
+        const expected = 0;
+        let qb = RequestQueryBuilder.create({
+          resetCache: true,
+        });
+        expect((qb as any)._cache).toBe(expected);
       });
     });
   });
