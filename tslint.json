@@ -6,7 +6,10 @@
     "object-literal-sort-keys": false,
     "member-access": false,
     "no-implicit-dependencies": false,
-    "member-ordering": false
+    "member-ordering": false,
+    "prefer-for-of": false,
+    "no-submodule-imports": false,
+    "interface-name": false
   },
   "rulesDirectory": []
 }
