@@ -351,5 +351,49 @@ describe('#crud-typeorm', () => {
           });
       });
     });
+
+    describe('#sort', () => {
+      it('should sort by field', async () => {
+        const query = qb.sortBy({ field: 'id', order: 'DESC' }).query();
+        const res = await request(server)
+          .get('/users')
+          .query(query)
+          .expect(200);
+        expect(res.body[1].id).toBeLessThan(res.body[0].id);
+      });
+
+      it('should sort by nested field, 1', async () => {
+        const query = qb
+          .setFilter({ field: 'company.id', operator: 'notnull' })
+          .setJoin({ field: 'company' })
+          .sortBy({ field: 'company.id', order: 'DESC' })
+          .query();
+        const res = await request(server)
+          .get('/users')
+          .query(query)
+          .expect(200);
+        expect(res.body[res.body.length - 1].company.id).toBeLessThan(
+          res.body[0].company.id,
+        );
+      });
+
+      it('should sort by nested field, 2', async () => {
+        const query = qb
+          .setFilter({ field: 'id', operator: 'eq', value: 1 })
+          .setFilter({ field: 'company.id', operator: 'notnull' })
+          .setFilter({ field: 'projects.id', operator: 'notnull' })
+          .setJoin({ field: 'company' })
+          .setJoin({ field: 'company.projects' })
+          .sortBy({ field: 'projects.id', order: 'DESC' })
+          .query();
+        const res = await request(server)
+          .get('/users')
+          .query(query)
+          .expect(200);
+        expect(res.body[0].company.projects[1].id).toBeLessThan(
+          res.body[0].company.projects[0].id,
+        );
+      });
+    });
   });
 });
