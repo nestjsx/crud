@@ -617,8 +617,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     cond: QueryFilter,
     param: any,
   ): { str: string; params: ObjectLiteral } {
-    const field =
-      cond.field.indexOf('.') === -1 ? `${this.alias}.${cond.field}` : cond.field;
+    const field = this.getFieldWithAlias(cond.field);
     let str: string;
     let params: ObjectLiteral;
 
