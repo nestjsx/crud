@@ -1,10 +1,10 @@
 import {
-  IsString,
   IsEmail,
+  IsEmpty,
+  IsNotEmpty,
   IsNumber,
   IsOptional,
-  IsNotEmpty,
-  IsEmpty,
+  IsString,
 } from 'class-validator';
 
 import { CrudValidationGroups } from '../../src';

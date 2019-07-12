@@ -4,10 +4,10 @@ import {
   Injectable,
   NestInterceptor,
 } from '@nestjs/common';
-import { RequestQueryParser } from '@nestjsx/crud-request/lib/request-query.parser';
+import { RequestQueryParser } from '@nestjsx/crud-request';
 
-import { R } from '../crud/reflection.helper';
 import { PARSED_CRUD_REQUEST_KEY } from '../constants';
+import { R } from '../crud/reflection.helper';
 import { CrudRequest } from '../interfaces';
 
 @Injectable()
