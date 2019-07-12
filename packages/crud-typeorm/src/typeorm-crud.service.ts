@@ -1,25 +1,31 @@
-import { Repository, ObjectLiteral, SelectQueryBuilder, Brackets } from 'typeorm';
-import { RelationMetadata } from 'typeorm/metadata/RelationMetadata';
-import { plainToClass } from 'class-transformer';
-import { ClassType } from 'class-transformer/ClassTransformer';
 import {
+  CreateManyDto,
   CrudRequest,
   CrudRequestOptions,
-  CreateManyDto,
-  QueryOptions,
-  JoinOptions,
+  CrudService,
   GetManyDefaultResponse,
+  JoinOptions,
+  QueryOptions,
 } from '@nestjsx/crud';
-import { CrudService } from '@nestjsx/crud/lib/services';
 import {
-  QueryJoin,
-  QueryFilter,
-  QuerySort,
+  CondOperator,
   ParsedRequestParams,
+  QueryFilter,
+  QueryJoin,
+  QuerySort,
 } from '@nestjsx/crud-request';
-import { isArrayFull, isObject, hasLength, objKeys, isUndefined } from '@nestjsx/util';
+import { hasLength, isArrayFull, isObject, isUndefined, objKeys } from '@nestjsx/util';
+import { plainToClass } from 'class-transformer';
+// tslint:disable-next-line:no-submodule-imports
+import { ClassType } from 'class-transformer/ClassTransformer';
+import { Brackets, ObjectLiteral, Repository, SelectQueryBuilder } from 'typeorm';
+// tslint:disable-next-line:no-submodule-imports
+import { RelationMetadata } from 'typeorm/metadata/RelationMetadata';
+import { TypeormOperatorService } from './typeorm-operator.service';
 
 export class TypeOrmCrudService<T> extends CrudService<T> {
+  protected operators = new TypeormOperatorService();
+
   private entityColumns: string[];
   private entityPrimaryColumns: string[];
   private entityColumnsHash: ObjectLiteral = {};
@@ -530,6 +536,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
 
     return true;
   }
+
   private setAndWhere(cond: QueryFilter, i: any, builder: SelectQueryBuilder<T>) {
     this.validateHasColumn(cond.field);
     const { str, params } = this.mapOperatorsToQuery(cond, `andWhere${i}`);
@@ -594,6 +601,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
       ? this.mapSort(options.sort)
       : {};
   }
+
   private mapSort(sort: QuerySort[]) {
     const params: ObjectLiteral = {};
 
@@ -614,94 +622,13 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     let str: string;
     let params: ObjectLiteral;
 
-    switch (cond.operator) {
-      case 'eq':
-        str = `${field} = :${param}`;
-        break;
+    const template = this.operators[cond.operator] || this.operators[CondOperator.EQUALS];
+    // TODO for feature operator override
+    // if (!isFunction(template)) {
+    //   throw new BadRequestException(`No template for operator[${cond.operator}] in TypeormOperatorService`);
+    // }
 
-      case 'ne':
-        str = `${field} != :${param}`;
-        break;
-
-      case 'gt':
-        str = `${field} > :${param}`;
-        break;
-
-      case 'lt':
-        str = `${field} < :${param}`;
-        break;
-
-      case 'gte':
-        str = `${field} >= :${param}`;
-        break;
-
-      case 'lte':
-        str = `${field} <= :${param}`;
-        break;
-
-      case 'starts':
-        str = `${field} LIKE :${param}`;
-        params = { [param]: `${cond.value}%` };
-        break;
-
-      case 'ends':
-        str = `${field} LIKE :${param}`;
-        params = { [param]: `%${cond.value}` };
-        break;
-
-      case 'cont':
-        str = `${field} LIKE :${param}`;
-        params = { [param]: `%${cond.value}%` };
-        break;
-
-      case 'excl':
-        str = `${field} NOT LIKE :${param}`;
-        params = { [param]: `%${cond.value}%` };
-        break;
-
-      case 'in':
-        /* istanbul ignore if */
-        if (!Array.isArray(cond.value) || !cond.value.length) {
-          this.throwBadRequestException(`Invalid column '${cond.field}' value`);
-        }
-        str = `${field} IN (:...${param})`;
-        break;
-
-      case 'notin':
-        /* istanbul ignore if */
-        if (!Array.isArray(cond.value) || !cond.value.length) {
-          this.throwBadRequestException(`Invalid column '${cond.field}' value`);
-        }
-        str = `${field} NOT IN (:...${param})`;
-        break;
-
-      case 'isnull':
-        str = `${field} IS NULL`;
-        params = {};
-        break;
-
-      case 'notnull':
-        str = `${field} IS NOT NULL`;
-        params = {};
-        break;
-
-      case 'between':
-        /* istanbul ignore if */
-        if (!Array.isArray(cond.value) || !cond.value.length || cond.value.length !== 2) {
-          this.throwBadRequestException(`Invalid column '${cond.field}' value`);
-        }
-        str = `${field} BETWEEN :${param}0 AND :${param}1`;
-        params = {
-          [`${param}0`]: cond.value[0],
-          [`${param}1`]: cond.value[1],
-        };
-        break;
-
-      /* istanbul ignore next */
-      default:
-        str = `${field} = :${param}`;
-        break;
-    }
+    [str, params] = template(field, param, cond.value);
 
     if (typeof params === 'undefined') {
       params = { [param]: cond.value };
