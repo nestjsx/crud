@@ -15,7 +15,7 @@ export class CrudRequestInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler) {
     const req = context.switchToHttp().getRequest();
     const controller = context.getClass();
-    const options = R.getCrudOptions(controller);
+    const options = R.getCrudOptions(controller) || ({} as any);
     const parsed = RequestQueryParser.create()
       .parseParams(req.params, options.params)
       .parseQuery(req.query)
