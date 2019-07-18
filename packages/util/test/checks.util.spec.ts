@@ -8,6 +8,7 @@ import {
   isDateString,
   isEqual,
   isFalse,
+  isFunction,
   isIn,
   isNil,
   isNull,
@@ -244,6 +245,15 @@ describe('#util', () => {
     it('should return false', () => {
       expect(hasValue(['', [], {}, null, undefined])).toBe(false);
       expect(hasValue(null)).toBe(false);
+    });
+  });
+
+  describe('#isFunction', () => {
+    it('should return true', () => {
+      expect(isFunction(Date)).toBe(true);
+    });
+    it('should return false', () => {
+      expect(isFunction(new Date())).toBe(false);
     });
   });
 });

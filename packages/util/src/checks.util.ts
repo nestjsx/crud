@@ -27,3 +27,4 @@ export const isValue = (val: any): boolean =>
   isStringFull(val) || isNumber(val) || isBoolean(val) || isDate(val);
 export const hasValue = (val: any): boolean =>
   isArrayFull(val) ? (val as any[]).every((o) => isValue(o)) : isValue(val);
+export const isFunction = (val: any): boolean => typeof val === 'function';
