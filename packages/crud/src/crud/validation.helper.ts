@@ -1,12 +1,29 @@
 import { ValidationPipe } from '@nestjs/common';
 import { isFalse } from '@nestjsx/util';
 
-import { safeRequire } from '../util';
 import { CrudValidationGroups } from '../enums';
-import { CrudOptions, CreateManyDto } from '../interfaces';
+import { CreateManyDto, CrudOptions } from '../interfaces';
+import { safeRequire } from '../util';
 
 const validator = safeRequire('class-validator');
 const transformer = safeRequire('class-transformer');
+const swagger = safeRequire('@nestjs/swagger');
+
+// tslint:disable-next-line:ban-types
+function ApiModelProperty(options?: any): PropertyDecorator {
+  return (target: object, propertyKey: string | symbol) => {
+    /* istanbul ignore else */
+    if (swagger) {
+      // tslint:disable-next-line
+      const { ApiModelProperty } = swagger;
+      ApiModelProperty(options)(target, propertyKey);
+    }
+  };
+}
+
+class BulkDto<T> implements CreateManyDto<T> {
+  bulk: T[];
+}
 
 export class Validation {
   static getValidationPipe(
@@ -25,18 +42,25 @@ export class Validation {
       const { Type } = transformer;
       const groups = [CrudValidationGroups.CREATE];
 
-      class BulkDto implements CreateManyDto<T> {
+      const Model = options.model.type;
+
+      // tslint:disable-next-line:max-classes-per-file
+      class BulkDtoImpl implements CreateManyDto<T> {
+        @ApiModelProperty({ type: Model, isArray: true })
         @IsArray({ groups })
         @ArrayNotEmpty({ groups })
         @ValidateNested({ each: true, groups })
-        @Type((t) => options.model.type)
+        @Type(() => Model)
         bulk: T[];
       }
-      return BulkDto;
+
+      Object.defineProperty(BulkDtoImpl, 'name', {
+        writable: false,
+        value: `Generated${Model.name}BulkDto`,
+      });
+
+      return BulkDtoImpl;
     } else {
-      class BulkDto implements CreateManyDto<T> {
-        bulk: T[];
-      }
       return BulkDto;
     }
   }
