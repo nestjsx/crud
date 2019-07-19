@@ -198,14 +198,16 @@ describe('#util', () => {
     it('should return true', () => {
       for (const val of [
         '2019-06-19',
+        '2019-06-19T12:30:00',
         '2019-06-19T12:30:00+0800',
+        '2019-06-19T12:30:00-08:00',
         '2019-06-19T00:00:00Z',
       ]) {
         expect(isDateString(val)).toBe(true);
       }
     });
     it('should return false', () => {
-      for (const val of ['20190619', [], {}, null, undefined]) {
+      for (const val of ['product-123123', 'CG-7', '20190619', [], {}, null, undefined]) {
         expect(isDateString(val)).toBe(false);
       }
     });
