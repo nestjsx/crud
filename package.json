@@ -64,7 +64,7 @@
     "@types/supertest": "2.0.8",
     "class-transformer": "0.2.3",
     "class-validator": "0.9.1",
-    "commitizen": "3.1.1",
+    "commitizen": "3.1.2",
     "coveralls": "3.0.5",
     "cz-conventional-changelog": "2.1.0",
     "husky": "2.7.0",
