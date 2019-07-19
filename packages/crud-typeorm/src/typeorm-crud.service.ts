@@ -1,23 +1,23 @@
-import { Repository, ObjectLiteral, SelectQueryBuilder, Brackets } from 'typeorm';
-import { RelationMetadata } from 'typeorm/metadata/RelationMetadata';
-import { plainToClass } from 'class-transformer';
-import { ClassType } from 'class-transformer/ClassTransformer';
 import {
+  CreateManyDto,
   CrudRequest,
   CrudRequestOptions,
-  CreateManyDto,
-  QueryOptions,
-  JoinOptions,
   GetManyDefaultResponse,
+  JoinOptions,
+  QueryOptions,
 } from '@nestjsx/crud';
-import { CrudService } from '@nestjsx/crud/lib/services';
 import {
-  QueryJoin,
-  QueryFilter,
-  QuerySort,
   ParsedRequestParams,
+  QueryFilter,
+  QueryJoin,
+  QuerySort,
 } from '@nestjsx/crud-request';
-import { isArrayFull, isObject, hasLength, objKeys, isUndefined } from '@nestjsx/util';
+import { CrudService } from '@nestjsx/crud/lib/services';
+import { hasLength, isArrayFull, isObject, isUndefined, objKeys } from '@nestjsx/util';
+import { plainToClass } from 'class-transformer';
+import { ClassType } from 'class-transformer/ClassTransformer';
+import { Brackets, ObjectLiteral, Repository, SelectQueryBuilder } from 'typeorm';
+import { RelationMetadata } from 'typeorm/metadata/RelationMetadata';
 
 export class TypeOrmCrudService<T> extends CrudService<T> {
   private entityColumns: string[];
@@ -270,7 +270,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     const allowedJoins = objKeys(joinOptions);
 
     if (hasLength(allowedJoins)) {
-      let eagerJoins: any = {};
+      const eagerJoins: any = {};
 
       for (let i = 0; i < allowedJoins.length; i++) {
         /* istanbul ignore else */
@@ -405,16 +405,9 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
   private validateHasColumn(column: string) {
     if (column.indexOf('.') !== -1) {
       const nests = column.split('.');
-
-      if (nests.length > 2) {
-        this.throwBadRequestException(
-          'Too many nested levels! ' +
-            `Usage: '[join=<other-relation>&]join=[<other-relation>.]<relation>&filter=<relation>.<field>||op||val'`,
-        );
-      }
-
       let relation;
-      [relation, column] = nests;
+      column = nests[nests.length - 1];
+      relation = nests.slice(0, nests.length - 1).join('.');
 
       if (!this.hasRelation(relation)) {
         this.throwBadRequestException(`Invalid relation name '${relation}'`);
@@ -530,6 +523,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
 
     return true;
   }
+
   private setAndWhere(cond: QueryFilter, i: any, builder: SelectQueryBuilder<T>) {
     this.validateHasColumn(cond.field);
     const { str, params } = this.mapOperatorsToQuery(cond, `andWhere${i}`);
@@ -594,12 +588,26 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
       ? this.mapSort(options.sort)
       : {};
   }
+
+  private getFieldWithAlias(field: string) {
+    const cols = field.split('.');
+    // relation is alias
+    switch (cols.length) {
+      case 1:
+        return `${this.alias}.${field}`;
+      case 2:
+        return field;
+      default:
+        return cols.slice(cols.length - 2, cols.length).join('.');
+    }
+  }
+
   private mapSort(sort: QuerySort[]) {
     const params: ObjectLiteral = {};
 
     for (let i = 0; i < sort.length; i++) {
       this.validateHasColumn(sort[i].field);
-      params[`${this.alias}.${sort[i].field}`] = sort[i].order;
+      params[this.getFieldWithAlias(sort[i].field)] = sort[i].order;
     }
 
     return params;
@@ -609,8 +617,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     cond: QueryFilter,
     param: any,
   ): { str: string; params: ObjectLiteral } {
-    const field =
-      cond.field.indexOf('.') === -1 ? `${this.alias}.${cond.field}` : cond.field;
+    const field = this.getFieldWithAlias(cond.field);
     let str: string;
     let params: ObjectLiteral;
 
