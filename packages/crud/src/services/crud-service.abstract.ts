@@ -39,7 +39,7 @@ export abstract class CrudService<T> {
       page: Math.floor(offset / limit) + 1,
       pageCount:
         limit && total
-          ? Math.round(total / limit)
+          ? Math.ceil(total / limit)
           : /* istanbul ignore next line */
             undefined,
     };
