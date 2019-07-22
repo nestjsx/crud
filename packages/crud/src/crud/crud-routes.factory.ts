@@ -16,7 +16,7 @@ import { R } from './reflection.helper';
 import { Swagger } from './swagger.helper';
 import { Validation } from './validation.helper';
 import { CrudRequestInterceptor } from '../interceptors';
-import { BaseRoute, CrudOptions, CrudRequest, ParamsOptions } from '../interfaces';
+import { BaseRoute, CrudOptions, CrudRequest } from '../interfaces';
 import { BaseRouteName } from '../types';
 import { CrudActions, CrudValidationGroups } from '../enums';
 import { CrudConfigService } from '../module';
@@ -318,6 +318,7 @@ export class CrudRoutesFactory {
       'replaceOneBase',
     ];
 
+    // TODO apply validation here
     if (isIn(name, toValidate)) {
       const group =
         isEqual(name, 'updateOneBase') || isEqual(name, 'replaceOneBase')
@@ -330,18 +331,28 @@ export class CrudRoutesFactory {
   }
 
   private setRouteArgsTypes(name: BaseRouteName) {
+    const type = this.resolveRouteArgDto(name);
     if (isEqual(name, 'createManyBase')) {
-      const bulkDto = Validation.createBulkDto(this.options);
+      const bulkDto = Validation.createBulkDto(this.options, type);
       R.setRouteArgsTypes([Object, bulkDto], this.targetProto, name);
     } else if (
       isEqual(name, 'createOneBase') ||
       isEqual(name, 'updateOneBase') ||
       isEqual(name, 'replaceOneBase')
     ) {
-      R.setRouteArgsTypes([Object, this.modelType], this.targetProto, name);
+      R.setRouteArgsTypes([Object, type], this.targetProto, name);
     } else {
       R.setRouteArgsTypes([Object], this.targetProto, name);
     }
+  }
+
+  private resolveRouteArgDto(name: BaseRouteName) {
+    const isUpdate = isIn(name, ['updateOneBase', 'replaceOneBase']);
+    return this.options.dto
+      ? isUpdate && this.options.dto.update
+        ? this.options.dto.update
+        : this.options.dto.create
+      : this.modelType;
   }
 
   private setInterceptors(name: BaseRouteName) {

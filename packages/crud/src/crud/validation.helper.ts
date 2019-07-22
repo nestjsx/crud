@@ -35,7 +35,7 @@ export class Validation {
       : /* istanbul ignore next */ undefined;
   }
 
-  static createBulkDto<T = any>(options: CrudOptions): any {
+  static createBulkDto<T = any>(options: CrudOptions, type: any): any {
     /* istanbul ignore else */
     if (validator && transformer && !isFalse(options.validation)) {
       const { IsArray, ArrayNotEmpty, ValidateNested } = validator;
@@ -51,6 +51,7 @@ export class Validation {
         @ArrayNotEmpty({ groups })
         @ValidateNested({ each: true, groups })
         @Type(() => Model)
+        @Type((t) => type)
         bulk: T[];
       }
 

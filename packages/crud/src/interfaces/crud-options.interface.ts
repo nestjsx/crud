@@ -11,7 +11,13 @@ export interface CrudRequestOptions {
   params?: ParamsOptions;
 }
 
+export interface DtoOptions {
+  create: any;
+  update: any;
+}
+
 export interface CrudOptions extends CrudRequestOptions {
   model: ModelOptions;
+  dto?: DtoOptions;
   validation?: ValidationPipeOptions | false;
 }
