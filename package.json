@@ -69,7 +69,7 @@
     "cz-conventional-changelog": "2.1.0",
     "husky": "2.7.0",
     "jest": "24.8.0",
-    "lerna": "3.16.0",
+    "lerna": "3.16.4",
     "nodemon": "1.19.1",
     "npm-check": "5.9.0",
     "nps": "5.9.5",
