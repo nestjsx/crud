@@ -102,8 +102,9 @@ export function validateParamOption(options: ParamsOptions, name: string) {
 }
 
 export function validateUUID(str: string, name: string) {
-  const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-  if (!uuid.test(str)) {
+  const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  const uuidV4 = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  if (!uuidV4.test(str) && !uuid.test(str)) {
     throw new RequestQueryException(`Invalid param ${name}. UUID string expected`);
   }
 }
