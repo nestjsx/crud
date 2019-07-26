@@ -66,7 +66,7 @@
     "class-validator": "0.9.1",
     "commitizen": "3.1.2",
     "coveralls": "3.0.5",
-    "cz-conventional-changelog": "2.1.0",
+    "cz-conventional-changelog": "3.0.2",
     "husky": "2.7.0",
     "jest": "24.8.0",
     "lerna": "3.16.0",
