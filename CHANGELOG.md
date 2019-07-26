@@ -1,3 +1,24 @@
+## [4.2.0] - 2019-07-26
+
+### Features
+
+- **crud** added support for older versions of `UUID` ([#186])
+
+### Bug Fixes
+
+- **crud** fixed `BulkDto` swagger description ([#159])
+- **crud** fixed `CrudRequestInterceptor` request parsing
+- **requests** added `@nestjsx/util` as a dependency ([#184])
+- **requests** fixed condition operators mapping ([#148])
+- **requests** fixed ISO date string validation ([#161])
+- **typeorm** fixed filtering and sorting by nested fields ([#105])
+- **typeorm** fixed `too many nested levels` exception ([#87])
+- **typeorm** fixed pagination `pageCount` ([#179])
+
+### Deps
+
+- **dev** updated deps
+
 ## [4.1.0] - 2019-06-27
 
 ### Features
@@ -41,6 +62,7 @@
 
 - several fixes
 
+[4.2.0]: https://github.com/nestjsx/crud/compare/v4.1.0...v4.2.0
 [4.1.0]: https://github.com/nestjsx/crud/compare/v4.0.1...v4.1.0
 [4.0.1]: https://github.com/nestjsx/crud/compare/v4.0.0...v4.0.1
 [4.0.0]: https://github.com/nestjsx/crud/compare/v.3.2.0...v4.0.0
@@ -52,3 +74,11 @@
 [#107]: https://github.com/nestjsx/crud/issues/107
 [#131]: https://github.com/nestjsx/crud/issues/131
 [#101]: https://github.com/nestjsx/crud/issues/101
+[#186]: https://github.com/nestjsx/crud/pull/186
+[#184]: https://github.com/nestjsx/crud/issues/184
+[#148]: https://github.com/nestjsx/crud/issues/148
+[#105]: https://github.com/nestjsx/crud/issues/105
+[#87]: https://github.com/nestjsx/crud/issues/87
+[#159]: https://github.com/nestjsx/crud/issues/159
+[#161]: https://github.com/nestjsx/crud/issues/161
+[#179]: https://github.com/nestjsx/crud/issues/179
