@@ -64,7 +64,7 @@ describe('#crud-typeorm', () => {
     beforeAll(async () => {
       const fixture = await Test.createTestingModule({
         imports: [
-          TypeOrmModule.forRoot(withCache),
+          TypeOrmModule.forRoot({ ...withCache, logging: false }),
           TypeOrmModule.forFeature([Company, Project, User, UserProfile]),
         ],
         controllers: [CompaniesController, UsersController],
@@ -140,7 +140,7 @@ describe('#crud-typeorm', () => {
             expect(res.body.count).toBe(3);
             expect(res.body.total).toBe(10);
             expect(res.body.page).toBe(1);
-            expect(res.body.pageCount).toBe(3);
+            expect(res.body.pageCount).toBe(4);
             done();
           });
       });
@@ -187,7 +187,7 @@ describe('#crud-typeorm', () => {
             done();
           });
       });
-      it('should return an entiry with and set cache', (done) => {
+      it('should return an entity with and set cache', (done) => {
         return request(server)
           .get('/companies/1/users/1')
           .end((_, res) => {

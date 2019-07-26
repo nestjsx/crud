@@ -46,5 +46,8 @@
   "scripts": {
     "prebuild": "npx rimraf ./lib",
     "build": "npx tsc -b"
+  },
+  "dependencies": {
+    "@nestjsx/util": "^4.1.0"
   }
 }

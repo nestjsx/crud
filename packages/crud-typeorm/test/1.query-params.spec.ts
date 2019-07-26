@@ -78,7 +78,7 @@ describe('#crud-typeorm', () => {
     beforeAll(async () => {
       const fixture = await Test.createTestingModule({
         imports: [
-          TypeOrmModule.forRoot(withCache),
+          TypeOrmModule.forRoot({ ...withCache, logging: false }),
           TypeOrmModule.forFeature([Company, Project, User, UserProfile]),
         ],
         controllers: [CompaniesController, ProjectsController, UsersController],
