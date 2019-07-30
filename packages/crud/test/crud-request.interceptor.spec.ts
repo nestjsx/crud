@@ -1,5 +1,12 @@
-import { Controller, Get, ParseIntPipe, Query } from '@nestjs/common';
-import { APP_INTERCEPTOR, NestApplication } from '@nestjs/core';
+import {
+  Controller,
+  Get,
+  Param,
+  ParseIntPipe,
+  Query,
+  UseInterceptors,
+} from '@nestjs/common';
+import { NestApplication } from '@nestjs/core';
 import { Test } from '@nestjs/testing';
 import { RequestQueryBuilder } from '@nestjsx/crud-request';
 import * as supertest from 'supertest';
@@ -8,6 +15,16 @@ import { CrudRequestInterceptor } from '../src/interceptors';
 import { CrudRequest } from '../src/interfaces';
 
 describe('#crud', () => {
+  @UseInterceptors(
+    new CrudRequestInterceptor({
+      params: {
+        someParam: {
+          field: 'someParam',
+          type: 'number',
+        },
+      },
+    }),
+  )
   @Controller('test')
   class TestController {
     @Get('/query')
@@ -19,6 +36,11 @@ describe('#crud', () => {
     async other(@Query('page', ParseIntPipe) page: number) {
       return { page };
     }
+
+    @Get('/other2/:someParam')
+    async routeWithParam(@Param('someParam', ParseIntPipe) p: number) {
+      return { p };
+    }
   }
 
   let $: supertest.SuperTest<supertest.Test>;
@@ -27,7 +49,6 @@ describe('#crud', () => {
   beforeAll(async () => {
     const module = await Test.createTestingModule({
       controllers: [TestController],
-      providers: [{ provide: APP_INTERCEPTOR, useClass: CrudRequestInterceptor }],
     }).compile();
     app = module.createNestApplication();
     await app.init();
@@ -89,6 +110,11 @@ describe('#crud', () => {
         .query({ page: 2, per_page: 11 })
         .expect(200);
       expect(res.body.page).toBe(2);
+    });
+
+    it('should parse param', async () => {
+      const res = await $.get('/test/other2/123').expect(200);
+      expect(res.body.p).toBe(123);
     });
   });
 });
