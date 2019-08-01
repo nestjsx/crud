@@ -6,6 +6,7 @@ import {
   Optional,
 } from '@nestjs/common';
 import { RequestQueryParser } from '@nestjsx/crud-request';
+import * as deepmerge from 'deepmerge';
 import { PARSED_CRUD_REQUEST_KEY } from '../constants';
 import { R } from '../crud/reflection.helper';
 import { CrudRequest, CrudRequestOptions } from '../interfaces';
@@ -20,7 +21,9 @@ export class CrudRequestInterceptor implements NestInterceptor {
     /* istanbul ignore else */
     if (!req[PARSED_CRUD_REQUEST_KEY]) {
       const controller = context.getClass();
-      const options = R.getCrudOptions(controller) || this.options;
+      const options = deepmerge(R.getCrudOptions(controller) || {}, this.options, {
+        clone: true,
+      });
       const parsed = RequestQueryParser.create()
         .parseParams(req.params, options.params)
         .parseQuery(req.query)

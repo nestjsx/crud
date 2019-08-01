@@ -10,10 +10,13 @@ import { NestApplication } from '@nestjs/core';
 import { Test } from '@nestjs/testing';
 import { RequestQueryBuilder } from '@nestjsx/crud-request';
 import * as supertest from 'supertest';
-import { ParsedRequest } from '../src/decorators';
+import { Crud, ParsedRequest } from '../src/decorators';
 import { CrudRequestInterceptor } from '../src/interceptors';
 import { CrudRequest } from '../src/interfaces';
+import { TestModel } from './__fixture__/test.model';
+import { TestService } from './__fixture__/test.service';
 
+// tslint:disable:max-classes-per-file
 describe('#crud', () => {
   @UseInterceptors(
     new CrudRequestInterceptor({
@@ -43,12 +46,36 @@ describe('#crud', () => {
     }
   }
 
+  @Crud({
+    model: { type: TestModel },
+  })
+  @Controller('test2')
+  class Test2Controller {
+    constructor(public service: TestService<TestModel>) {}
+
+    @UseInterceptors(
+      new CrudRequestInterceptor({
+        params: {
+          someParam: {
+            field: 'someParam',
+            type: 'number',
+          },
+        },
+      }),
+    )
+    @Get('/other2/:someParam')
+    async routeWithParam(@Param('someParam', ParseIntPipe) p: number) {
+      return { p };
+    }
+  }
+
   let $: supertest.SuperTest<supertest.Test>;
   let app: NestApplication;
 
   beforeAll(async () => {
     const module = await Test.createTestingModule({
-      controllers: [TestController],
+      providers: [TestService],
+      controllers: [TestController, Test2Controller],
     }).compile();
     app = module.createNestApplication();
     await app.init();
@@ -114,6 +141,11 @@ describe('#crud', () => {
 
     it('should parse param', async () => {
       const res = await $.get('/test/other2/123').expect(200);
+      expect(res.body.p).toBe(123);
+    });
+
+    it('should parse custom param in crud', async () => {
+      const res = await $.get('/test2/other2/123').expect(200);
       expect(res.body.p).toBe(123);
     });
   });
