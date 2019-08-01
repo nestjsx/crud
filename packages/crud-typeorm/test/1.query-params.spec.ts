@@ -2,6 +2,7 @@ import { Controller, INestApplication } from '@nestjs/common';
 import { APP_FILTER } from '@nestjs/core';
 import { Test } from '@nestjs/testing';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { Crud } from '@nestjsx/crud';
 import { RequestQueryBuilder } from '@nestjsx/crud-request';
 import * as request from 'supertest';
 
@@ -11,7 +12,6 @@ import { Project } from '../../../integration/crud-typeorm/projects';
 import { User } from '../../../integration/crud-typeorm/users';
 import { UserProfile } from '../../../integration/crud-typeorm/users-profiles';
 import { HttpExceptionFilter } from '../../../integration/shared/https-exception.filter';
-import { Crud } from '../../crud/src/decorators/crud.decorator';
 import { CompaniesService } from './__fixture__/companies.service';
 import { ProjectsService } from './__fixture__/projects.service';
 import { UsersService } from './__fixture__/users.service';
@@ -101,7 +101,7 @@ describe('#crud-typeorm', () => {
     });
 
     afterAll(async () => {
-      app.close();
+      await app.close();
     });
 
     describe('#select', () => {
@@ -428,6 +428,21 @@ describe('#crud-typeorm', () => {
         expect(res.body[0].company.projects[1].id).toBeLessThan(
           res.body[0].company.projects[0].id,
         );
+      });
+    });
+
+    describe('#update', () => {
+      it('should update company id of project', async () => {
+        await request(server)
+          .patch('/projects/18')
+          .send({ companyId: 10 })
+          .expect(200);
+
+        const modified = await request(server)
+          .get('/projects/18')
+          .expect(200);
+
+        expect(modified.body.companyId).toBe(10);
       });
     });
   });
