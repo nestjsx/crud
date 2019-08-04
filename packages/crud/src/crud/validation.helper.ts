@@ -50,7 +50,6 @@ export class Validation {
         @IsArray({ groups })
         @ArrayNotEmpty({ groups })
         @ValidateNested({ each: true, groups })
-        @Type(() => Model)
         @Type((t) => type)
         bulk: T[];
       }
