@@ -115,7 +115,7 @@ describe('#crud', () => {
       });
     });
 
-    describe('#createMadyBase', () => {
+    describe('#createManyBase', () => {
       it('should return status 201', () => {
         const send: CreateManyDto<TestModel> = {
           bulk: [
