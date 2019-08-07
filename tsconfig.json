@@ -17,18 +17,21 @@
     "paths": {
       "@nestjsx/crud": ["crud/src"],
       "@nestjsx/crud-typeorm": ["crud-typeorm/src"],
+      "@nestjsx/crud-objection": ["crud-objection/src"],
       "@nestjsx/crud-request": ["crud-request/src"],
       "@nestjsx/util": ["util/src"],
       "@nestjsx/crud/*": ["crud/src/*"],
+      "@nestjsx/crud-objection/*": ["crud-objection/src/*"],
       "@nestjsx/crud-typeorm/*": ["crud-typeorm/src/*"],
       "@nestjsx/crud-request/*": ["crud-request/src/*"],
       "@nestjsx/util/*": ["util/src/*"]
     }
   },
   "references": [
-    { "path": "crud" },
-    { "path": "crud-typeorm" },
-    { "path": "crud-request" },
-    { "path": "util" }
+    { "path": "packages/crud" },
+    { "path": "packages/crud-typeorm" },
+    { "path": "packages/crud-objection" },
+    { "path": "packages/crud-request" },
+    { "path": "packages/util" }
   ]
 }
