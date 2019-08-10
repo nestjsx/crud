@@ -1294,6 +1294,11 @@
   dependencies:
     "@types/superagent" "*"
 
+"@types/validator@10.11.2":
+  version "10.11.2"
+  resolved "https://registry.yarnpkg.com/@types/validator/-/validator-10.11.2.tgz#48b60ca2cca927081f37a1ad1de3e25d04abc9f0"
+  integrity sha512-k/ju1RsdP5ACFUWebqsyEy0avP5uNJCs2p3pmTHzOZdd4gMSAJTq7iUEHFY3tt3emBrPTm6oGvfZ4SzcqOgLPQ==
+
 "@types/yargs@^12.0.2", "@types/yargs@^12.0.9":
   version "12.0.12"
   resolved "https://registry.yarnpkg.com/@types/yargs/-/yargs-12.0.12.tgz#45dd1d0638e8c8f153e87d296907659296873916"
@@ -2086,13 +2091,14 @@ class-utils@^0.3.5:
     isobject "^3.0.0"
     static-extend "^0.1.1"
 
-class-validator@0.9.1:
-  version "0.9.1"
-  resolved "https://registry.yarnpkg.com/class-validator/-/class-validator-0.9.1.tgz#d60e58c5d14abca0a41bce38cf792ad4c46d1531"
-  integrity sha512-3wApflrd3ywVZyx4jaasGoFt8pmo4aGLPPAEKCKCsTRWVGPilahD88q3jQjRQwja50rl9a7rsP5LAxJYwGK8/Q==
+class-validator@0.10.0:
+  version "0.10.0"
+  resolved "https://registry.yarnpkg.com/class-validator/-/class-validator-0.10.0.tgz#5e5f8108fa200d5ce1906cd5537af102c072dbcd"
+  integrity sha512-RvjxRlvoCvM/ojUq11j78ISpReGdBoMErdmDk1e27aQZK6ppSXq751UE6jB9JI7ayEnL6Nnmllzn/HXVSu3dmg==
   dependencies:
+    "@types/validator" "10.11.2"
     google-libphonenumber "^3.1.6"
-    validator "10.4.0"
+    validator "11.1.0"
 
 cli-boxes@^1.0.0:
   version "1.0.0"
@@ -8704,10 +8710,10 @@ validate-npm-package-name@^3.0.0:
   dependencies:
     builtins "^1.0.3"
 
-validator@10.4.0:
-  version "10.4.0"
-  resolved "https://registry.yarnpkg.com/validator/-/validator-10.4.0.tgz#ee99a44afb3bb5ed350a159f056ca72a204cfc3c"
-  integrity sha512-Q/wBy3LB1uOyssgNlXSRmaf22NxjvDNZM2MtIQ4jaEOAB61xsh1TQxsq1CgzUMBV1lDrVMogIh8GjG1DYW0zLg==
+validator@11.1.0:
+  version "11.1.0"
+  resolved "https://registry.yarnpkg.com/validator/-/validator-11.1.0.tgz#ac18cac42e0aa5902b603d7a5d9b7827e2346ac4"
+  integrity sha512-qiQ5ktdO7CD6C/5/mYV4jku/7qnqzjrxb3C/Q5wR3vGGinHTgJZN/TdFT3ZX4vXhX2R1PXx42fB1cn5W+uJ4lg==
 
 vary@^1, vary@~1.1.2:
   version "1.1.2"

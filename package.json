@@ -63,7 +63,7 @@
     "@types/node": "12.6.8",
     "@types/supertest": "2.0.8",
     "class-transformer": "0.2.3",
-    "class-validator": "0.9.1",
+    "class-validator": "0.10.0",
     "commitizen": "3.1.2",
     "coveralls": "3.0.5",
     "cz-conventional-changelog": "2.1.0",
