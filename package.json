@@ -79,7 +79,7 @@
     "pretty-quick": "1.11.1",
     "redis": "2.8.0",
     "reflect-metadata": "0.1.13",
-    "rimraf": "2.6.3",
+    "rimraf": "2.7.1",
     "rxjs": "6.5.2",
     "supertest": "4.0.2",
     "swagger-ui-express": "4.0.7",
