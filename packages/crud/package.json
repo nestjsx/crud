@@ -42,7 +42,7 @@
   "dependencies": {
     "@nestjsx/crud-request": "^4.2.0",
     "@nestjsx/util": "^4.2.0",
-    "deepmerge": "^3.2.0"
+    "deepmerge": "^3.3.0"
   },
   "peerDependencies": {
     "class-transformer": "*",
