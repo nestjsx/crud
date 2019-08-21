@@ -1,19 +1,20 @@
-import {
-  CallHandler,
-  ExecutionContext,
-  Injectable,
-  NestInterceptor,
-  Optional,
-} from '@nestjs/common';
+import { CallHandler, ExecutionContext, Injectable, NestInterceptor, Optional } from '@nestjs/common';
 import { RequestQueryParser } from '@nestjsx/crud-request';
 import * as deepmerge from 'deepmerge';
 import { PARSED_CRUD_REQUEST_KEY } from '../constants';
 import { R } from '../crud/reflection.helper';
 import { CrudRequest, CrudRequestOptions } from '../interfaces';
 
+const emptyOptions: CrudRequestOptions = {
+  query: {},
+  routes: {},
+  params: {},
+};
+
 @Injectable()
 export class CrudRequestInterceptor implements NestInterceptor {
-  constructor(@Optional() private options: CrudRequestOptions = {}) {}
+  constructor(@Optional() private options: CrudRequestOptions = emptyOptions) {
+  }
 
   intercept(context: ExecutionContext, next: CallHandler) {
     const req = context.switchToHttp().getRequest();
@@ -21,7 +22,7 @@ export class CrudRequestInterceptor implements NestInterceptor {
     /* istanbul ignore else */
     if (!req[PARSED_CRUD_REQUEST_KEY]) {
       const controller = context.getClass();
-      const options = deepmerge(R.getCrudOptions(controller) || {}, this.options, {
+      const options = deepmerge(R.getCrudOptions(controller) || emptyOptions, this.options, {
         clone: true,
       });
       const parsed = RequestQueryParser.create()
