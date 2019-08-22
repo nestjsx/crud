@@ -1,13 +1,13 @@
 import {
   hasLength,
   hasValue,
-  isObject,
-  isString,
   isArrayFull,
   isNil,
+  isObject,
+  isString,
 } from '@nestjsx/util';
 
-import { RequestQueryBuilderOptions, CreateQueryParams } from './interfaces';
+import { CreateQueryParams, RequestQueryBuilderOptions } from './interfaces';
 import {
   validateCondition,
   validateFields,
@@ -15,7 +15,7 @@ import {
   validateNumeric,
   validateSort,
 } from './request-query.validator';
-import { QueryFields, QueryFilter, QueryJoin, QuerySort } from './types';
+import { QueryFields, QueryFilter, QueryJoin, QueryOperation, QuerySort } from './types';
 
 // tslint:disable:variable-name ban-types
 export class RequestQueryBuilder {
@@ -209,12 +209,18 @@ export class RequestQueryBuilder {
       this[`_${cond}`]
         .map(
           (f: QueryFilter) =>
-            `${param}${br}=${f.field}${d}${f.operator}${
-              hasValue(f.value) ? d + f.value : ''
+            `${param}${br}=${
+              Array.isArray(f)
+                ? JSON.stringify(f.map((s) => this.generateQuery(s, d)))
+                : this.generateQuery(f, d)
             }`,
         )
         .join('&') + '&'
     );
+  }
+
+  private generateQuery(f: QueryOperation, d: string) {
+    return `${f.field}${d}${f.operator}${hasValue(f.value) ? d + f.value : ''}`;
   }
 
   private getJoin(): string {

@@ -10,6 +10,7 @@ import {
   ParsedRequestParams,
   QueryFilter,
   QueryJoin,
+  QueryOperation,
   QuerySort,
 } from '@nestjsx/crud-request';
 import { CrudService } from '@nestjsx/crud/lib/services';
@@ -206,7 +207,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     // set mandatory where condition from CrudOptions.query.filter
     if (isArrayFull(options.query.filter)) {
       for (let i = 0; i < options.query.filter.length; i++) {
-        this.setAndWhere(options.query.filter[i], `optionsFilter${i}`, builder);
+        this.setCompoundAndWhere(options.query.filter[i], `optionsFilter${i}`, builder);
       }
     }
 
@@ -217,23 +218,23 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     if (hasFilter && hasOr) {
       if (filters.length === 1 && parsed.or.length === 1) {
         // WHERE :filter OR :or
-        this.setOrWhere(filters[0], `filter0`, builder);
-        this.setOrWhere(parsed.or[0], `or0`, builder);
+        this.setCompoundAndWhere(filters[0], `filter0`, builder);
+        this.setCompoundOrWhere(parsed.or[0], `or0`, builder);
       } else if (filters.length === 1) {
-        this.setAndWhere(filters[0], `filter0`, builder);
+        this.setCompoundAndWhere(filters[0], `filter0`, builder);
         builder.orWhere(
           new Brackets((qb) => {
             for (let i = 0; i < parsed.or.length; i++) {
-              this.setAndWhere(parsed.or[i], `or${i}`, qb as any);
+              this.setCompoundAndWhere(parsed.or[i], `or${i}`, qb as any);
             }
           }),
         );
       } else if (parsed.or.length === 1) {
-        this.setAndWhere(parsed.or[0], `or0`, builder);
+        this.setCompoundOrWhere(parsed.or[0], `or0`, builder);
         builder.orWhere(
           new Brackets((qb) => {
             for (let i = 0; i < filters.length; i++) {
-              this.setAndWhere(filters[i], `filter${i}`, qb as any);
+              this.setCompoundAndWhere(filters[i], `filter${i}`, qb as any);
             }
           }),
         );
@@ -241,14 +242,14 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
         builder.andWhere(
           new Brackets((qb) => {
             for (let i = 0; i < filters.length; i++) {
-              this.setAndWhere(filters[i], `filter${i}`, qb as any);
+              this.setCompoundAndWhere(filters[i], `filter${i}`, qb as any);
             }
           }),
         );
         builder.orWhere(
           new Brackets((qb) => {
             for (let i = 0; i < parsed.or.length; i++) {
-              this.setAndWhere(parsed.or[i], `or${i}`, qb as any);
+              this.setCompoundAndWhere(parsed.or[i], `or${i}`, qb as any);
             }
           }),
         );
@@ -256,12 +257,12 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     } else if (hasOr) {
       // WHERE :or OR :or OR ...
       for (let i = 0; i < parsed.or.length; i++) {
-        this.setOrWhere(parsed.or[i], `or${i}`, builder);
+        this.setCompoundOrWhere(parsed.or[i], `or${i}`, builder);
       }
     } else if (hasFilter) {
       // WHERE :filter AND :filter AND ...
       for (let i = 0; i < filters.length; i++) {
-        this.setAndWhere(filters[i], `filter${i}`, builder);
+        this.setCompoundAndWhere(filters[i], `filter${i}`, builder);
       }
     }
 
@@ -374,7 +375,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     return found;
   }
 
-  private prepareEntityBeforeSave(dto: T, paramsFilter: QueryFilter[]): T {
+  private prepareEntityBeforeSave(dto: T, paramsFilter: QueryOperation[]): T {
     /* istanbul ignore if */
     if (!isObject(dto)) {
       return undefined;
@@ -524,13 +525,53 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     return true;
   }
 
-  private setAndWhere(cond: QueryFilter, i: any, builder: SelectQueryBuilder<T>) {
+  private setCompoundAndWhere(
+    filters: QueryFilter,
+    name: any,
+    builder: SelectQueryBuilder<T>,
+  ) {
+    if (!isArrayFull(filters)) {
+      return this.setAndWhere(filters, name, builder);
+    } else if (filters.length === 1) {
+      return this.setAndWhere(filters[0], name, builder);
+    }
+
+    builder.andWhere(
+      new Brackets((qb) => {
+        for (let i = 0; i < filters.length; i++) {
+          this.setCompoundOrWhere(filters[i], `${name}_${i}`, qb as any);
+        }
+      }),
+    );
+  }
+
+  private setCompoundOrWhere(
+    filters: QueryFilter,
+    name: any,
+    builder: SelectQueryBuilder<T>,
+  ) {
+    if (!isArrayFull(filters)) {
+      return this.setOrWhere(filters, name, builder);
+    } else if (filters.length === 1) {
+      return this.setOrWhere(filters[0], name, builder);
+    }
+
+    builder.orWhere(
+      new Brackets((qb) => {
+        for (let i = 0; i < filters.length; i++) {
+          this.setCompoundAndWhere(filters[i], `${name}_${i}`, qb as any);
+        }
+      }),
+    );
+  }
+
+  private setAndWhere(cond: QueryOperation, i: any, builder: SelectQueryBuilder<T>) {
     this.validateHasColumn(cond.field);
     const { str, params } = this.mapOperatorsToQuery(cond, `andWhere${i}`);
     builder.andWhere(str, params);
   }
 
-  private setOrWhere(cond: QueryFilter, i: any, builder: SelectQueryBuilder<T>) {
+  private setOrWhere(cond: QueryOperation, i: any, builder: SelectQueryBuilder<T>) {
     this.validateHasColumn(cond.field);
     const { str, params } = this.mapOperatorsToQuery(cond, `orWhere${i}`);
     builder.orWhere(str, params);
@@ -614,7 +655,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
   }
 
   private mapOperatorsToQuery(
-    cond: QueryFilter,
+    cond: QueryOperation,
     param: any,
   ): { str: string; params: ObjectLiteral } {
     const field = this.getFieldWithAlias(cond.field);

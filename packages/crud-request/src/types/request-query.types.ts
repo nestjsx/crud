@@ -1,6 +1,8 @@
 export type QueryFields = string[];
 
-export type QueryFilter = {
+export type QueryFilter = QueryOperation | QueryOperation[];
+
+export type QueryOperation = {
   field: string;
   operator: ComparisonOperator;
   value?: any;

@@ -1,6 +1,7 @@
 import {
   isUndefined,
   isArrayStrings,
+  isArrayFull,
   isStringFull,
   isObject,
   isEqual,
@@ -47,6 +48,10 @@ export function validateFields(fields: QueryFields): void {
 }
 
 export function validateCondition(val: QueryFilter, cond: 'filter' | 'or'): void {
+  if (Array.isArray(val)) {
+    return val.forEach((v) => this.validateCondition(v, cond));
+  }
+
   if (!isObject(val) || !isStringFull(val.field)) {
     throw new RequestQueryException(`Invalid ${cond} field. String expected`);
   }

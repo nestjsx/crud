@@ -203,7 +203,7 @@ describe('#crud-typeorm', () => {
             done();
           });
       });
-      it('should return with filter and or, 6', (done) => {
+      it('should return with filter and or, 5', (done) => {
         const query = qb.setOr({ field: 'companyId', operator: 'isnull' }).query();
         return request(server)
           .get('/projects')
@@ -235,6 +235,131 @@ describe('#crud-typeorm', () => {
           .end((_, res) => {
             expect(res.status).toBe(200);
             expect(res.body.length).toBe(2);
+            done();
+          });
+      });
+      it('should return with compound filter and or, 1', (done) => {
+        const query = qb
+          .setFilter([
+            { field: 'companyId', operator: 'eq', value: 1 },
+            { field: 'companyId', operator: 'eq', value: 2 },
+          ])
+          .query();
+        return request(server)
+          .get('/projects')
+          .query(query)
+          .end((_, res) => {
+            expect(res.status).toBe(200);
+            expect(res.body.length).toBe(4);
+            done();
+          });
+      });
+      it('should return with compound filter and or, 2', (done) => {
+        const query = qb
+          .setFilter([
+            { field: 'companyId', operator: 'eq', value: 1 },
+            { field: 'companyId', operator: 'eq', value: 2 },
+          ])
+          .setFilter([
+            { field: 'companyId', operator: 'eq', value: 2 },
+            { field: 'companyId', operator: 'eq', value: 3 },
+          ])
+          .query();
+        return request(server)
+          .get('/projects')
+          .query(query)
+          .end((_, res) => {
+            expect(res.status).toBe(200);
+            expect(res.body.length).toBe(2);
+            done();
+          });
+      });
+      it('should return with compound filter and or, 3', (done) => {
+        const query = qb
+          .setOr([
+            { field: 'companyId', operator: 'eq', value: 1 },
+            { field: 'description', operator: 'eq', value: 'description1' },
+          ])
+          .setOr([{ field: 'companyId', operator: 'eq', value: 2 }])
+          .query();
+        return request(server)
+          .get('/projects')
+          .query(query)
+          .end((_, res) => {
+            expect(res.status).toBe(200);
+            expect(res.body.length).toBe(3);
+            done();
+          });
+      });
+      it('should return with compound filter and or, 4', (done) => {
+        const query = qb
+          .setOr([
+            { field: 'companyId', operator: 'eq', value: 1 },
+            { field: 'description', operator: 'eq', value: 'description1' },
+          ])
+          .setOr({ field: 'companyId', operator: 'eq', value: 2 })
+          .query();
+        return request(server)
+          .get('/projects')
+          .query(query)
+          .end((_, res) => {
+            expect(res.status).toBe(200);
+            expect(res.body.length).toBe(3);
+            done();
+          });
+      });
+      it('should return with compound filter and or, 5', (done) => {
+        const query = qb
+          .setFilter([
+            { field: 'companyId', operator: 'eq', value: 1 },
+            { field: 'companyId', operator: 'eq', value: 2 },
+          ])
+          .setOr([
+            { field: 'companyId', operator: 'eq', value: 1 },
+            { field: 'description', operator: 'eq', value: 'description1' },
+          ])
+          .query();
+        return request(server)
+          .get('/projects')
+          .query(query)
+          .end((_, res) => {
+            expect(res.status).toBe(200);
+            expect(res.body.length).toBe(4);
+            done();
+          });
+      });
+      it('should return with compound filter and or, 6', (done) => {
+        const query = qb
+          .setFilter([{ field: 'companyId', operator: 'eq', value: 1 }])
+          .setFilter({ field: 'companyId', operator: 'eq', value: 2 })
+          .setOr([
+            { field: 'companyId', operator: 'eq', value: 1 },
+            { field: 'description', operator: 'eq', value: 'description1' },
+          ])
+          .query();
+        return request(server)
+          .get('/projects')
+          .query(query)
+          .end((_, res) => {
+            expect(res.status).toBe(200);
+            expect(res.body.length).toBe(1);
+            done();
+          });
+      });
+      it('should return with compound filter and or, 7', (done) => {
+        const query = qb
+          .setFilter([
+            { field: 'companyId', operator: 'eq', value: 1 },
+            { field: 'description', operator: 'eq', value: 'bad_description' },
+          ])
+          .setOr({ field: 'companyId', operator: 'eq', value: 3 })
+          .query();
+        return request(server)
+          .get('/projects')
+          .query(query)
+          .end((_, res) => {
+            expect(res.status).toBe(200);
+            expect(res.body.length).toBe(4);
             done();
           });
       });
@@ -364,6 +489,86 @@ describe('#crud-typeorm', () => {
             expect(res.status).toBe(200);
             expect(res.body.company).toBeDefined();
             expect(res.body.company.projects).toBeDefined();
+            done();
+          });
+      });
+
+      it('should return joined entity with compound filter, 1', (done) => {
+        const query = qb
+          .setFilter({ field: 'company.projects.id', operator: 'eq', value: 1 })
+          .setOr([
+            { field: 'company.projects.companyId', operator: 'eq', value: '3' },
+            {
+              field: 'company.projects.description',
+              operator: 'cont',
+              value: 'description',
+            },
+          ])
+          .setJoin({ field: 'company' })
+          .setJoin({ field: 'company.projects' })
+          .query();
+        return request(server)
+          .get('/users/1')
+          .query(query)
+          .end((_, res) => {
+            expect(res.status).toBe(200);
+            expect(res.body.company).toBeDefined();
+            expect(res.body.company.projects.length).toEqual(1);
+            done();
+          });
+      });
+
+      it('should return joined entity with compound filter, 2', (done) => {
+        const query = qb
+          .setFilter([
+            { field: 'company.projects.id', operator: 'eq', value: 1 },
+            { field: 'company.projects.id', operator: 'eq', value: 2 },
+          ])
+          .setFilter([
+            { field: 'company.projects.companyId', operator: 'in', value: [1, 2, 3] },
+            {
+              field: 'company.projects.description',
+              operator: 'cont',
+              value: 'description',
+            },
+          ])
+          .setJoin({ field: 'company' })
+          .setJoin({ field: 'company.projects' })
+          .query();
+        return request(server)
+          .get('/users/1')
+          .query(query)
+          .end((_, res) => {
+            expect(res.status).toBe(200);
+            expect(res.body.company).toBeDefined();
+            expect(res.body.company.projects.length).toEqual(2);
+            done();
+          });
+      });
+
+      it('should return joined entity with compound filter, 3', (done) => {
+        const query = qb
+          .setFilter({ field: 'company.projects.id', operator: 'in', value: [1, 2] })
+          .setFilter({ field: 'company.projects.id', operator: 'eq', value: 1 })
+          .setOr([
+            { field: 'company.projects.companyId', operator: 'eq', value: '3' },
+            {
+              field: 'company.projects.description',
+              operator: 'cont',
+              value: 'description',
+            },
+          ])
+          .setJoin({ field: 'company' })
+          .setJoin({ field: 'company.projects' })
+          .query();
+
+        return request(server)
+          .get('/users/1')
+          .query(query)
+          .end((_, res) => {
+            expect(res.status).toBe(200);
+            expect(res.body.company).toBeDefined();
+            expect(res.body.company.projects.length).toEqual(1);
             done();
           });
       });

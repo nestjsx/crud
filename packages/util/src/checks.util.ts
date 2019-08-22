@@ -1,24 +1,27 @@
 import { objKeys } from './obj.util';
 
-export const isUndefined = (val: any): boolean => typeof val === 'undefined';
-export const isNull = (val: any): boolean => val === null;
+export const isUndefined = (val: any): val is undefined => typeof val === 'undefined';
+export const isNull = (val: any): val is null => val === null;
 export const isNil = (val: any): boolean => isUndefined(val) || isNull(val);
-export const isString = (val: any): boolean => typeof val === 'string';
+export const isString = (val: any): val is string => typeof val === 'string';
 export const hasLength = (val: any): boolean => val.length > 0;
-export const isStringFull = (val: any): boolean => isString(val) && hasLength(val);
-export const isArrayFull = (val: any): boolean => Array.isArray(val) && hasLength(val);
-export const isArrayStrings = (val: any): boolean =>
+export const isStringFull = (val: any): val is string => isString(val) && hasLength(val);
+export const isArrayFull = (val: any): val is any[] =>
+  Array.isArray(val) && hasLength(val);
+export const isArrayStrings = (val: any): val is string[] =>
   isArrayFull(val) && (val as string[]).every((v) => isStringFull(v));
-export const isObject = (val: any): boolean => typeof val === 'object' && !isNull(val);
-export const isObjectFull = (val: any) => isObject(val) && hasLength(objKeys(val));
-export const isNumber = (val: any): boolean =>
+export const isObject = (val: any): val is object =>
+  typeof val === 'object' && !isNull(val);
+export const isObjectFull = (val: any): val is object =>
+  isObject(val) && hasLength(objKeys(val));
+export const isNumber = (val: any): val is number =>
   typeof val === 'number' && !Number.isNaN(val) && Number.isFinite(val);
 export const isEqual = (val: any, eq: any): boolean => val === eq;
 export const isFalse = (val: any): boolean => val === false;
 export const isTrue = (val: any): boolean => val === true;
 export const isIn = (val: any, arr: any[] = []): boolean =>
   arr.some((o) => isEqual(val, o));
-export const isBoolean = (val: any): boolean => typeof val === 'boolean';
+export const isBoolean = (val: any): val is boolean => typeof val === 'boolean';
 export const isNumeric = (val: any): boolean => /^[+-]?([0-9]*[.])?[0-9]+$/.test(val);
 export const isDateString = (val: any): boolean =>
   isStringFull(val) &&

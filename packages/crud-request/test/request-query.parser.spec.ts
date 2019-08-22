@@ -11,7 +11,7 @@ describe('#request-query', () => {
       qp = RequestQueryParser.create();
     });
 
-    describe('#parseQury', () => {
+    describe('#parseQuery', () => {
       it('should return instance of RequestQueryParse', () => {
         expect((qp as any).parseQuery()).toBeInstanceOf(RequestQueryParser);
         expect((qp as any).parseQuery({})).toBeInstanceOf(RequestQueryParser);
@@ -53,6 +53,12 @@ describe('#request-query', () => {
         });
         it('should set empty array, 2', () => {
           const query = { foo: '' };
+          const expected = [];
+          const test = qp.parseQuery(query);
+          expect(test.filter).toMatchObject(expected);
+        });
+        it('should set empty array, 3', () => {
+          const query = { foo: '[]' };
           const expected = [];
           const test = qp.parseQuery(query);
           expect(test.filter).toMatchObject(expected);
@@ -142,6 +148,47 @@ describe('#request-query', () => {
           const test = qp.parseQuery(query);
           expect(test.filter[0]).toMatchObject(expected[0]);
         });
+        it('should set compound array, 1', () => {
+          const query = { filter: ['["foo||eq||1"]'] };
+          const expected: QueryFilter[] = [{ field: 'foo', operator: 'eq', value: 1 }];
+          const test = qp.parseQuery(query);
+          expect(test.filter[0]).toMatchObject(expected[0]);
+        });
+        it('should set compound array, 2', () => {
+          const query = { filter: ['["foo||eq||1","bar||eq||1"]'] };
+          const expected: QueryFilter[] = [
+            [
+              { field: 'foo', operator: 'eq', value: 1 },
+              { field: 'bar', operator: 'eq', value: 1 },
+            ],
+          ];
+          const test = qp.parseQuery(query);
+          expect(test.filter[0]).toMatchObject(expected[0]);
+        });
+        it('should set compound array, 3', () => {
+          const query = { filter: ['["foo||eq||1","bar||eq||1"]', '["foo||eq||2"]'] };
+          const expected: QueryFilter[] = [
+            [
+              { field: 'foo', operator: 'eq', value: 1 },
+              { field: 'bar', operator: 'eq', value: 1 },
+            ],
+            [{ field: 'foo', operator: 'eq', value: 2 }],
+          ];
+          const test = qp.parseQuery(query);
+          expect(test.filter[0]).toMatchObject(expected[0]);
+        });
+        it('should set compound array, 4', () => {
+          const query = { filter: ['["foo||eq||1","bar||eq||1"]', 'foo||eq||2'] };
+          const expected: QueryFilter[] = [
+            [
+              { field: 'foo', operator: 'eq', value: 1 },
+              { field: 'bar', operator: 'eq', value: 1 },
+            ],
+            { field: 'foo', operator: 'eq', value: 2 },
+          ];
+          const test = qp.parseQuery(query);
+          expect(test.filter[0]).toMatchObject(expected[0]);
+        });
       });
 
       describe('#parse or', () => {
@@ -153,6 +200,12 @@ describe('#request-query', () => {
         });
         it('should set empty array, 2', () => {
           const query = { foo: '' };
+          const expected = [];
+          const test = qp.parseQuery(query);
+          expect(test.or).toMatchObject(expected);
+        });
+        it('should set empty array, 3', () => {
+          const query = { foo: '[]' };
           const expected = [];
           const test = qp.parseQuery(query);
           expect(test.or).toMatchObject(expected);
@@ -195,6 +248,41 @@ describe('#request-query', () => {
           const query = { or: ['foo||isnull'] };
           const expected: QueryFilter[] = [
             { field: 'foo', operator: 'isnull', value: '' },
+          ];
+          const test = qp.parseQuery(query);
+          expect(test.or[0]).toMatchObject(expected[0]);
+        });
+        it('should set compound array, 1', () => {
+          const query = { or: ['["foo||eq||1","bar||eq||2"]'] };
+          const expected: QueryFilter[] = [
+            [
+              { field: 'foo', operator: 'eq', value: 1 },
+              { field: 'bar', operator: 'eq', value: 2 },
+            ],
+          ];
+          const test = qp.parseQuery(query);
+          expect(test.or[0]).toMatchObject(expected[0]);
+        });
+        it('should set compound array, 2', () => {
+          const query = { or: ['["foo||eq||1","bar||eq||1"]', '["foo||eq||2"]'] };
+          const expected: QueryFilter[] = [
+            [
+              { field: 'foo', operator: 'eq', value: 1 },
+              { field: 'bar', operator: 'eq', value: 1 },
+            ],
+            [{ field: 'foo', operator: 'eq', value: 2 }],
+          ];
+          const test = qp.parseQuery(query);
+          expect(test.or[0]).toMatchObject(expected[0]);
+        });
+        it('should set compound array, 3', () => {
+          const query = { or: ['["foo||eq||1","bar||eq||1"]', 'foo||eq||2'] };
+          const expected: QueryFilter[] = [
+            [
+              { field: 'foo', operator: 'eq', value: 1 },
+              { field: 'bar', operator: 'eq', value: 1 },
+            ],
+            { field: 'foo', operator: 'eq', value: 2 },
           ];
           const test = qp.parseQuery(query);
           expect(test.or[0]).toMatchObject(expected[0]);

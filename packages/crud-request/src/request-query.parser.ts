@@ -30,13 +30,14 @@ import {
   QueryFields,
   QueryFilter,
   QueryJoin,
+  QueryOperation,
   QuerySort,
 } from './types';
 
 // tslint:disable:variable-name ban-types
 export class RequestQueryParser implements ParsedRequestParams {
   public fields: QueryFields = [];
-  public paramsFilter: QueryFilter[] = [];
+  public paramsFilter: QueryOperation[] = [];
   public filter: QueryFilter[] = [];
   public or: QueryFilter[] = [];
   public join: QueryJoin[] = [];
@@ -196,6 +197,22 @@ export class RequestQueryParser implements ParsedRequestParams {
   }
 
   private conditionParser(cond: 'filter' | 'or', data: string): QueryFilter {
+    try {
+      const objectData = JSON.parse(data);
+
+      if (Array.isArray(objectData)) {
+        if (objectData.length === 1) {
+          return this.conditionParser(cond, objectData[0]);
+        }
+
+        return objectData.map((o) =>
+          this.conditionParser(cond === 'filter' ? 'or' : 'filter', JSON.stringify(o)),
+        ) as QueryFilter;
+      } else {
+        return this.conditionParser(cond, objectData);
+      }
+      // tslint:disable-next-line
+    } catch (e) {}
     const isArrayValue = ['in', 'notin', 'between'];
     const isEmptyValue = ['isnull', 'notnull'];
     const param = data.split(this._options.delim);
@@ -213,7 +230,7 @@ export class RequestQueryParser implements ParsedRequestParams {
       throw new RequestQueryException(`Invalid ${cond} value`);
     }
 
-    const condition: QueryFilter = { field, operator, value };
+    const condition: QueryOperation = { field, operator, value };
     validateCondition(condition, cond);
 
     return condition;
@@ -251,7 +268,7 @@ export class RequestQueryParser implements ParsedRequestParams {
     return val;
   }
 
-  private paramParser(name: string): QueryFilter {
+  private paramParser(name: string): QueryOperation {
     validateParamOption(this._paramsOptions, name);
     const option = this._paramsOptions[name];
     const value = this.parseValue(this._params[name]);
