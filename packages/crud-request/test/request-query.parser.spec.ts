@@ -71,6 +71,14 @@ describe('#request-query', () => {
           const query = { filter: 'foo||eq' };
           expect(qp.parseQuery.bind(qp, query)).toThrowError(RequestQueryException);
         });
+        it('should throw an error, 3', () => {
+          const query = { filter: '["foo||eq"]' };
+          expect(qp.parseQuery.bind(qp, query)).toThrowError(RequestQueryException);
+        });
+        it('should throw an error, 4', () => {
+          const query = { filter: '["foo||eq||1","foo||eq"]' };
+          expect(qp.parseQuery.bind(qp, query)).toThrowError(RequestQueryException);
+        });
         it('should set array, 1', () => {
           const query = { filter: 'foo||eq||bar' };
           const expected: QueryFilter[] = [

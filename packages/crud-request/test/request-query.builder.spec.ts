@@ -205,12 +205,39 @@ describe('#request-query', () => {
         const expected = 'filter=foo||eq||test';
         expect(test).toBe(expected);
       });
-      it('should return query with or conditions', () => {
+      it('should return query with filter conditions, 3', () => {
+        const test = qb
+          .setFilter([{ field: 'foo', operator: 'eq', value: 'test' }])
+          .query();
+        const expected = 'filter=["foo||eq||test"]';
+        expect(test).toBe(expected);
+      });
+      it('should return query with filter conditions, 4', () => {
+        const test = qb
+          .setFilter([
+            { field: 'foo', operator: 'eq', value: 'test' },
+            { field: 'bar', operator: 'eq', value: 'test2' },
+          ])
+          .query();
+        const expected = 'filter=["foo||eq||test","bar||eq||test2"]';
+        expect(test).toBe(expected);
+      });
+      it('should return query with or conditions 1', () => {
         const test = qb
           .setOr({ field: 'foo', operator: 'eq', value: 'test' })
           .setOr({ field: 'bar', operator: 'notnull' })
           .query();
         const expected = 'or[]=foo||eq||test&or[]=bar||notnull';
+        expect(test).toBe(expected);
+      });
+      it('should return query with or conditions, 2', () => {
+        const test = qb
+          .setOr([
+            { field: 'foo', operator: 'eq', value: 'test' },
+            { field: 'bar', operator: 'eq', value: 'test2' },
+          ])
+          .query();
+        const expected = 'or=["foo||eq||test","bar||eq||test2"]';
         expect(test).toBe(expected);
       });
       it('should return query with join', () => {

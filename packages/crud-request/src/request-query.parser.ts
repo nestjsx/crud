@@ -197,22 +197,25 @@ export class RequestQueryParser implements ParsedRequestParams {
   }
 
   private conditionParser(cond: 'filter' | 'or', data: string): QueryFilter {
+    let objectData: string | string[];
     try {
-      const objectData = JSON.parse(data);
-
+      objectData = JSON.parse(data);
+      // tslint:disable-next-line
+    } catch (e) {}
+    if (objectData !== undefined) {
       if (Array.isArray(objectData)) {
         if (objectData.length === 1) {
-          return this.conditionParser(cond, objectData[0]);
+          return this.conditionParser(cond, JSON.stringify(objectData[0]));
         }
 
         return objectData.map((o) =>
-          this.conditionParser(cond === 'filter' ? 'or' : 'filter', JSON.stringify(o)),
+          this.conditionParser(cond, JSON.stringify(o)),
         ) as QueryFilter;
       } else {
         return this.conditionParser(cond, objectData);
       }
-      // tslint:disable-next-line
-    } catch (e) {}
+    }
+
     const isArrayValue = ['in', 'notin', 'between'];
     const isEmptyValue = ['isnull', 'notnull'];
     const param = data.split(this._options.delim);

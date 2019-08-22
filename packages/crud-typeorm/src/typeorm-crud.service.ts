@@ -532,8 +532,6 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
   ) {
     if (!isArrayFull(filters)) {
       return this.setAndWhere(filters, name, builder);
-    } else if (filters.length === 1) {
-      return this.setAndWhere(filters[0], name, builder);
     }
 
     builder.andWhere(
@@ -552,8 +550,6 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
   ) {
     if (!isArrayFull(filters)) {
       return this.setOrWhere(filters, name, builder);
-    } else if (filters.length === 1) {
-      return this.setOrWhere(filters[0], name, builder);
     }
 
     builder.orWhere(
