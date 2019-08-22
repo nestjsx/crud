@@ -1,11 +1,4 @@
-import {
-  Controller,
-  Get,
-  Param,
-  ParseIntPipe,
-  Query,
-  UseInterceptors,
-} from '@nestjs/common';
+import { Controller, Get, Param, ParseIntPipe, Query, UseInterceptors } from '@nestjs/common';
 import { NestApplication } from '@nestjs/core';
 import { Test } from '@nestjs/testing';
 import { RequestQueryBuilder } from '@nestjsx/crud-request';
@@ -18,16 +11,7 @@ import { TestService } from './__fixture__/test.service';
 
 // tslint:disable:max-classes-per-file
 describe('#crud', () => {
-  @UseInterceptors(
-    new CrudRequestInterceptor({
-      params: {
-        someParam: {
-          field: 'someParam',
-          type: 'number',
-        },
-      },
-    }),
-  )
+  @UseInterceptors(CrudRequestInterceptor)
   @Controller('test')
   class TestController {
     @Get('/query')
@@ -48,24 +32,32 @@ describe('#crud', () => {
 
   @Crud({
     model: { type: TestModel },
+    params: {
+      someParam: { field: 'someParam', type: 'number' },
+    },
   })
   @Controller('test2')
   class Test2Controller {
-    constructor(public service: TestService<TestModel>) {}
+    constructor(public service: TestService<TestModel>) {
+    }
 
-    @UseInterceptors(
-      new CrudRequestInterceptor({
-        params: {
-          someParam: {
-            field: 'someParam',
-            type: 'number',
-          },
-        },
-      }),
-    )
+    @UseInterceptors(CrudRequestInterceptor)
+    @Get('normal/:id')
+    async normal(@ParsedRequest() req: CrudRequest) {
+      return { filter: req.parsed.paramsFilter };
+    }
+
+    @UseInterceptors(CrudRequestInterceptor)
     @Get('/other2/:someParam')
     async routeWithParam(@Param('someParam', ParseIntPipe) p: number) {
       return { p };
+    }
+
+    @UseInterceptors(CrudRequestInterceptor)
+    @Get('other2/:id/twoParams/:someParam')
+    async twoParams(@ParsedRequest() req: CrudRequest,
+                    @Param('someParam', ParseIntPipe) p: number) {
+      return { filter: req.parsed.paramsFilter };
     }
   }
 
@@ -147,6 +139,20 @@ describe('#crud', () => {
     it('should parse custom param in crud', async () => {
       const res = await $.get('/test2/other2/123').expect(200);
       expect(res.body.p).toBe(123);
+    });
+
+    it('should parse crud param and custom param', async () => {
+      const res = await $.get('/test2/other2/1/twoParams/123').expect(200);
+      expect(res.body.filter).toHaveLength(2);
+      expect(res.body.filter[0].field).toBe('id');
+      expect(res.body.filter[0].value).toBe(1);
+    });
+
+    it('should work like before', async () => {
+      const res = await $.get('/test2/normal/0').expect(200);
+      expect(res.body.filter).toHaveLength(1);
+      expect(res.body.filter[0].field).toBe('id');
+      expect(res.body.filter[0].value).toBe(0);
     });
   });
 });
