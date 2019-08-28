@@ -132,7 +132,9 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
       }
     }
 
-    return this.repo.save<any>({ ...found, ...dto });
+    return this.repo.save<any>(
+      plainToClass(this.entityType, { ...found, ...dto }) /* Object.assign(found, dto) */,
+    );
   }
 
   /**
