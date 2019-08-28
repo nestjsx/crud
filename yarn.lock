@@ -6177,10 +6177,10 @@ nps-utils@1.7.0:
     opn-cli "^3.1.0"
     rimraf "^2.6.1"
 
-nps@5.9.5:
-  version "5.9.5"
-  resolved "https://registry.yarnpkg.com/nps/-/nps-5.9.5.tgz#cb091b2a3ea8b68f9282159e0d3d3877b19820de"
-  integrity sha512-UsjrtowHeXGnKELZUlqiyPSXc3vYs3YwLZEFfZJ1Z9kZCFgtzK4YRVKnxEa+teRMMdw6Q4keAX/M/aLCkPTqIw==
+nps@5.9.8:
+  version "5.9.8"
+  resolved "https://registry.yarnpkg.com/nps/-/nps-5.9.8.tgz#e8cce6ecd5a6b8e6e99cb95e195768b6381dd5dc"
+  integrity sha512-vIg83lAh6qT+DwGdPQ8+XBz4eHYvRL6/vJlasT7/OEAE+5F21Rhp0cUbbQ9Is1VHrEe3vY/MJG36MTHURd9fVQ==
   dependencies:
     arrify "^1.0.1"
     chalk "^2.0.1"
