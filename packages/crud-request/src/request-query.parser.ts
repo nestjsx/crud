@@ -197,7 +197,7 @@ export class RequestQueryParser implements ParsedRequestParams {
   }
 
   private conditionParser(cond: 'filter' | 'or', data: string): QueryFilter {
-    let objectData: string | string[];
+    let objectData: string | object[];
     try {
       objectData = JSON.parse(data);
       // tslint:disable-next-line
