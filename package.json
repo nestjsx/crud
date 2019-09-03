@@ -80,7 +80,7 @@
     "redis": "2.8.0",
     "reflect-metadata": "0.1.13",
     "rimraf": "2.6.3",
-    "rxjs": "6.5.2",
+    "rxjs": "6.5.3",
     "supertest": "4.0.2",
     "swagger-ui-express": "4.0.7",
     "ts-jest": "24.0.2",
