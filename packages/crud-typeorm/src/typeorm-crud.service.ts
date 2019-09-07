@@ -496,6 +496,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     /* istanbul ignore else */
     if (cond.field && this.entityRelationsHash[cond.field] && joinOptions[cond.field]) {
       const relation = this.entityRelationsHash[cond.field];
+      relation.primaryColumns = this.getPrimaryColumns(relation.name);
       const options = joinOptions[cond.field];
       const allowed = this.getAllowedColumns(relation.columns, options);
 
@@ -510,7 +511,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
           : cond.select.filter((col) => allowed.some((a) => a === col));
 
       const select = [
-        relation.referencedColumn,
+        ...relation.primaryColumns,
         ...(options.persist && options.persist.length ? options.persist : []),
         ...columns,
       ].map((col) => `${relation.name}.${col}`);
@@ -522,6 +523,13 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     }
 
     return true;
+  }
+
+  private getPrimaryColumns(relationName: string) {
+    const relation = this.repo.metadata.relations.find(
+      (rel) => rel.propertyName === relationName,
+    );
+    return relation.entityMetadata.primaryColumns.map((col) => col.propertyName);
   }
 
   private setAndWhere(cond: QueryFilter, i: any, builder: SelectQueryBuilder<T>) {
