@@ -197,7 +197,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     // create query builder
     const builder = this.repo.createQueryBuilder(this.alias);
 
-    // get selet fields
+    // get select fields
     const select = this.getSelect(parsed, options.query);
 
     // select fields
@@ -341,6 +341,9 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
           name: curr.propertyName,
           type: this.getJoinType(curr.relationType),
           columns: curr.inverseEntityMetadata.columns.map((col) => col.propertyName),
+          primaryColumns: curr.inverseEntityMetadata.primaryColumns.map(
+            (col) => col.propertyName,
+          ),
           referencedColumn: (curr.joinColumns.length
             ? curr.joinColumns[0]
             : curr.inverseRelation.joinColumns[0]
@@ -485,6 +488,9 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
         name: curr.propertyName,
         type: this.getJoinType(curr.relationType),
         columns: curr.inverseEntityMetadata.columns.map((col) => col.propertyName),
+        primaryColumns: curr.inverseEntityMetadata.primaryColumns.map(
+          (col) => col.propertyName,
+        ),
         referencedColumn: (curr.joinColumns.length
           ? /* istanbul ignore next */ curr.joinColumns[0]
           : curr.inverseRelation.joinColumns[0]
@@ -496,7 +502,6 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     /* istanbul ignore else */
     if (cond.field && this.entityRelationsHash[cond.field] && joinOptions[cond.field]) {
       const relation = this.entityRelationsHash[cond.field];
-      relation.primaryColumns = this.getPrimaryColumns(relation.name);
       const options = joinOptions[cond.field];
       const allowed = this.getAllowedColumns(relation.columns, options);
 
@@ -523,13 +528,6 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     }
 
     return true;
-  }
-
-  private getPrimaryColumns(relationName: string) {
-    const relation = this.repo.metadata.relations.find(
-      (rel) => rel.propertyName === relationName,
-    );
-    return relation.entityMetadata.primaryColumns.map((col) => col.propertyName);
   }
 
   private setAndWhere(cond: QueryFilter, i: any, builder: SelectQueryBuilder<T>) {
