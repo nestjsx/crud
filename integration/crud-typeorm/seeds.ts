@@ -91,6 +91,26 @@ export class Seeds1544303473346 implements MigrationInterface {
       ('19@email.com', false, 2, 19),
       ('20@email.com', false, 2, 20);
     `);
+
+    // licenses
+    await queryRunner.query(`
+      INSERT INTO public.licenses ("name") VALUES
+      ('License1'),
+      ('License2'),
+      ('License3'),
+      ('License4'),
+      ('License5');
+    `);
+
+    // licenses
+    await queryRunner.query(`
+      INSERT INTO public.user_licenses ("userId", "licenseId", "yearsActive") VALUES
+      (1, 1, 3),
+      (1, 2, 5),
+      (1, 4, 7),
+      (2, 5, 1);
+    `);
+
   }
 
   public async down(queryRunner: QueryRunner): Promise<any> {}

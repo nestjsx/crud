@@ -67,6 +67,7 @@ describe('#crud-typeorm', () => {
         join: {
           company: {},
           'company.projects': {},
+          userLicenses: {},
         },
       },
     })
@@ -351,7 +352,7 @@ describe('#crud-typeorm', () => {
           });
       });
 
-      it('should return joined entity, 2', (done) => {
+      fit('should return joined entity, 2', (done) => {
         const query = qb
           .setFilter({ field: 'company.projects.id', operator: 'notnull' })
           .setJoin({ field: 'company' })
@@ -364,6 +365,20 @@ describe('#crud-typeorm', () => {
             expect(res.status).toBe(200);
             expect(res.body.company).toBeDefined();
             expect(res.body.company.projects).toBeDefined();
+            done();
+          });
+      });
+    });
+
+    describe('#composite key join', () => {
+      it('should return joined relation', (done) => {
+        const query = qb.setJoin({ field: 'userLicenses' }).query();
+        return request(server)
+          .get('/users/1')
+          .query(query)
+          .end((_, res) => {
+            expect(res.status).toBe(200);
+            expect(res.body.userLicenses).toBeDefined();
             done();
           });
       });
