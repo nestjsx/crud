@@ -412,10 +412,10 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
   private validateHasColumn(column: string) {
     if (column.indexOf('.') !== -1) {
       const nests = column.split('.');
-      let relation;
       column = nests[nests.length - 1];
-      relation = nests.slice(0, nests.length - 1).join('.');
 
+      // relation could be deep (ex: company.projects.id), hash is flat
+      const relation = nests.slice(nests.length - 2, nests.length - 1).join('');
       if (!this.hasRelation(relation)) {
         this.throwBadRequestException(`Invalid relation name '${relation}'`);
       }

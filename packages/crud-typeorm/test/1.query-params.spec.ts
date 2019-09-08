@@ -352,7 +352,7 @@ describe('#crud-typeorm', () => {
           });
       });
 
-      fit('should return joined entity, 2', (done) => {
+      it('should return joined entity, 2', (done) => {
         const query = qb
           .setFilter({ field: 'company.projects.id', operator: 'notnull' })
           .setJoin({ field: 'company' })
