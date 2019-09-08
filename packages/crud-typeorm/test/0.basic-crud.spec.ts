@@ -104,6 +104,13 @@ describe('#crud-typeorm', () => {
       });
     });
 
+    describe('#count', () => {
+      it('should return number', async () => {
+        const data = await service.count();
+        expect(typeof data).toBe('number');
+      });
+    });
+
     describe('#getAllBase', () => {
       it('should return an array of all entities', (done) => {
         return request(server)

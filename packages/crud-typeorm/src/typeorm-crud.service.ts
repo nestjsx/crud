@@ -40,6 +40,10 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     return this.repo.find.bind(this.repo);
   }
 
+  public get count(): Repository<T>['count'] {
+    return this.repo.count.bind(this.repo);
+  }
+
   private get entityType(): ClassType<T> {
     return this.repo.target as ClassType<T>;
   }
