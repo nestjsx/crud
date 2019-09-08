@@ -201,7 +201,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     // create query builder
     const builder = this.repo.createQueryBuilder(this.alias);
 
-    // get selet fields
+    // get select fields
     const select = this.getSelect(parsed, options.query);
 
     // select fields
@@ -345,6 +345,9 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
           name: curr.propertyName,
           type: this.getJoinType(curr.relationType),
           columns: curr.inverseEntityMetadata.columns.map((col) => col.propertyName),
+          primaryColumns: curr.inverseEntityMetadata.primaryColumns.map(
+            (col) => col.propertyName,
+          ),
           referencedColumn: (curr.joinColumns.length
             ? curr.joinColumns[0]
             : curr.inverseRelation.joinColumns[0]
@@ -489,6 +492,9 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
         name: curr.propertyName,
         type: this.getJoinType(curr.relationType),
         columns: curr.inverseEntityMetadata.columns.map((col) => col.propertyName),
+        primaryColumns: curr.inverseEntityMetadata.primaryColumns.map(
+          (col) => col.propertyName,
+        ),
         referencedColumn: (curr.joinColumns.length
           ? /* istanbul ignore next */ curr.joinColumns[0]
           : curr.inverseRelation.joinColumns[0]
@@ -514,7 +520,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
           : cond.select.filter((col) => allowed.some((a) => a === col));
 
       const select = [
-        relation.referencedColumn,
+        ...relation.primaryColumns,
         ...(options.persist && options.persist.length ? options.persist : []),
         ...columns,
       ].map((col) => `${relation.name}.${col}`);
