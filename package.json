@@ -86,7 +86,7 @@
     "ts-jest": "24.0.2",
     "ts-node": "8.3.0",
     "tsconfig-paths": "3.8.0",
-    "tslint": "5.18.0",
+    "tslint": "5.20.0",
     "tslint-config-prettier": "1.18.0",
     "typeorm": "0.2.18",
     "typescript": "3.3.3",
