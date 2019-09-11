@@ -52,7 +52,7 @@ export function validateFields(fields: QueryFields): void {
 export function validateCondition(
   val: QueryFilter,
   cond: 'filter' | 'or',
-  customOperators: CustomOperators = {},
+  customOperators: CustomOperators,
 ): void {
   if (!isObject(val) || !isStringFull(val.field)) {
     throw new RequestQueryException(`Invalid ${cond} field. String expected`);

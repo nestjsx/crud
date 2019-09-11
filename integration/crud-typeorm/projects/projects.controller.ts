@@ -25,6 +25,9 @@ import { ProjectsService } from './projects.service';
       users: {},
     },
   },
+  customOperators: {
+    custom: (field: string, param: string) => `${field} = :${param}`
+  }
 })
 @ApiUseTags('projects')
 @Controller('/companies/:companyId/projects')

@@ -55,6 +55,9 @@ describe('#crud-typeorm', () => {
         sort: [{ field: 'id', order: 'ASC' }],
         limit: 100,
       },
+      customOperators: {
+        custom: (field: string, param: string) => `${field} = :${param}`,
+      },
     })
     @Controller('projects')
     class ProjectsController {
@@ -203,7 +206,7 @@ describe('#crud-typeorm', () => {
             done();
           });
       });
-      it('should return with filter and or, 6', (done) => {
+      it('should return with filter and or, 5', (done) => {
         const query = qb.setOr({ field: 'companyId', operator: 'isnull' }).query();
         return request(server)
           .get('/projects')

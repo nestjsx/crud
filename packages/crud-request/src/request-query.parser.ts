@@ -200,7 +200,7 @@ export class RequestQueryParser implements ParsedRequestParams {
 
   private conditionParser(
     cond: 'filter' | 'or',
-    customOperators: any = {},
+    customOperators: any,
     data: string,
   ): QueryFilter {
     const isArrayValue = ['in', 'notin', 'between'];

@@ -90,9 +90,17 @@ describe('#request-query', () => {
           (qb.setOr as any).bind(qb, { field: 'foo', operator: 'bar' }),
         ).toThrowError(RequestQueryException);
       });
-      it('should set _or', () => {
+      it('should set _or, 1', () => {
         const expected: QueryFilter = { field: 'foo', operator: 'eq' };
         qb.setOr(expected);
+        expect((qb as any)._or[0]).toMatchObject(expected);
+      });
+      it('should set _or, 2', () => {
+        // @ts-ignore
+        const expected: QueryFilter = { field: 'foo', operator: 'bar' };
+        qb.setOr(expected, {
+          bar: () => ``,
+        });
         expect((qb as any)._or[0]).toMatchObject(expected);
       });
     });
@@ -205,6 +213,17 @@ describe('#request-query', () => {
         const expected = 'filter=foo||eq||test';
         expect(test).toBe(expected);
       });
+      it('should return query with custom filter operators', () => {
+        const test = qb
+          // @ts-ignore since this operator is not registered
+          .setFilter(
+            { field: 'foo', operator: 'custom', value: 'test' },
+            { custom: () => `` },
+          )
+          .query();
+        const expected = 'filter=foo||custom||test';
+        expect(test).toBe(expected);
+      });
       it('should return query with or conditions', () => {
         const test = qb
           .setOr({ field: 'foo', operator: 'eq', value: 'test' })
@@ -264,6 +283,19 @@ describe('#request-query', () => {
         let qb = RequestQueryBuilder.create({
           filter: [expected],
         });
+        expect((qb as any)._filter[0]).toMatchObject(expected);
+      });
+      it('should set custom _filter', () => {
+        const expected = { field: 'foo', operator: 'custom' };
+        let qb = RequestQueryBuilder.create(
+          {
+            // @ts-ignore
+            filter: [expected],
+          },
+          {
+            custom: () => ``,
+          },
+        );
         expect((qb as any)._filter[0]).toMatchObject(expected);
       });
       it('should set _or', () => {

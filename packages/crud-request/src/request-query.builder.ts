@@ -62,9 +62,9 @@ export class RequestQueryBuilder {
     return RequestQueryBuilder._options;
   }
 
-  static create(params?: CreateQueryParams): RequestQueryBuilder {
+  static create(params?: CreateQueryParams, customOperators = {}): RequestQueryBuilder {
     const qb = new RequestQueryBuilder();
-    return isObject(params) ? qb.createFromParams(params) : qb;
+    return isObject(params) ? qb.createFromParams(params, customOperators) : qb;
   }
 
   get options(): RequestQueryBuilderOptions {
@@ -92,14 +92,14 @@ export class RequestQueryBuilder {
     return this;
   }
 
-  setFilter(filter: QueryFilter): this {
-    validateCondition(filter, 'filter');
+  setFilter(filter: QueryFilter, customOperators = {}): this {
+    validateCondition(filter, 'filter', customOperators);
     this._filter.push(filter);
     return this;
   }
 
-  setOr(or: QueryFilter): this {
-    validateCondition(or, 'or');
+  setOr(or: QueryFilter, customOperators = {}): this {
+    validateCondition(or, 'or', customOperators);
     this._or.push(or);
     return this;
   }
@@ -139,18 +139,18 @@ export class RequestQueryBuilder {
     return this;
   }
 
-  private createFromParams(params: CreateQueryParams): this {
+  private createFromParams(params: CreateQueryParams, customOperators?: any): this {
     /* istanbul ignore else */
     if (isArrayFull(params.fields)) {
       this.select(params.fields);
     }
     /* istanbul ignore else */
     if (isArrayFull(params.filter)) {
-      params.filter.forEach((filter) => this.setFilter(filter));
+      params.filter.forEach((filter) => this.setFilter(filter, customOperators));
     }
     /* istanbul ignore else */
     if (isArrayFull(params.or)) {
-      params.or.forEach((or) => this.setOr(or));
+      params.or.forEach((or) => this.setOr(or, customOperators));
     }
     /* istanbul ignore else */
     if (isArrayFull(params.join)) {
