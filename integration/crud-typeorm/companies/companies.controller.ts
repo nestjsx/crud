@@ -15,6 +15,9 @@ import { CompaniesService } from './companies.service';
       projects: {},
     },
   },
+  customOperators: {
+    customNe: (field: string, param: string) => `${field} != :${param}`
+  }
 })
 @ApiUseTags('companies')
 @Controller('companies')

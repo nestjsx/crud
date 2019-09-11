@@ -74,7 +74,7 @@ export class RequestQueryParser implements ParsedRequestParams {
     };
   }
 
-  parseQuery(query: any): this {
+  parseQuery(query: any, customOperators: any = {}): this {
     if (isObject(query)) {
       const paramNames = objKeys(query);
 
@@ -86,9 +86,12 @@ export class RequestQueryParser implements ParsedRequestParams {
           this.parseQueryParam('fields', this.fieldsParser.bind(this))[0] || [];
         this.filter = this.parseQueryParam(
           'filter',
-          this.conditionParser.bind(this, 'filter'),
+          this.conditionParser.bind(this, 'filter', customOperators),
         );
-        this.or = this.parseQueryParam('or', this.conditionParser.bind(this, 'or'));
+        this.or = this.parseQueryParam(
+          'or',
+          this.conditionParser.bind(this, 'or', customOperators),
+        );
         this.join = this.parseQueryParam('join', this.joinParser.bind(this));
         this.sort = this.parseQueryParam('sort', this.sortParser.bind(this));
         this.limit = this.parseQueryParam(
@@ -195,7 +198,11 @@ export class RequestQueryParser implements ParsedRequestParams {
     return data.split(this._options.delimStr);
   }
 
-  private conditionParser(cond: 'filter' | 'or', data: string): QueryFilter {
+  private conditionParser(
+    cond: 'filter' | 'or',
+    customOperators: any = {},
+    data: string,
+  ): QueryFilter {
     const isArrayValue = ['in', 'notin', 'between'];
     const isEmptyValue = ['isnull', 'notnull'];
     const param = data.split(this._options.delim);
@@ -214,7 +221,7 @@ export class RequestQueryParser implements ParsedRequestParams {
     }
 
     const condition: QueryFilter = { field, operator, value };
-    validateCondition(condition, cond);
+    validateCondition(condition, cond, customOperators);
 
     return condition;
   }

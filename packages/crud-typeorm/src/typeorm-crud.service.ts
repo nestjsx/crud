@@ -5,6 +5,7 @@ import {
   GetManyDefaultResponse,
   JoinOptions,
   QueryOptions,
+  CustomOperators,
 } from '@nestjsx/crud';
 import {
   ParsedRequestParams,
@@ -210,7 +211,12 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     // set mandatory where condition from CrudOptions.query.filter
     if (isArrayFull(options.query.filter)) {
       for (let i = 0; i < options.query.filter.length; i++) {
-        this.setAndWhere(options.query.filter[i], `optionsFilter${i}`, builder);
+        this.setAndWhere(
+          options.query.filter[i],
+          `optionsFilter${i}`,
+          builder,
+          options.customOperators,
+        );
       }
     }
 
@@ -221,23 +227,33 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     if (hasFilter && hasOr) {
       if (filters.length === 1 && parsed.or.length === 1) {
         // WHERE :filter OR :or
-        this.setOrWhere(filters[0], `filter0`, builder);
-        this.setOrWhere(parsed.or[0], `or0`, builder);
+        this.setOrWhere(filters[0], `filter0`, builder, options.customOperators);
+        this.setOrWhere(parsed.or[0], `or0`, builder, options.customOperators);
       } else if (filters.length === 1) {
-        this.setAndWhere(filters[0], `filter0`, builder);
+        this.setAndWhere(filters[0], `filter0`, builder, options.customOperators);
         builder.orWhere(
           new Brackets((qb) => {
             for (let i = 0; i < parsed.or.length; i++) {
-              this.setAndWhere(parsed.or[i], `or${i}`, qb as any);
+              this.setAndWhere(
+                parsed.or[i],
+                `or${i}`,
+                qb as any,
+                options.customOperators,
+              );
             }
           }),
         );
       } else if (parsed.or.length === 1) {
-        this.setAndWhere(parsed.or[0], `or0`, builder);
+        this.setAndWhere(parsed.or[0], `or0`, builder, options.customOperators);
         builder.orWhere(
           new Brackets((qb) => {
             for (let i = 0; i < filters.length; i++) {
-              this.setAndWhere(filters[i], `filter${i}`, qb as any);
+              this.setAndWhere(
+                filters[i],
+                `filter${i}`,
+                qb as any,
+                options.customOperators,
+              );
             }
           }),
         );
@@ -245,14 +261,24 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
         builder.andWhere(
           new Brackets((qb) => {
             for (let i = 0; i < filters.length; i++) {
-              this.setAndWhere(filters[i], `filter${i}`, qb as any);
+              this.setAndWhere(
+                filters[i],
+                `filter${i}`,
+                qb as any,
+                options.customOperators,
+              );
             }
           }),
         );
         builder.orWhere(
           new Brackets((qb) => {
             for (let i = 0; i < parsed.or.length; i++) {
-              this.setAndWhere(parsed.or[i], `or${i}`, qb as any);
+              this.setAndWhere(
+                parsed.or[i],
+                `or${i}`,
+                qb as any,
+                options.customOperators,
+              );
             }
           }),
         );
@@ -260,12 +286,12 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     } else if (hasOr) {
       // WHERE :or OR :or OR ...
       for (let i = 0; i < parsed.or.length; i++) {
-        this.setOrWhere(parsed.or[i], `or${i}`, builder);
+        this.setOrWhere(parsed.or[i], `or${i}`, builder, options.customOperators);
       }
     } else if (hasFilter) {
       // WHERE :filter AND :filter AND ...
       for (let i = 0; i < filters.length; i++) {
-        this.setAndWhere(filters[i], `filter${i}`, builder);
+        this.setAndWhere(filters[i], `filter${i}`, builder, options.customOperators);
       }
     }
 
@@ -528,15 +554,33 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     return true;
   }
 
-  private setAndWhere(cond: QueryFilter, i: any, builder: SelectQueryBuilder<T>) {
+  private setAndWhere(
+    cond: QueryFilter,
+    i: any,
+    builder: SelectQueryBuilder<T>,
+    customOperators?: CustomOperators,
+  ) {
     this.validateHasColumn(cond.field);
-    const { str, params } = this.mapOperatorsToQuery(cond, `andWhere${i}`);
+    const { str, params } = this.mapOperatorsToQuery(
+      cond,
+      `andWhere${i}`,
+      customOperators,
+    );
     builder.andWhere(str, params);
   }
 
-  private setOrWhere(cond: QueryFilter, i: any, builder: SelectQueryBuilder<T>) {
+  private setOrWhere(
+    cond: QueryFilter,
+    i: any,
+    builder: SelectQueryBuilder<T>,
+    customOperators?: CustomOperators,
+  ) {
     this.validateHasColumn(cond.field);
-    const { str, params } = this.mapOperatorsToQuery(cond, `orWhere${i}`);
+    const { str, params } = this.mapOperatorsToQuery(
+      cond,
+      `orWhere${i}`,
+      customOperators,
+    );
     builder.orWhere(str, params);
   }
 
@@ -620,6 +664,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
   private mapOperatorsToQuery(
     cond: QueryFilter,
     param: any,
+    customOperators: CustomOperators = {},
   ): { str: string; params: ObjectLiteral } {
     const field = this.getFieldWithAlias(cond.field);
     let str: string;
@@ -710,7 +755,9 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
 
       /* istanbul ignore next */
       default:
-        str = `${field} = :${param}`;
+        str = customOperators[cond.operator]
+          ? customOperators[cond.operator](field, param)
+          : `${field} = :${param}`;
         break;
     }
 
