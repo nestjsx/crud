@@ -215,8 +215,8 @@ describe('#request-query', () => {
       });
       it('should return query with custom filter operators', () => {
         const test = qb
-          // @ts-ignore since this operator is not registered
           .setFilter(
+            // @ts-ignore since this operator is not registered
             { field: 'foo', operator: 'custom', value: 'test' },
             { custom: () => `` },
           )
