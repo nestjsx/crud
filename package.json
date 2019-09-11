@@ -82,7 +82,7 @@
     "rimraf": "2.6.3",
     "rxjs": "6.5.2",
     "supertest": "4.0.2",
-    "swagger-ui-express": "4.0.7",
+    "swagger-ui-express": "4.1.0",
     "ts-jest": "24.0.2",
     "ts-node": "8.3.0",
     "tsconfig-paths": "3.8.0",
