@@ -88,7 +88,7 @@
     "tsconfig-paths": "3.8.0",
     "tslint": "5.18.0",
     "tslint-config-prettier": "1.18.0",
-    "typeorm": "0.2.18",
+    "typeorm": "0.2.19",
     "typescript": "3.3.3",
     "validate-commit-msg": "2.14.0"
   },
