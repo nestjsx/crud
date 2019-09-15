@@ -36,7 +36,6 @@
     "email": "mihon4ik@gmail.com"
   },
   "scripts": {
-    "prebuild": "npx rimraf ./lib",
     "build": "npx tsc -b"
   }
 }
