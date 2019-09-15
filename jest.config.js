@@ -1,4 +1,7 @@
 module.exports = {
+  moduleNameMapper: {
+    '^@nestjsx/(.+)': '<rootDir>/packages/$1/src',
+  },
   moduleFileExtensions: ['ts', 'js'],
   testRegex: '\\.spec.ts$',
   rootDir: '.',

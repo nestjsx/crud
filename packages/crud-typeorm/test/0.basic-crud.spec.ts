@@ -1,20 +1,21 @@
-import * as request from 'supertest';
-import { Test } from '@nestjs/testing';
 import { Controller, INestApplication } from '@nestjs/common';
 import { APP_FILTER } from '@nestjs/core';
+import { Test } from '@nestjs/testing';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { RequestQueryBuilder } from '@nestjsx/crud-request';
 
-import { Crud } from '../../crud/src/decorators/crud.decorator';
-import { HttpExceptionFilter } from '../../../integration/shared/https-exception.filter';
-import { withCache } from '../../../integration/crud-typeorm/orm.config';
+import { Crud } from '@nestjsx/crud';
+import { RequestQueryBuilder } from '@nestjsx/crud-request';
+import * as request from 'supertest';
 import { Company } from '../../../integration/crud-typeorm/companies';
+import { withCache } from '../../../integration/crud-typeorm/orm.config';
 import { Project } from '../../../integration/crud-typeorm/projects';
 import { User } from '../../../integration/crud-typeorm/users';
 import { UserProfile } from '../../../integration/crud-typeorm/users-profiles';
+import { HttpExceptionFilter } from '../../../integration/shared/https-exception.filter';
 import { CompaniesService } from './__fixture__/companies.service';
 import { UsersService } from './__fixture__/users.service';
 
+// tslint:disable:max-classes-per-file no-shadowed-variable
 describe('#crud-typeorm', () => {
   describe('#basic crud', () => {
     let app: INestApplication;
@@ -27,7 +28,8 @@ describe('#crud-typeorm', () => {
     })
     @Controller('companies')
     class CompaniesController {
-      constructor(public service: CompaniesService) {}
+      constructor(public service: CompaniesService) {
+      }
     }
 
     @Crud({
@@ -58,7 +60,8 @@ describe('#crud-typeorm', () => {
     })
     @Controller('companies/:companyId/users')
     class UsersController {
-      constructor(public service: UsersService) {}
+      constructor(public service: UsersService) {
+      }
     }
 
     beforeAll(async () => {
