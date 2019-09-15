@@ -12,6 +12,7 @@
     "s": "npx nps",
     "s:list": "yarn s --scripts",
     "build": "yarn s build",
+    "clean": "yarn s clean",
     "pretest": "npm run db:prepare:typeorm",
     "test": "yarn s test",
     "pretest:coveralls": "yarn pretest",

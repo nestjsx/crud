@@ -15,6 +15,7 @@ before_install:
 install:
   - docker-compose up -d
   - yarn bootstrap
+  - yarn clean
   - yarn build
 
 script:
