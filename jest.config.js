@@ -1,4 +1,5 @@
 module.exports = {
+  setupFilesAfterEnv: ['jest-extended'],
   moduleNameMapper: {
     '^@nestjsx/(.+)': '<rootDir>/packages/$1/src',
   },

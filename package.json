@@ -69,6 +69,7 @@
     "cz-conventional-changelog": "3.0.2",
     "husky": "3.0.5",
     "jest": "24.9.0",
+    "jest-extended": "^0.11.2",
     "lerna": "3.16.4",
     "nodemon": "1.19.2",
     "npm-check": "5.9.0",
@@ -77,6 +78,7 @@
     "pg": "7.12.1",
     "prettier": "1.18.2",
     "pretty-quick": "1.11.1",
+    "qs": "^6.8.0",
     "redis": "2.8.0",
     "reflect-metadata": "0.1.13",
     "rimraf": "3.0.0",
@@ -92,7 +94,9 @@
     "typescript": "3.6.3",
     "validate-commit-msg": "2.14.0"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "@types/qs": "^6.5.3"
+  },
   "author": {
     "name": "Michael Yali",
     "email": "mihon4ik@gmail.com"

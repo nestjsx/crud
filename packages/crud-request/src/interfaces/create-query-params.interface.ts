@@ -1,7 +1,8 @@
-import { QueryFields, QueryFilter, QueryJoin, QuerySort } from '../types';
+import { QueryFields, QuerySearch, QueryFilter, QueryJoin, QuerySort } from '../types';
 
 export interface CreateQueryParams {
   fields?: QueryFields;
+  search?: QuerySearch;
   filter?: QueryFilter[];
   or?: QueryFilter[];
   join?: QueryJoin[];

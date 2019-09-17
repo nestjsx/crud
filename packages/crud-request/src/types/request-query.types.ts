@@ -1,5 +1,18 @@
 export type QueryFields = string[];
 
+export type QuerySearch =
+  | Array<string | QuerySearchAnd | QuerySearchOr>
+  | QuerySearchAnd
+  | QuerySearchOr;
+
+export type QuerySearchAnd = {
+  and: QuerySearch;
+};
+
+export type QuerySearchOr = {
+  or: QuerySearch;
+};
+
 export type QueryFilter = {
   field: string;
   operator: ComparisonOperator;
@@ -39,7 +52,7 @@ export enum CondOperator {
   GREATER_THAN = 'gt',
   LOWER_THAN = 'lt',
   GREATER_THAN_EQUALS = 'gte',
-  LOWER_THAN_EQAULS = 'lte',
+  LOWER_THAN_EQUALS = 'lte',
   STARTS = 'starts',
   ENDS = 'ends',
   CONTAINS = 'cont',
