@@ -1,4 +1,11 @@
-import { Controller, Get, Param, ParseIntPipe, Query, UseInterceptors } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Param,
+  ParseIntPipe,
+  Query,
+  UseInterceptors,
+} from '@nestjs/common';
 import { NestApplication } from '@nestjs/core';
 import { Test } from '@nestjs/testing';
 import { RequestQueryBuilder } from '@nestjsx/crud-request';
@@ -38,8 +45,7 @@ describe('#crud', () => {
   })
   @Controller('test2')
   class Test2Controller {
-    constructor(public service: TestService<TestModel>) {
-    }
+    constructor(public service: TestService<TestModel>) {}
 
     @UseInterceptors(CrudRequestInterceptor)
     @Get('normal/:id')
@@ -55,8 +61,10 @@ describe('#crud', () => {
 
     @UseInterceptors(CrudRequestInterceptor)
     @Get('other2/:id/twoParams/:someParam')
-    async twoParams(@ParsedRequest() req: CrudRequest,
-                    @Param('someParam', ParseIntPipe) p: number) {
+    async twoParams(
+      @ParsedRequest() req: CrudRequest,
+      @Param('someParam', ParseIntPipe) p: number,
+    ) {
       return { filter: req.parsed.paramsFilter };
     }
   }

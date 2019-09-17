@@ -9,3 +9,4 @@ export * from './model-options.interface';
 export * from './create-many-dto.interface';
 export * from './get-many-default-response.interface';
 export * from './crud-global-config.interface';
+export * from './custom-operators.interface';

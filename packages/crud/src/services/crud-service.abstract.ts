@@ -3,7 +3,6 @@ import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { CreateManyDto, CrudRequest, GetManyDefaultResponse } from '../interfaces';
 
 export abstract class CrudService<T> {
-
   abstract getMany(req: CrudRequest): Promise<GetManyDefaultResponse<T> | T[]>;
 
   abstract getOne(req: CrudRequest): Promise<T>;
@@ -49,7 +48,7 @@ export abstract class CrudService<T> {
         limit && total
           ? Math.ceil(total / limit)
           : /* istanbul ignore next line */
-          undefined,
+            undefined,
     };
   }
 }

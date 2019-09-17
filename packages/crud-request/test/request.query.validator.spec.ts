@@ -1,4 +1,8 @@
-import { validateUUID } from '../src/request-query.validator';
+import {
+  validateUUID,
+  validateCondition,
+  validateComparisonOperator,
+} from '../src/request-query.validator';
 
 describe('#request-query', () => {
   describe('#validator', () => {
@@ -15,6 +19,12 @@ describe('#request-query', () => {
       });
       it('should pass, 2', () => {
         expect(validateUUID(uuidV4, '')).toBeUndefined();
+      });
+      it('should pass, 4', () => {
+        const withCustom = validateComparisonOperator('gt', {});
+        const withoutCustom = validateComparisonOperator('gt');
+        expect(withCustom).toBeUndefined();
+        expect(withoutCustom).toBeUndefined();
       });
     });
   });

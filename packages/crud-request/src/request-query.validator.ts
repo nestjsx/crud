@@ -35,9 +35,12 @@ export const comparisonOperatorsList = [
   'notnull',
   'between',
 ];
+interface CustomOperators {
+  [key: string]: (field: string, param: string) => string;
+}
+
 export const sortOrdersList = ['ASC', 'DESC'];
 
-const comparisonOperatorsListStr = comparisonOperatorsList.join();
 const sortOrdersListStr = sortOrdersList.join();
 
 export function validateFields(fields: QueryFields): void {
@@ -46,17 +49,28 @@ export function validateFields(fields: QueryFields): void {
   }
 }
 
-export function validateCondition(val: QueryFilter, cond: 'filter' | 'or'): void {
+export function validateCondition(
+  val: QueryFilter,
+  cond: 'filter' | 'or',
+  customOperators: CustomOperators,
+): void {
   if (!isObject(val) || !isStringFull(val.field)) {
     throw new RequestQueryException(`Invalid ${cond} field. String expected`);
   }
-  validateComparisonOperator(val.operator);
+  validateComparisonOperator(val.operator, customOperators);
 }
 
-export function validateComparisonOperator(operator: ComparisonOperator): void {
-  if (!comparisonOperatorsList.includes(operator)) {
+export function validateComparisonOperator(
+  operator: ComparisonOperator,
+  customOperators: CustomOperators = {},
+): void {
+  const extendedComparisonOperatorsList = [
+    ...comparisonOperatorsList,
+    ...Object.keys(customOperators),
+  ];
+  if (!extendedComparisonOperatorsList.includes(operator)) {
     throw new RequestQueryException(
-      `Invalid comparison operator. ${comparisonOperatorsListStr} expected`,
+      `Invalid comparison operator. ${extendedComparisonOperatorsList.join()} expected`,
     );
   }
 }

@@ -55,8 +55,7 @@ describe('#crud', () => {
             allowParamsOverride: true,
           },
           getManyBase: {
-            interceptors: [() => {
-            }],
+            interceptors: [() => {}],
           },
         },
       };
@@ -73,8 +72,8 @@ describe('#crud', () => {
         },
         routes: {
           getManyBase: {
-            interceptors: [() => {
-            }], decorators: [],
+            interceptors: [() => {}],
+            decorators: [],
           },
           getOneBase: { interceptors: [], decorators: [] },
           createOneBase: { interceptors: [], decorators: [] },
