@@ -1,13 +1,24 @@
-import { Controller, Get, ParseIntPipe, Query } from '@nestjs/common';
-import { APP_INTERCEPTOR, NestApplication } from '@nestjs/core';
+import {
+  Controller,
+  Get,
+  Param,
+  ParseIntPipe,
+  Query,
+  UseInterceptors,
+} from '@nestjs/common';
+import { NestApplication } from '@nestjs/core';
 import { Test } from '@nestjs/testing';
 import { RequestQueryBuilder } from '@nestjsx/crud-request';
 import * as supertest from 'supertest';
-import { ParsedRequest } from '../src/decorators';
+import { Crud, ParsedRequest } from '../src/decorators';
 import { CrudRequestInterceptor } from '../src/interceptors';
 import { CrudRequest } from '../src/interfaces';
+import { TestModel } from './__fixture__/test.model';
+import { TestService } from './__fixture__/test.service';
 
+// tslint:disable:max-classes-per-file
 describe('#crud', () => {
+  @UseInterceptors(CrudRequestInterceptor)
   @Controller('test')
   class TestController {
     @Get('/query')
@@ -19,6 +30,43 @@ describe('#crud', () => {
     async other(@Query('page', ParseIntPipe) page: number) {
       return { page };
     }
+
+    @Get('/other2/:someParam')
+    async routeWithParam(@Param('someParam', ParseIntPipe) p: number) {
+      return { p };
+    }
+  }
+
+  @Crud({
+    model: { type: TestModel },
+    params: {
+      someParam: { field: 'someParam', type: 'number' },
+    },
+  })
+  @Controller('test2')
+  class Test2Controller {
+    constructor(public service: TestService<TestModel>) {}
+
+    @UseInterceptors(CrudRequestInterceptor)
+    @Get('normal/:id')
+    async normal(@ParsedRequest() req: CrudRequest) {
+      return { filter: req.parsed.paramsFilter };
+    }
+
+    @UseInterceptors(CrudRequestInterceptor)
+    @Get('/other2/:someParam')
+    async routeWithParam(@Param('someParam', ParseIntPipe) p: number) {
+      return { p };
+    }
+
+    @UseInterceptors(CrudRequestInterceptor)
+    @Get('other2/:id/twoParams/:someParam')
+    async twoParams(
+      @ParsedRequest() req: CrudRequest,
+      @Param('someParam', ParseIntPipe) p: number,
+    ) {
+      return { filter: req.parsed.paramsFilter };
+    }
   }
 
   let $: supertest.SuperTest<supertest.Test>;
@@ -26,8 +74,8 @@ describe('#crud', () => {
 
   beforeAll(async () => {
     const module = await Test.createTestingModule({
-      controllers: [TestController],
-      providers: [{ provide: APP_INTERCEPTOR, useClass: CrudRequestInterceptor }],
+      providers: [TestService],
+      controllers: [TestController, Test2Controller],
     }).compile();
     app = module.createNestApplication();
     await app.init();
@@ -89,6 +137,30 @@ describe('#crud', () => {
         .query({ page: 2, per_page: 11 })
         .expect(200);
       expect(res.body.page).toBe(2);
+    });
+
+    it('should parse param', async () => {
+      const res = await $.get('/test/other2/123').expect(200);
+      expect(res.body.p).toBe(123);
+    });
+
+    it('should parse custom param in crud', async () => {
+      const res = await $.get('/test2/other2/123').expect(200);
+      expect(res.body.p).toBe(123);
+    });
+
+    it('should parse crud param and custom param', async () => {
+      const res = await $.get('/test2/other2/1/twoParams/123').expect(200);
+      expect(res.body.filter).toHaveLength(2);
+      expect(res.body.filter[0].field).toBe('id');
+      expect(res.body.filter[0].value).toBe(1);
+    });
+
+    it('should work like before', async () => {
+      const res = await $.get('/test2/normal/0').expect(200);
+      expect(res.body.filter).toHaveLength(1);
+      expect(res.body.filter[0].field).toBe('id');
+      expect(res.body.filter[0].value).toBe(0);
     });
   });
 });

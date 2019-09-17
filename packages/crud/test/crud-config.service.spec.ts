@@ -1,6 +1,6 @@
-import { CrudConfigService } from '../src/module/crud-config.service';
+import { RequestQueryBuilder } from '@nestjsx/crud-request';
 import { CrudGlobalConfig } from '../src/interfaces';
-import { RequestQueryBuilder } from '../../crud-request/lib/request-query.builder';
+import { CrudConfigService } from '../src/module/crud-config.service';
 
 describe('#crud', () => {
   describe('#CrudConfigService', () => {
@@ -71,7 +71,10 @@ describe('#crud', () => {
           },
         },
         routes: {
-          getManyBase: { interceptors: [() => {}], decorators: [] },
+          getManyBase: {
+            interceptors: [() => {}],
+            decorators: [],
+          },
           getOneBase: { interceptors: [], decorators: [] },
           createOneBase: { interceptors: [], decorators: [] },
           createManyBase: { interceptors: [], decorators: [] },

@@ -1,6 +1,6 @@
-import { ExceptionFilter, Catch, ArgumentsHost, HttpStatus } from '@nestjs/common';
+import { ArgumentsHost, Catch, ExceptionFilter, HttpStatus } from '@nestjs/common';
+import { RequestQueryException } from '@nestjsx/crud-request';
 import { Response } from 'express';
-import { RequestQueryException } from '@nestjsx/crud-request/lib/exceptions';
 
 @Catch(RequestQueryException)
 export class HttpExceptionFilter implements ExceptionFilter {

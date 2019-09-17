@@ -1,21 +1,17 @@
-const { readdirSync } = require('fs');
-const { join } = require('path');
 const utils = require('nps-utils');
 
 const getSeries = (args) => utils.series.nps(...args);
-const names = ['util', 'crud-request', 'crud'];
-const packagesNames = readdirSync(join(__dirname, './packages'));
-
-packagesNames.forEach((name) => {
-  if (!names.includes(name)) {
-    names.push(name);
-  }
-});
+const names = ['util', 'crud-request', 'crud', 'crud-typeorm'];
 
 const getBuildCmd = (pkg) => {
   const str = 'npx lerna run build';
   const scoped = (name) => `--scope @nestjsx/${name}`;
   return pkg ? `${str} ${scoped(pkg)}` : getSeries(names.map((name) => `build.${name}`));
+};
+
+const getCleanCmd = (pkg) => {
+  const cmd = `npx rimraf ./packages/${pkg}/lib && npx rimraf ./packages/${pkg}/tsconfig.tsbuildinfo`;
+  return pkg ? cmd : getSeries(names.map((name) => `clean.${name}`));
 };
 
 const getTestCmd = (pkg, coverage) =>
@@ -28,6 +24,11 @@ const setBuild = () =>
     default: getBuildCmd(),
   });
 
+const setClean = () =>
+  names.reduce((a, c) => ({ ...a, [c]: getCleanCmd(c) }), {
+    default: getCleanCmd(),
+  });
+
 const setTest = () =>
   names.reduce((a, c) => ({ ...a, [c]: getTestCmd(c) }), {
     default: getTestCmd(false, true),
@@ -38,5 +39,6 @@ module.exports = {
   scripts: {
     test: setTest(),
     build: setBuild(),
+    clean: setClean(),
   },
 };

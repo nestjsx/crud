@@ -2,6 +2,7 @@ import {
   CreateManyDto,
   CrudRequest,
   CrudRequestOptions,
+  CrudService,
   GetManyDefaultResponse,
   JoinOptions,
   QueryOptions,
@@ -13,7 +14,6 @@ import {
   QueryJoin,
   QuerySort,
 } from '@nestjsx/crud-request';
-import { CrudService } from '@nestjsx/crud/lib/services';
 import { hasLength, isArrayFull, isObject, isUndefined, objKeys } from '@nestjsx/util';
 import { plainToClass } from 'class-transformer';
 import { ClassType } from 'class-transformer/ClassTransformer';
