@@ -1,14 +1,26 @@
 export type QueryFields = string[];
 
 export type QuerySearch = string | string[] | QuerySearchAnd | QuerySearchOr;
-
 export type QuerySearchAnd = {
   and: Array<string | QuerySearchAnd | QuerySearchOr>;
   or?: never;
 };
-
 export type QuerySearchOr = {
   or: Array<string | QuerySearchAnd | QuerySearchOr>;
+  and?: never;
+};
+
+export type QuerySearchParsed =
+  | QueryFilter
+  | QueryFilter[]
+  | QuerySearchAndParsed
+  | QuerySearchOrParsed;
+export type QuerySearchAndParsed = {
+  and: Array<QueryFilter | QuerySearchAndParsed | QuerySearchOrParsed>;
+  or?: never;
+};
+export type QuerySearchOrParsed = {
+  or: Array<QueryFilter | QuerySearchAndParsed | QuerySearchOrParsed>;
   and?: never;
 };
 

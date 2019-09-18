@@ -1,8 +1,15 @@
-import { QueryFields, QueryFilter, QueryJoin, QuerySort } from '../types';
+import {
+  QueryFields,
+  QueryFilter,
+  QueryJoin,
+  QuerySort,
+  QuerySearchParsed,
+} from '../types';
 
 export interface ParsedRequestParams {
   fields: QueryFields;
   paramsFilter: QueryFilter[];
+  search: QuerySearchParsed;
   filter: QueryFilter[];
   or: QueryFilter[];
   join: QueryJoin[];
