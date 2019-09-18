@@ -16,7 +16,16 @@ import {
   validateNumeric,
   validateSort,
 } from './request-query.validator';
-import { QueryFields, QuerySearch, QueryFilter, QueryJoin, QuerySort } from './types';
+import {
+  QueryFields,
+  QuerySearch,
+  QueryFilter,
+  QueryFilterArr,
+  QueryJoin,
+  QueryJoinArr,
+  QuerySort,
+  QuerySortArr,
+} from './types';
 
 // tslint:disable:variable-name ban-types
 export class RequestQueryBuilder {
@@ -70,6 +79,13 @@ export class RequestQueryBuilder {
     return RequestQueryBuilder._options;
   }
 
+  setParamNames() {
+    Object.keys(RequestQueryBuilder._options.paramNamesMap).forEach((key) => {
+      const name = RequestQueryBuilder._options.paramNamesMap[key];
+      this.paramNames[key] = isString(name) ? (name as string) : (name[0] as string);
+    });
+  }
+
   query(encode = true): string {
     if (this.queryObject[this.paramNames.search]) {
       this.queryObject[this.paramNames.filter] = undefined;
@@ -87,40 +103,44 @@ export class RequestQueryBuilder {
     return this;
   }
 
-  search(s: string | QuerySearch): this {
+  search(s: QuerySearch): this {
     if (!isNil(s)) {
       this.queryObject[this.paramNames.search] = s;
     }
     return this;
   }
 
-  setFilter(f: QueryFilter | QueryFilter[]): this {
+  setFilter(f: QueryFilter | QueryFilterArr | Array<QueryFilter | QueryFilterArr>): this {
     this.setCondition(f, 'filter');
     return this;
   }
 
-  setOr(f: QueryFilter | QueryFilter[]): this {
+  setOr(f: QueryFilter | QueryFilterArr | Array<QueryFilter | QueryFilterArr>): this {
     this.setCondition(f, 'or');
     return this;
   }
 
-  setJoin(j: QueryJoin | QueryJoin[]): this {
+  setJoin(j: QueryJoin | QueryJoinArr | Array<QueryJoin | QueryJoinArr>): this {
     if (!isNil(j)) {
       const param = this.checkQueryObjectParam('join', []);
       this.queryObject[param] = [
         ...this.queryObject[param],
-        ...(Array.isArray(j) ? j.map((o) => this.addJoin(o)) : [this.addJoin(j)]),
+        ...(Array.isArray(j) && !isString(j[0])
+          ? (j as Array<QueryJoin | QueryJoinArr>).map((o) => this.addJoin(o))
+          : [this.addJoin(j as QueryJoin | QueryJoinArr)]),
       ];
     }
     return this;
   }
 
-  sortBy(s: QuerySort | QuerySort[]): this {
+  sortBy(s: QuerySort | QuerySortArr | Array<QuerySort | QuerySortArr>): this {
     if (!isNil(s)) {
       const param = this.checkQueryObjectParam('sort', []);
       this.queryObject[param] = [
         ...this.queryObject[param],
-        ...(Array.isArray(s) ? s.map((o) => this.addSortBy(o)) : [this.addSortBy(s)]),
+        ...(Array.isArray(s) && !isString(s[0])
+          ? (s as Array<QuerySort | QuerySortArr>).map((o) => this.addSortBy(o))
+          : [this.addSortBy(s as QuerySort | QuerySortArr)]),
       ];
     }
     return this;
@@ -146,23 +166,37 @@ export class RequestQueryBuilder {
     return this;
   }
 
-  cond(f: QueryFilter, cond: 'filter' | 'or' | 'search' = 'search'): string {
-    validateCondition(f, cond);
+  cond(
+    f: QueryFilter | QueryFilterArr,
+    cond: 'filter' | 'or' | 'search' = 'search',
+  ): string {
+    const filter = Array.isArray(f) ? { field: f[0], operator: f[1], value: f[2] } : f;
+    validateCondition(filter, cond);
     const d = this.options.delim;
-    return f.field + d + f.operator + d + (hasValue(f.value) ? f.value : '');
+
+    return (
+      filter.field +
+      d +
+      filter.operator +
+      (hasValue(filter.value) ? d + filter.value : '')
+    );
   }
 
-  private addJoin(j: QueryJoin): string {
-    validateJoin(j);
+  private addJoin(j: QueryJoin | QueryJoinArr): string {
+    const join = Array.isArray(j) ? { field: j[0], select: j[1] } : j;
+    validateJoin(join);
     const d = this.options.delim;
     const ds = this.options.delimStr;
-    return j.field + (isArrayFull(j.select) ? d + j.select.join(ds) : '');
+
+    return join.field + (isArrayFull(join.select) ? d + join.select.join(ds) : '');
   }
 
-  private addSortBy(s: QuerySort): string {
-    validateSort(s);
+  private addSortBy(s: QuerySort | QuerySortArr): string {
+    const sort = Array.isArray(s) ? { field: s[0], order: s[1] } : s;
+    validateSort(sort);
     const ds = this.options.delimStr;
-    return s.field + ds + s.order;
+
+    return sort.field + ds + sort.order;
   }
 
   private createFromParams(params: CreateQueryParams): this {
@@ -170,9 +204,11 @@ export class RequestQueryBuilder {
     this.search(params.search);
     this.setFilter(params.filter);
     this.setOr(params.or);
+    this.setJoin(params.join);
     this.setLimit(params.limit);
     this.setOffset(params.offset);
     this.setPage(params.page);
+    this.sortBy(params.sort);
     if (params.resetCache) {
       this.resetCache();
     }
@@ -181,7 +217,7 @@ export class RequestQueryBuilder {
 
   private checkQueryObjectParam(
     cond: keyof RequestQueryBuilderOptions['paramNamesMap'],
-    defaults = undefined,
+    defaults: any,
   ): string {
     const param = this.paramNames[cond];
     if (isNil(this.queryObject[param]) && !isUndefined(defaults)) {
@@ -190,12 +226,17 @@ export class RequestQueryBuilder {
     return param;
   }
 
-  private setCondition(f: QueryFilter | QueryFilter[], cond: 'filter' | 'or'): void {
+  private setCondition(
+    f: QueryFilter | QueryFilterArr | Array<QueryFilter | QueryFilterArr>,
+    cond: 'filter' | 'or',
+  ): void {
     if (!isNil(f)) {
       const param = this.checkQueryObjectParam(cond, []);
       this.queryObject[param] = [
         ...this.queryObject[param],
-        ...(Array.isArray(f) ? f.map((o) => this.cond(o, cond)) : [this.cond(f, cond)]),
+        ...(Array.isArray(f) && !isString(f[0])
+          ? (f as Array<QueryFilter | QueryFilterArr>).map((o) => this.cond(o, cond))
+          : [this.cond(f as QueryFilter | QueryFilterArr, cond)]),
       ];
     }
   }
@@ -205,12 +246,5 @@ export class RequestQueryBuilder {
       validateNumeric(n, cond);
       this.queryObject[this.paramNames[cond]] = n;
     }
-  }
-
-  private setParamNames() {
-    Object.keys(RequestQueryBuilder._options.paramNamesMap).forEach((key) => {
-      const name = RequestQueryBuilder._options.paramNamesMap[key];
-      this.paramNames[key] = isString(name) ? (name as string) : (name[0] as string);
-    });
   }
 }

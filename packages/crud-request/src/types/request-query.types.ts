@@ -1,16 +1,15 @@
 export type QueryFields = string[];
 
-export type QuerySearch =
-  | Array<string | QuerySearchAnd | QuerySearchOr>
-  | QuerySearchAnd
-  | QuerySearchOr;
+export type QuerySearch = string | string[] | QuerySearchAnd | QuerySearchOr;
 
 export type QuerySearchAnd = {
-  and: QuerySearch;
+  and: Array<string | QuerySearchAnd | QuerySearchOr>;
+  or?: never;
 };
 
 export type QuerySearchOr = {
-  or: QuerySearch;
+  or: Array<string | QuerySearchAnd | QuerySearchOr>;
+  and?: never;
 };
 
 export type QueryFilter = {
@@ -19,15 +18,21 @@ export type QueryFilter = {
   value?: any;
 };
 
+export type QueryFilterArr = [string, ComparisonOperator, any?];
+
 export type QueryJoin = {
   field: string;
   select?: QueryFields;
 };
 
+export type QueryJoinArr = [string, QueryFields?];
+
 export type QuerySort = {
   field: string;
-  order: 'ASC' | 'DESC';
+  order: QuerySortOperator;
 };
+
+export type QuerySortArr = [string, QuerySortOperator];
 
 export type ComparisonOperator =
   | 'eq'
@@ -45,6 +50,7 @@ export type ComparisonOperator =
   | 'isnull'
   | 'notnull'
   | 'between';
+export type QuerySortOperator = 'ASC' | 'DESC';
 
 export enum CondOperator {
   EQUALS = 'eq',

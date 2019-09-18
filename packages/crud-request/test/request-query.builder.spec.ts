@@ -91,6 +91,24 @@ describe('#request-query', () => {
         const expected = ['foo||eq||bar', 'baz||ne||zoo'];
         expect(qb.queryObject.filter).toIncludeSameMembers(expected);
       });
+      it('should set filter, 3', () => {
+        qb.setFilter([
+          ['foo', 'eq', 'bar'],
+          { field: 'baz', operator: 'ne', value: 'zoo' },
+        ]);
+        const expected = ['foo||eq||bar', 'baz||ne||zoo'];
+        expect(qb.queryObject.filter).toIncludeSameMembers(expected);
+      });
+      it('should set filter, 4', () => {
+        qb.setFilter([['foo', 'eq', 'bar'], ['baz', 'ne', 'zoo']]);
+        const expected = ['foo||eq||bar', 'baz||ne||zoo'];
+        expect(qb.queryObject.filter).toIncludeSameMembers(expected);
+      });
+      it('should set filter, 5', () => {
+        qb.setFilter(['foo', 'eq', 'bar']);
+        const expected = ['foo||eq||bar'];
+        expect(qb.queryObject.filter).toIncludeSameMembers(expected);
+      });
     });
 
     describe('#setOr', () => {
@@ -154,6 +172,21 @@ describe('#request-query', () => {
         const expected = ['foo', 'bar||a,b,c'];
         expect(qb.queryObject.join).toIncludeSameMembers(expected);
       });
+      it('should set join, 3', () => {
+        qb.setJoin(['foo']);
+        const expected = ['foo'];
+        expect(qb.queryObject.join).toIncludeSameMembers(expected);
+      });
+      it('should set join, 4', () => {
+        qb.setJoin(['foo', ['a', 'b', 'c']]);
+        const expected = ['foo||a,b,c'];
+        expect(qb.queryObject.join).toIncludeSameMembers(expected);
+      });
+      it('should set join, 5', () => {
+        qb.setJoin([{ field: 'baz' }, ['foo', ['a', 'b', 'c']]]);
+        const expected = ['baz', 'foo||a,b,c'];
+        expect(qb.queryObject.join).toIncludeSameMembers(expected);
+      });
     });
 
     describe('#sortBy', () => {
@@ -182,6 +215,21 @@ describe('#request-query', () => {
       it('should set sort, 2', () => {
         qb.sortBy([{ field: 'foo', order: 'ASC' }, { field: 'bar', order: 'DESC' }]);
         const expected = ['foo,ASC', 'bar,DESC'];
+        expect(qb.queryObject.sort).toIncludeSameMembers(expected);
+      });
+      it('should set sort, 3', () => {
+        qb.sortBy(['foo', 'ASC']);
+        const expected = ['foo,ASC'];
+        expect(qb.queryObject.sort).toIncludeSameMembers(expected);
+      });
+      it('should set sort, 4', () => {
+        qb.sortBy([['foo', 'ASC']]);
+        const expected = ['foo,ASC'];
+        expect(qb.queryObject.sort).toIncludeSameMembers(expected);
+      });
+      it('should set sort, 5', () => {
+        qb.sortBy([{ field: 'bar', order: 'DESC' }, ['foo', 'ASC']]);
+        const expected = ['bar,DESC', 'foo,ASC'];
         expect(qb.queryObject.sort).toIncludeSameMembers(expected);
       });
     });
@@ -239,148 +287,160 @@ describe('#request-query', () => {
       });
     });
 
+    describe('#cond', () => {
+      it('should throw an error, 1', () => {
+        expect(qb.cond as any).toThrowError(RequestQueryException);
+      });
+      it('should throw an error, 2', () => {
+        expect((qb.cond as any).bind(qb, {})).toThrowError(RequestQueryException);
+      });
+      it('should return a filter string from an object', () => {
+        const test = qb.cond({ field: 'foo', operator: 'eq', value: 'bar' });
+        const expected = 'foo||eq||bar';
+        expect(test).toBe(expected);
+      });
+      it('should return a filter string from an array', () => {
+        const test = qb.cond(['foo', 'eq', 'bar']);
+        const expected = 'foo||eq||bar';
+        expect(test).toBe(expected);
+      });
+    });
+
+    describe('#query', () => {
+      it('should return an empty string', () => {
+        expect(qb.query()).toBe('');
+      });
+      it('should return query with overrided fields name', () => {
+        RequestQueryBuilder.setOptions({ paramNamesMap: { fields: ['override'] } });
+        qb.setParamNames();
+        const test = qb.select(['foo', 'bar']).query();
+        const test2 = qb.select(['foo', 'bar']).query(false);
+        const expected = 'override=foo%2Cbar';
+        const expected2 = 'override=foo,bar';
+        expect(test).toBe(expected);
+        expect(test2).toBe(expected2);
+      });
+      it('should return valid query string with search', () => {
+        const test = qb
+          .select(['foo', 'bar'])
+          .search(qb.cond({ field: 'foo', operator: 'eq', value: 'bar' }))
+          .setFilter({ field: 'is', operator: 'notnull' })
+          .query(false);
+        const expected = 'fields=foo,bar&s=foo||eq||bar';
+        expect(test).toBe(expected);
+      });
+      it('should return valid query string with filters', () => {
+        const test = qb
+          .select(['foo', 'bar'])
+          .setFilter([
+            { field: 'is', operator: 'notnull' },
+            { field: 'foo', operator: 'lt', value: 10 },
+          ])
+          .query(false);
+        const expected = 'fields=foo,bar&filter[0]=is||notnull&filter[1]=foo||lt||10';
+        expect(test).toBe(expected);
+      });
+      it('should return a valid query string', () => {
+        const test = qb
+          .select(['foo', 'bar'])
+          .setFilter(['is', 'notnull'])
+          .setOr({ field: 'ok', operator: 'ne', value: false })
+          .setJoin({ field: 'voo', select: ['h', 'data'] })
+          .setLimit(1)
+          .setOffset(2)
+          .setPage(3)
+          .sortBy({ field: 'foo', order: 'DESC' })
+          .resetCache()
+          .query(false);
+        const expected =
+          'fields=foo,bar&filter[0]=is||notnull&or[0]=ok||ne||false&join[0]=voo||h,data&per_page=1&offset=2&page=3&sort[0]=foo,DESC&cache=0';
+        expect(test).toBe(expected);
+      });
+    });
+
     describe('#search', () => {
       it('should not throw', () => {
         (qb as any).search();
         expect(qb.queryObject.search).toBeUndefined();
       });
+      it('should return a valid query string, 1', () => {
+        const test = qb
+          .search(qb.cond({ field: 'foo', operator: 'eq', value: 'bar' }))
+          .query(false);
+        const expected = 's=foo||eq||bar';
+        expect(test).toBe(expected);
+      });
+      it('should return a valid query string, 2', () => {
+        const test = qb
+          .search([
+            qb.cond({ field: 'foo', operator: 'eq', value: 'bar' }),
+            qb.cond({ field: 'voo', operator: 'eq', value: 'baz' }),
+          ])
+          .query(false);
+        const expected = 's[0]=foo||eq||bar&s[1]=voo||eq||baz';
+        expect(test).toBe(expected);
+      });
+      it('should return a valid query string, 2', () => {
+        const test = qb
+          .search({
+            and: [
+              qb.cond({ field: 'foo', operator: 'eq', value: 'bar' }),
+              qb.cond({ field: 'voo', operator: 'eq', value: 'baz' }),
+            ],
+          })
+          .query(false);
+        const expected = 's[and][0]=foo||eq||bar&s[and][1]=voo||eq||baz';
+        expect(test).toBe(expected);
+      });
+      it('should return a valid query string, 3', () => {
+        const test = qb
+          .search({
+            and: [
+              qb.cond(['foo', 'eq', 'bar']),
+              {
+                or: [
+                  qb.cond(['voo', 'eq', 'baz']),
+                  qb.cond(['voo', 'eq', 'maa']),
+                  qb.cond(['voo', 'eq', 'faa']),
+                ],
+              },
+            ],
+          })
+          .query(false);
+        const expected =
+          's[and][0]=foo||eq||bar&s[and][1][or][0]=voo||eq||baz&s[and][1][or][1]=voo||eq||maa&s[and][1][or][2]=voo||eq||faa';
+        expect(test).toBe(expected);
+      });
     });
 
-    // describe('#query', () => {
-    //   it('should return an empty string', () => {
-    //     expect(qb.query()).toBe('');
-    //   });
-    //   it('should return query with overrided fields name', () => {
-    //     RequestQueryBuilder.setOptions({ paramNamesMap: { fields: ['override'] } });
-    //     const test = qb.select(['foo', 'bar']).query();
-    //     const expected = 'override=foo,bar';
-    //     expect(test).toBe(expected);
-    //   });
-    //   it('should return query with filter conditions, 1', () => {
-    //     const test = qb
-    //       .setFilter({ field: 'foo', operator: 'eq', value: 'test' })
-    //       .setFilter({ field: 'bar', operator: 'notnull' })
-    //       .query();
-    //     const expected = 'filter[]=foo||eq||test&filter[]=bar||notnull';
-    //     expect(test).toBe(expected);
-    //   });
-    //   it('should return query with filter conditions, 2', () => {
-    //     const test = qb
-    //       .setFilter({ field: 'foo', operator: 'eq', value: 'test' })
-    //       .query();
-    //     const expected = 'filter=foo||eq||test';
-    //     expect(test).toBe(expected);
-    //   });
-    //   it('should return query with or conditions', () => {
-    //     const test = qb
-    //       .setOr({ field: 'foo', operator: 'eq', value: 'test' })
-    //       .setOr({ field: 'bar', operator: 'notnull' })
-    //       .query();
-    //     const expected = 'or[]=foo||eq||test&or[]=bar||notnull';
-    //     expect(test).toBe(expected);
-    //   });
-    //   it('should return query with join', () => {
-    //     const test = qb
-    //       .setJoin({ field: 'foo' })
-    //       .setJoin({ field: 'bar', select: ['test', 'test1'] })
-    //       .query();
-    //     const expected = 'join[]=foo&join[]=bar||test,test1';
-    //     expect(test).toBe(expected);
-    //   });
-    //   it('should return query with sort', () => {
-    //     const test = qb
-    //       .sortBy({ field: 'foo', order: 'ASC' })
-    //       .sortBy({ field: 'bar', order: 'DESC' })
-    //       .query();
-    //     const expected = 'sort[]=foo,ASC&sort[]=bar,DESC';
-    //     expect(test).toBe(expected);
-    //   });
-    //   it('should return query with limit', () => {
-    //     const test = qb.setLimit(10).query();
-    //     const expected = 'per_page=10';
-    //     expect(test).toBe(expected);
-    //   });
-    //   it('should return query with offset', () => {
-    //     const test = qb.setOffset(10).query();
-    //     const expected = 'offset=10';
-    //     expect(test).toBe(expected);
-    //   });
-    //   it('should return query with page', () => {
-    //     const test = qb.setPage(10).query();
-    //     const expected = 'page=10';
-    //     expect(test).toBe(expected);
-    //   });
-    //   it('should return query with cache', () => {
-    //     const test = qb.resetCache().query();
-    //     const expected = 'cache=0';
-    //     expect(test).toBe(expected);
-    //   });
-    // });
-
-    // describe('#createFromParams', () => {
-    //   it('should set _fields', () => {
-    //     const expected: QueryFields = ['geee', 'vooo'];
-    //     let qb = RequestQueryBuilder.create({
-    //       fields: expected,
-    //     });
-    //     expect((qb as any)._fields).toMatchObject(expected);
-    //   });
-    //   it('should set _filter', () => {
-    //     const expected: QueryFilter = { field: 'foo', operator: CondOperator.EQUALS };
-    //     let qb = RequestQueryBuilder.create({
-    //       filter: [expected],
-    //     });
-    //     expect((qb as any)._filter[0]).toMatchObject(expected);
-    //   });
-    //   it('should set _or', () => {
-    //     const expected: QueryFilter = { field: 'foo', operator: 'eq' };
-    //     let qb = RequestQueryBuilder.create({
-    //       or: [expected],
-    //     });
-    //     expect((qb as any)._or[0]).toMatchObject(expected);
-    //   });
-    //   it('should set _join', () => {
-    //     const expected: QueryJoin = { field: 'foo', select: ['bar'] };
-    //     let qb = RequestQueryBuilder.create({
-    //       join: [expected],
-    //     });
-    //     expect((qb as any)._join[0]).toMatchObject(expected);
-    //   });
-    //   it('should set _sort', () => {
-    //     const expected: QuerySort = { field: 'foo', order: 'ASC' };
-    //     let qb = RequestQueryBuilder.create({
-    //       sort: [expected],
-    //     });
-    //     expect((qb as any)._sort[0]).toMatchObject(expected);
-    //   });
-    //   it('should set _limit', () => {
-    //     const expected = 10;
-    //     let qb = RequestQueryBuilder.create({
-    //       limit: expected,
-    //     });
-    //     expect((qb as any)._limit).toBe(expected);
-    //   });
-    //   it('should set _offset', () => {
-    //     const expected = 10;
-    //     let qb = RequestQueryBuilder.create({
-    //       offset: expected,
-    //     });
-    //     expect((qb as any)._offset).toBe(expected);
-    //   });
-    //   it('should set _page', () => {
-    //     const expected = 10;
-    //     let qb = RequestQueryBuilder.create({
-    //       page: expected,
-    //     });
-    //     expect((qb as any)._page).toBe(expected);
-    //   });
-    //   it('should set _cache', () => {
-    //     const expected = 0;
-    //     let qb = RequestQueryBuilder.create({
-    //       resetCache: true,
-    //     });
-    //     expect((qb as any)._cache).toBe(expected);
-    //   });
-    // });
+    describe('#createFromParams', () => {
+      it('should return an empty query string', () => {
+        const test = RequestQueryBuilder.create().query();
+        expect(test).toBe('');
+      });
+      it('should return a valid query string, 1', () => {
+        const test = RequestQueryBuilder.create({
+          fields: ['foo', 'bar'],
+          filter: ['is', 'notnull'],
+          or: { field: 'ok', operator: 'ne', value: false },
+          join: { field: 'voo', select: ['h', 'data'] },
+          limit: 1,
+          offset: 2,
+          page: 3,
+          sort: [['foo', 'DESC']],
+          resetCache: true,
+        }).query(false);
+        const expected =
+          'fields=foo,bar&filter[0]=is||notnull&or[0]=ok||ne||false&join[0]=voo||h,data&per_page=1&offset=2&page=3&sort[0]=foo,DESC&cache=0';
+        expect(test).toBe(expected);
+      });
+      it('should return a valid query string, 2', () => {
+        const test = RequestQueryBuilder.create({
+          fields: ['foo', 'bar'],
+        }).query(false);
+        const expected = 'fields=foo,bar';
+        expect(test).toBe(expected);
+      });
+    });
   });
 });
