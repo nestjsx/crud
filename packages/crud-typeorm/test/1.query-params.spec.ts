@@ -1,3 +1,4 @@
+import 'jest-extended';
 import { Controller, INestApplication } from '@nestjs/common';
 import { APP_FILTER } from '@nestjs/core';
 import { Test } from '@nestjs/testing';
@@ -62,6 +63,25 @@ describe('#crud-typeorm', () => {
     }
 
     @Crud({
+      model: { type: Project },
+    })
+    @Controller('projects2')
+    class ProjectsController2 {
+      constructor(public service: ProjectsService) {}
+    }
+
+    @Crud({
+      model: { type: Project },
+      query: {
+        filter: [{ field: 'isActive', operator: 'eq', value: true }],
+      },
+    })
+    @Controller('projects3')
+    class ProjectsController3 {
+      constructor(public service: ProjectsService) {}
+    }
+
+    @Crud({
       model: { type: User },
       query: {
         join: {
@@ -81,7 +101,13 @@ describe('#crud-typeorm', () => {
           TypeOrmModule.forRoot({ ...withCache, logging: false }),
           TypeOrmModule.forFeature([Company, Project, User, UserProfile]),
         ],
-        controllers: [CompaniesController, ProjectsController, UsersController],
+        controllers: [
+          CompaniesController,
+          ProjectsController,
+          ProjectsController2,
+          ProjectsController3,
+          UsersController,
+        ],
         providers: [
           { provide: APP_FILTER, useClass: HttpExceptionFilter },
           CompaniesService,
@@ -428,6 +454,188 @@ describe('#crud-typeorm', () => {
         expect(res.body[0].company.projects[1].id).toBeLessThan(
           res.body[0].company.projects[0].id,
         );
+      });
+    });
+
+    describe('#search', () => {
+      const get = () => request(server).get('/projects2');
+
+      it('should return with basic filter', async () => {
+        const query = qb.search(qb.cond(['id', 'eq', 1])).query();
+        const res = await get()
+          .query(query)
+          .expect(200);
+        expect(res.body).toBeArrayOfSize(1);
+        expect(res.body[0].id).toBe(1);
+      });
+
+      it('should return with an array of filters, 1', async () => {
+        const query = qb
+          .search([qb.cond(['id', 'eq', 1]), qb.cond(['name', 'eq', 'Project1'])])
+          .query();
+        const res = await get()
+          .query(query)
+          .expect(200);
+        expect(res.body).toBeArrayOfSize(1);
+        expect(res.body[0].id).toBe(1);
+        expect(res.body[0].name).toBe('Project1');
+      });
+
+      it('should return with simple AND', async () => {
+        const query = qb
+          .search({
+            and: [qb.cond(['id', 'eq', 2]), qb.cond(['name', 'eq', 'Project2'])],
+          })
+          .query();
+        const res = await get()
+          .query(query)
+          .expect(200);
+        expect(res.body).toBeArrayOfSize(1);
+        expect(res.body[0].id).toBe(2);
+        expect(res.body[0].name).toBe('Project2');
+      });
+
+      it('should return with simple OR', async () => {
+        const query = qb
+          .search({
+            or: [qb.cond(['id', 'eq', 1]), qb.cond(['id', 'eq', 2])],
+          })
+          .query();
+        const res = await get()
+          .query(query)
+          .expect(200);
+        expect(res.body).toBeArrayOfSize(2);
+        expect(res.body[0].id).toBe(1);
+        expect(res.body[1].id).toBe(2);
+      });
+
+      it('should return with compound conditions, 1', async () => {
+        const query = qb
+          .search({
+            and: [
+              qb.cond(['isActive', 'eq', true]),
+              {
+                or: [
+                  qb.cond(['name', 'eq', 'Project1']),
+                  qb.cond(['name', 'eq', 'Project2']),
+                ],
+              },
+            ],
+          })
+          .query();
+        const res = await get()
+          .query(query)
+          .expect(200);
+        expect(res.body).toBeArrayOfSize(2);
+        expect(res.body[0].id).toBe(1);
+        expect(res.body[1].id).toBe(2);
+      });
+
+      it('should return with compound conditions, 2', async () => {
+        const query = qb
+          .search({
+            and: [
+              qb.cond(['isActive', 'eq', false]),
+              {
+                or: [
+                  qb.cond(['name', 'eq', 'Project1']),
+                  qb.cond(['name', 'eq', 'Project11']),
+                ],
+              },
+            ],
+          })
+          .query();
+        const res = await get()
+          .query(query)
+          .expect(200);
+        expect(res.body).toBeArrayOfSize(1);
+        expect(res.body[0].id).toBe(11);
+      });
+    });
+
+    describe('#search with mandatory filters', () => {
+      const get = () => request(server).get('/projects3');
+
+      it('should return with basic filter, 1', async () => {
+        const query = qb.search(qb.cond(['id', 'eq', 1])).query();
+        const res = await get()
+          .query(query)
+          .expect(200);
+        expect(res.body).toBeArrayOfSize(1);
+        expect(res.body[0].id).toBe(1);
+      });
+
+      it('should return with basic filter, 2', async () => {
+        const query = qb.search(qb.cond(['id', 'eq', 11])).query();
+        const res = await get()
+          .query(query)
+          .expect(200);
+        expect(res.body).toBeArrayOfSize(0);
+      });
+
+      it('should return with an array of filters, 1', async () => {
+        const query = qb
+          .search([qb.cond(['id', 'eq', 1]), qb.cond(['name', 'eq', 'Project1'])])
+          .query();
+        const res = await get()
+          .query(query)
+          .expect(200);
+        expect(res.body).toBeArrayOfSize(1);
+        expect(res.body[0].id).toBe(1);
+        expect(res.body[0].name).toBe('Project1');
+      });
+
+      it('should return with simple AND, 1', async () => {
+        const query = qb
+          .search({
+            and: [qb.cond(['id', 'eq', 2]), qb.cond(['name', 'eq', 'Project2'])],
+          })
+          .query();
+        const res = await get()
+          .query(query)
+          .expect(200);
+        expect(res.body).toBeArrayOfSize(1);
+        expect(res.body[0].id).toBe(2);
+        expect(res.body[0].name).toBe('Project2');
+      });
+
+      it('should return with simple AND, 2', async () => {
+        const query = qb
+          .search({
+            and: [qb.cond(['id', 'eq', 12]), qb.cond(['name', 'eq', 'Project12'])],
+          })
+          .query();
+        const res = await get()
+          .query(query)
+          .expect(200);
+        expect(res.body).toBeArrayOfSize(0);
+      });
+
+      it('should return with simple OR, 1', async () => {
+        const query = qb
+          .search({
+            or: [qb.cond(['id', 'eq', 1]), qb.cond(['id', 'eq', 2])],
+          })
+          .query();
+        const res = await get()
+          .query(query)
+          .expect(200);
+        expect(res.body).toBeArrayOfSize(2);
+        expect(res.body[0].id).toBe(1);
+        expect(res.body[1].id).toBe(2);
+      });
+
+      it('should return with simple OR, 2', async () => {
+        const query = qb
+          .search({
+            or: [qb.cond(['id', 'eq', 12]), qb.cond(['id', 'eq', 2])],
+          })
+          .query();
+        const res = await get()
+          .query(query)
+          .expect(200);
+        expect(res.body).toBeArrayOfSize(1);
+        expect(res.body[0].id).toBe(2);
       });
     });
   });

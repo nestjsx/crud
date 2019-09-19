@@ -12,6 +12,7 @@ import {
   QueryFilter,
   QueryJoin,
   QuerySort,
+  QuerySearchOrParsed,
 } from '@nestjsx/crud-request';
 import {
   hasLength,
@@ -216,7 +217,8 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     builder.select(select);
 
     // set mandatory where condition from CrudOptions.query.filter
-    if (isArrayFull(options.query.filter)) {
+    const hasMandatoryFilters = isArrayFull(options.query.filter);
+    if (hasMandatoryFilters) {
       for (let i = 0; i < options.query.filter.length; i++) {
         this.setAndWhere(options.query.filter[i], `optionsFilter${i}`, builder);
       }
@@ -281,7 +283,11 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
       }
     } else {
       // set search condition
-      this.setSearchCondition(parsed.search, builder);
+      if (hasMandatoryFilters && !isNil((parsed.search as QuerySearchOrParsed).or)) {
+        this.setSearchCondition(parsed.search, builder, 'and', 'or', false);
+      } else {
+        this.setSearchCondition(parsed.search, builder);
+      }
     }
 
     // set joins
@@ -582,18 +588,32 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
           }),
         );
       }
-    } else if (isObject(search)) {
-      if (isString((search as QueryFilter).field)) {
-        let time = process.hrtime()[1];
-        if (setCtx === 'and') {
-          this.setAndWhere(search, `${time}_${currCtx}_${setCtx}`, builder);
+      // TODO: refactor when this https://github.com/gotwarlost/istanbul/issues/781 is fixed :(
+    } else {
+      /* istanbul ignore else */
+      if (isObject(search)) {
+        if (isString((search as QueryFilter).field)) {
+          let time = process.hrtime()[1];
+          if (setCtx === 'and') {
+            this.setAndWhere(search, `${time}_${currCtx}_${setCtx}`, builder);
+          } else {
+            this.setOrWhere(search, `${time}_${currCtx}_${setCtx}`, builder);
+          }
+        } else if (!isNil(search.and)) {
+          this.setSearchCondition(search.and, builder, currCtx, 'and', false);
+          // TODO same ^
         } else {
-          this.setOrWhere(search, `${time}_${currCtx}_${setCtx}`, builder);
+          /* istanbul ignore else */
+          if (!isNil(search.or)) {
+            this.setSearchCondition(
+              search.or,
+              builder,
+              init ? 'or' : currCtx,
+              'or',
+              false,
+            );
+          }
         }
-      } else if (!isNil(search.and)) {
-        this.setSearchCondition(search.and, builder, currCtx, 'and', false);
-      } else if (!isNil(search.or)) {
-        this.setSearchCondition(search.or, builder, init ? 'or' : currCtx, 'or', false);
       }
     }
   }
