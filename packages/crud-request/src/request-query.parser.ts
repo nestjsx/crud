@@ -85,8 +85,9 @@ export class RequestQueryParser implements ParsedRequestParams {
       if (hasLength(paramNames)) {
         this._query = query;
         this._paramNames = paramNames;
+        const searchData = this._query[this.getParamNames('search')[0]];
 
-        this.search = this.parseSearchQueryParam();
+        this.search = this.parseSearchQueryParam(searchData);
         if (isNil(this.search)) {
           this.filter = this.parseQueryParam(
             'filter',
@@ -202,22 +203,23 @@ export class RequestQueryParser implements ParsedRequestParams {
     return data.split(this._options.delimStr);
   }
 
-  private parseSearchQueryParam(data?: any): QuerySearchParsed {
-    let d = !isNil(data) ? data : this._query[this.getParamNames('search')[0]];
-
-    if (isString(d)) {
-      d = this.conditionParser('search', d);
+  private parseSearchQueryParam(d: any): QuerySearchParsed {
+    if (isStringFull(d)) {
+      return this.conditionParser('search', d);
     }
 
     if (isArrayFull(d)) {
-      d = d.map((one: string) => this.parseSearchQueryParam(one));
+      return d.map((one: string) => this.parseSearchQueryParam(one));
     }
 
     if (isObject(d)) {
       if (isArrayFull(d.and)) {
         d.and = this.parseSearchQueryParam(d.and);
-      } else if (isArrayFull(d.or)) {
-        d.or = this.parseSearchQueryParam(d.or);
+      } else {
+        /* istanbul ignore else */
+        if (isArrayFull(d.or)) {
+          d.or = this.parseSearchQueryParam(d.or);
+        }
       }
     }
 

@@ -593,11 +593,11 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
       /* istanbul ignore else */
       if (isObject(search)) {
         if (isString((search as QueryFilter).field)) {
-          let time = process.hrtime()[1];
+          const index = `${process.hrtime()[1]}_${currCtx}_${setCtx}`;
           if (setCtx === 'and') {
-            this.setAndWhere(search, `${time}_${currCtx}_${setCtx}`, builder);
+            this.setAndWhere(search, index, builder);
           } else {
-            this.setOrWhere(search, `${time}_${currCtx}_${setCtx}`, builder);
+            this.setOrWhere(search, index, builder);
           }
         } else if (!isNil(search.and)) {
           this.setSearchCondition(search.and, builder, currCtx, 'and', false);
