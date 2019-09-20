@@ -117,6 +117,8 @@ export class Swagger {
       required: false,
       in: 'query',
       type: String,
+      isArray: true,
+      collectionFormat: 'multi',
     };
     const orMeta = {
       name: or,
@@ -125,6 +127,8 @@ export class Swagger {
       required: false,
       in: 'query',
       type: String,
+      isArray: true,
+      collectionFormat: 'multi',
     };
     const sortMeta = {
       name: sort,
