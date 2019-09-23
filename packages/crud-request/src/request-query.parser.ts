@@ -32,14 +32,15 @@ import {
   QueryFilter,
   QueryJoin,
   QuerySort,
-  QuerySearchParsed,
+  SCondition,
 } from './types';
 
 // tslint:disable:variable-name ban-types
 export class RequestQueryParser implements ParsedRequestParams {
   public fields: QueryFields = [];
   public paramsFilter: QueryFilter[] = [];
-  public search: QuerySearchParsed;
+  public search: SCondition;
+  public searchJson: SCondition;
   public filter: QueryFilter[] = [];
   public or: QueryFilter[] = [];
   public join: QueryJoin[] = [];
@@ -85,9 +86,9 @@ export class RequestQueryParser implements ParsedRequestParams {
       if (hasLength(paramNames)) {
         this._query = query;
         this._paramNames = paramNames;
-        const searchData = this._query[this.getParamNames('search')[0]];
+        let searchData = this._query[this.getParamNames('search')[0]];
 
-        this.search = this.parseSearchQueryParam(searchData);
+        this.search = this.parseSearchQueryParam(searchData) as any;
         if (isNil(this.search)) {
           this.filter = this.parseQueryParam(
             'filter',
@@ -203,27 +204,22 @@ export class RequestQueryParser implements ParsedRequestParams {
     return data.split(this._options.delimStr);
   }
 
-  private parseSearchQueryParam(d: any): QuerySearchParsed {
-    if (isStringFull(d)) {
-      return this.conditionParser('search', d);
-    }
-
-    if (isArrayFull(d)) {
-      return d.map((one: string) => this.parseSearchQueryParam(one));
-    }
-
-    if (isObject(d)) {
-      if (isArrayFull(d.and)) {
-        d.and = this.parseSearchQueryParam(d.and);
-      } else {
-        /* istanbul ignore else */
-        if (isArrayFull(d.or)) {
-          d.or = this.parseSearchQueryParam(d.or);
-        }
+  private parseSearchQueryParam(d: any): SCondition {
+    try {
+      if (isNil(d)) {
+        return undefined;
       }
-    }
 
-    return d;
+      const data = JSON.parse(d);
+
+      if (!isObject(data)) {
+        throw new Error();
+      }
+
+      return data;
+    } catch (_) {
+      throw new RequestQueryException('Invalid search param. JSON expected');
+    }
   }
 
   private conditionParser(cond: 'filter' | 'or' | 'search', data: string): QueryFilter {

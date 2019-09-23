@@ -1,29 +1,5 @@
 export type QueryFields = string[];
 
-export type QuerySearch = string | string[] | QuerySearchAnd | QuerySearchOr;
-export type QuerySearchAnd = {
-  and: Array<string | QuerySearchAnd | QuerySearchOr>;
-  or?: never;
-};
-export type QuerySearchOr = {
-  or: Array<string | QuerySearchAnd | QuerySearchOr>;
-  and?: never;
-};
-
-export type QuerySearchParsed =
-  | QueryFilter
-  | QueryFilter[]
-  | QuerySearchAndParsed
-  | QuerySearchOrParsed;
-export type QuerySearchAndParsed = {
-  and: Array<QueryFilter | QuerySearchAndParsed | QuerySearchOrParsed>;
-  or?: never;
-};
-export type QuerySearchOrParsed = {
-  or: Array<QueryFilter | QuerySearchAndParsed | QuerySearchOrParsed>;
-  and?: never;
-};
-
 export type QueryFilter = {
   field: string;
   operator: ComparisonOperator;
@@ -61,7 +37,8 @@ export type ComparisonOperator =
   | 'notin'
   | 'isnull'
   | 'notnull'
-  | 'between';
+  | 'between'
+  | keyof SFieldOperator;
 export type QuerySortOperator = 'ASC' | 'DESC';
 
 export enum CondOperator {
@@ -81,3 +58,42 @@ export enum CondOperator {
   NOT_NULL = 'notnull',
   BETWEEN = 'between',
 }
+
+// new search
+export type SPrimitivesVal = string | number | boolean;
+export type SFiledValues = SPrimitivesVal | Array<SPrimitivesVal>;
+export type SFieldOperator = {
+  $eq?: SFiledValues;
+  $ne?: SFiledValues;
+  $gt?: SFiledValues;
+  $lt?: SFiledValues;
+  $gte?: SFiledValues;
+  $lte?: SFiledValues;
+  $starts?: SFiledValues;
+  $ends?: SFiledValues;
+  $cont?: SFiledValues;
+  $excl?: SFiledValues;
+  $in?: SFiledValues;
+  $notin?: SFiledValues;
+  $between?: SFiledValues;
+  $isnull?: SFiledValues;
+  $notnull?: SFiledValues;
+  $or?: SFieldOperator;
+  $and?: never;
+};
+export type SField = SPrimitivesVal | SFieldOperator;
+
+export type SFields = {
+  [key: string]: SField | Array<SFields | SConditionAND>;
+  $or?: Array<SFields | SConditionAND>;
+  $and?: never;
+};
+
+export type SConditionAND = {
+  $and?: Array<SFields | SConditionAND>;
+  $or?: never;
+};
+
+export type SConditionKey = '$and' | '$or';
+
+export type SCondition = SFields | SConditionAND;

@@ -73,11 +73,22 @@ describe('#crud-typeorm', () => {
     @Crud({
       model: { type: Project },
       query: {
-        filter: [{ field: 'isActive', operator: 'eq', value: true }],
+        filter: [{ field: 'isActive', operator: 'eq', value: false }],
       },
     })
     @Controller('projects3')
     class ProjectsController3 {
+      constructor(public service: ProjectsService) {}
+    }
+
+    @Crud({
+      model: { type: Project },
+      query: {
+        filter: { isActive: true },
+      },
+    })
+    @Controller('projects4')
+    class ProjectsController4 {
       constructor(public service: ProjectsService) {}
     }
 
@@ -106,6 +117,7 @@ describe('#crud-typeorm', () => {
           ProjectsController,
           ProjectsController2,
           ProjectsController3,
+          ProjectsController4,
           UsersController,
         ],
         providers: [
@@ -458,184 +470,196 @@ describe('#crud-typeorm', () => {
     });
 
     describe('#search', () => {
-      const get = () => request(server).get('/projects2');
+      const projects2 = () => request(server).get('/projects2');
+      const projects3 = () => request(server).get('/projects3');
+      const projects4 = () => request(server).get('/projects4');
 
-      it('should return with basic filter', async () => {
-        const query = qb.search(qb.cond(['id', 'eq', 1])).query();
-        const res = await get()
+      it('should return with search, 1', async () => {
+        const query = qb.search({ id: 1 }).query();
+        const res = await projects2()
           .query(query)
           .expect(200);
         expect(res.body).toBeArrayOfSize(1);
         expect(res.body[0].id).toBe(1);
       });
-
-      it('should return with an array of filters, 1', async () => {
-        const query = qb
-          .search([qb.cond(['id', 'eq', 1]), qb.cond(['name', 'eq', 'Project1'])])
-          .query();
-        const res = await get()
+      it('should return with search, 2', async () => {
+        const query = qb.search({ id: 1, name: 'Project1' }).query();
+        const res = await projects2()
           .query(query)
           .expect(200);
         expect(res.body).toBeArrayOfSize(1);
         expect(res.body[0].id).toBe(1);
-        expect(res.body[0].name).toBe('Project1');
       });
-
-      it('should return with simple AND', async () => {
-        const query = qb
-          .search({
-            and: [qb.cond(['id', 'eq', 2]), qb.cond(['name', 'eq', 'Project2'])],
-          })
-          .query();
-        const res = await get()
+      it('should return with search, 3', async () => {
+        const query = qb.search({ id: 1, name: { $eq: 'Project1' } }).query();
+        const res = await projects2()
           .query(query)
           .expect(200);
         expect(res.body).toBeArrayOfSize(1);
-        expect(res.body[0].id).toBe(2);
-        expect(res.body[0].name).toBe('Project2');
+        expect(res.body[0].id).toBe(1);
       });
-
-      it('should return with simple OR', async () => {
+      it('should return with search, 4', async () => {
+        const query = qb.search({ name: { $eq: 'Project1' } }).query();
+        const res = await projects2()
+          .query(query)
+          .expect(200);
+        expect(res.body).toBeArrayOfSize(1);
+        expect(res.body[0].id).toBe(1);
+      });
+      it('should return with search, 5', async () => {
+        const query = qb.search({ id: { $notnull: true, $eq: 1 } }).query();
+        const res = await projects2()
+          .query(query)
+          .expect(200);
+        expect(res.body).toBeArrayOfSize(1);
+        expect(res.body[0].id).toBe(1);
+      });
+      it('should return with search, 6', async () => {
+        const query = qb.search({ id: { $or: { $isnull: true, $eq: 1 } } }).query();
+        const res = await projects2()
+          .query(query)
+          .expect(200);
+        expect(res.body).toBeArrayOfSize(1);
+        expect(res.body[0].id).toBe(1);
+      });
+      it('should return with search, 7', async () => {
+        const query = qb.search({ id: { $or: { $eq: 1 } } }).query();
+        const res = await projects2()
+          .query(query)
+          .expect(200);
+        expect(res.body).toBeArrayOfSize(1);
+        expect(res.body[0].id).toBe(1);
+      });
+      it('should return with search, 8', async () => {
         const query = qb
-          .search({
-            or: [qb.cond(['id', 'eq', 1]), qb.cond(['id', 'eq', 2])],
-          })
+          .search({ id: { $notnull: true, $or: { $eq: 1, $in: [30, 31] } } })
           .query();
-        const res = await get()
+        const res = await projects2()
+          .query(query)
+          .expect(200);
+        expect(res.body).toBeArrayOfSize(1);
+        expect(res.body[0].id).toBe(1);
+      });
+      it('should return with search, 9', async () => {
+        const query = qb.search({ id: { $notnull: true, $or: { $eq: 1 } } }).query();
+        const res = await projects2()
+          .query(query)
+          .expect(200);
+        expect(res.body).toBeArrayOfSize(1);
+        expect(res.body[0].id).toBe(1);
+      });
+      it('should return with search, 10', async () => {
+        const query = qb.search({ id: null }).query();
+        const res = await projects2()
+          .query(query)
+          .expect(200);
+        expect(res.body).toBeArrayOfSize(0);
+      });
+      it('should return with search, 11', async () => {
+        const query = qb
+          .search({ $and: [{ id: { $notin: [5, 6, 7, 8, 9, 10] } }, { isActive: true }] })
+          .query();
+        const res = await projects2()
+          .query(query)
+          .expect(200);
+        expect(res.body).toBeArrayOfSize(4);
+      });
+      it('should return with search, 12', async () => {
+        const query = qb
+          .search({ $and: [{ id: { $notin: [5, 6, 7, 8, 9, 10] } }] })
+          .query();
+        const res = await projects2()
+          .query(query)
+          .expect(200);
+        expect(res.body).toBeArrayOfSize(14);
+      });
+      it('should return with search, 13', async () => {
+        const query = qb.search({ $or: [{ id: 54 }] }).query();
+        const res = await projects2()
+          .query(query)
+          .expect(200);
+        expect(res.body).toBeArrayOfSize(0);
+      });
+      it('should return with search, 14', async () => {
+        const query = qb
+          .search({ $or: [{ id: 54 }, { id: 33 }, { id: { $in: [1, 2] } }] })
+          .query();
+        const res = await projects2()
           .query(query)
           .expect(200);
         expect(res.body).toBeArrayOfSize(2);
         expect(res.body[0].id).toBe(1);
         expect(res.body[1].id).toBe(2);
       });
-
-      it('should return with compound conditions, 1', async () => {
-        const query = qb
-          .search({
-            and: [
-              qb.cond(['isActive', 'eq', true]),
-              {
-                or: [
-                  qb.cond(['name', 'eq', 'Project1']),
-                  qb.cond(['name', 'eq', 'Project2']),
-                ],
-              },
-            ],
-          })
-          .query();
-        const res = await get()
+      it('should return with search, 15', async () => {
+        const query = qb.search({ $or: [{ id: 54 }], name: 'Project1' }).query();
+        const res = await projects2()
           .query(query)
           .expect(200);
-        expect(res.body).toBeArrayOfSize(2);
-        expect(res.body[0].id).toBe(1);
-        expect(res.body[1].id).toBe(2);
+        expect(res.body).toBeArrayOfSize(0);
       });
-
-      it('should return with compound conditions, 2', async () => {
+      it('should return with search, 16', async () => {
+        const query = qb
+          .search({ $or: [{ isActive: false }, { id: 3 }], name: 'Project3' })
+          .query();
+        const res = await projects2()
+          .query(query)
+          .expect(200);
+        expect(res.body).toBeArrayOfSize(1);
+        expect(res.body[0].id).toBe(3);
+      });
+      it('should return with search, 17', async () => {
+        const query = qb
+          .search({ $or: [{ isActive: false }, { id: { $eq: 3 } }], name: 'Project3' })
+          .query();
+        const res = await projects2()
+          .query(query)
+          .expect(200);
+        expect(res.body).toBeArrayOfSize(1);
+        expect(res.body[0].id).toBe(3);
+      });
+      it('should return with search, 17', async () => {
         const query = qb
           .search({
-            and: [
-              qb.cond(['isActive', 'eq', false]),
-              {
-                or: [
-                  qb.cond(['name', 'eq', 'Project1']),
-                  qb.cond(['name', 'eq', 'Project11']),
-                ],
-              },
-            ],
+            $or: [{ isActive: false }, { id: { $eq: 3 } }],
+            name: { $eq: 'Project3' },
           })
           .query();
-        const res = await get()
+        const res = await projects2()
+          .query(query)
+          .expect(200);
+        expect(res.body).toBeArrayOfSize(1);
+        expect(res.body[0].id).toBe(3);
+      });
+      it('should return with default filter, 1', async () => {
+        const query = qb.search({ name: 'Project11' }).query();
+        const res = await projects3()
           .query(query)
           .expect(200);
         expect(res.body).toBeArrayOfSize(1);
         expect(res.body[0].id).toBe(11);
       });
-    });
-
-    describe('#search with mandatory filters', () => {
-      const get = () => request(server).get('/projects3');
-
-      it('should return with basic filter, 1', async () => {
-        const query = qb.search(qb.cond(['id', 'eq', 1])).query();
-        const res = await get()
-          .query(query)
-          .expect(200);
-        expect(res.body).toBeArrayOfSize(1);
-        expect(res.body[0].id).toBe(1);
-      });
-
-      it('should return with basic filter, 2', async () => {
-        const query = qb.search(qb.cond(['id', 'eq', 11])).query();
-        const res = await get()
+      it('should return with default filter, 2', async () => {
+        const query = qb.search({ name: 'Project1' }).query();
+        const res = await projects3()
           .query(query)
           .expect(200);
         expect(res.body).toBeArrayOfSize(0);
       });
-
-      it('should return with an array of filters, 1', async () => {
-        const query = qb
-          .search([qb.cond(['id', 'eq', 1]), qb.cond(['name', 'eq', 'Project1'])])
-          .query();
-        const res = await get()
-          .query(query)
-          .expect(200);
-        expect(res.body).toBeArrayOfSize(1);
-        expect(res.body[0].id).toBe(1);
-        expect(res.body[0].name).toBe('Project1');
-      });
-
-      it('should return with simple AND, 1', async () => {
-        const query = qb
-          .search({
-            and: [qb.cond(['id', 'eq', 2]), qb.cond(['name', 'eq', 'Project2'])],
-          })
-          .query();
-        const res = await get()
+      it('should return with default filter, 3', async () => {
+        const query = qb.search({ name: 'Project2' }).query();
+        const res = await projects4()
           .query(query)
           .expect(200);
         expect(res.body).toBeArrayOfSize(1);
         expect(res.body[0].id).toBe(2);
-        expect(res.body[0].name).toBe('Project2');
       });
-
-      it('should return with simple AND, 2', async () => {
-        const query = qb
-          .search({
-            and: [qb.cond(['id', 'eq', 12]), qb.cond(['name', 'eq', 'Project12'])],
-          })
-          .query();
-        const res = await get()
+      it('should return with default filter, 4', async () => {
+        const query = qb.search({ name: 'Project11' }).query();
+        const res = await projects4()
           .query(query)
           .expect(200);
         expect(res.body).toBeArrayOfSize(0);
-      });
-
-      it('should return with simple OR, 1', async () => {
-        const query = qb
-          .search({
-            or: [qb.cond(['id', 'eq', 1]), qb.cond(['id', 'eq', 2])],
-          })
-          .query();
-        const res = await get()
-          .query(query)
-          .expect(200);
-        expect(res.body).toBeArrayOfSize(2);
-        expect(res.body[0].id).toBe(1);
-        expect(res.body[1].id).toBe(2);
-      });
-
-      it('should return with simple OR, 2', async () => {
-        const query = qb
-          .search({
-            or: [qb.cond(['id', 'eq', 12]), qb.cond(['id', 'eq', 2])],
-          })
-          .query();
-        const res = await get()
-          .query(query)
-          .expect(200);
-        expect(res.body).toBeArrayOfSize(1);
-        expect(res.body[0].id).toBe(2);
       });
     });
   });

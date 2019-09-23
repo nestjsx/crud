@@ -2,13 +2,7 @@ import 'jest-extended';
 import { RequestQueryException } from '../src/exceptions/request-query.exception';
 import { ParamsOptions, ParsedRequestParams } from '../src/interfaces';
 import { RequestQueryParser } from '../src/request-query.parser';
-import {
-  QueryFilter,
-  QueryJoin,
-  QuerySort,
-  QuerySearch,
-  QuerySearchParsed,
-} from '../src/types';
+import { QueryFilter, QueryJoin, QuerySort } from '../src/types';
 
 describe('#request-query', () => {
   describe('RequestQueryParser', () => {
@@ -371,46 +365,18 @@ describe('#request-query', () => {
         const test = qp.parseQuery(query);
         expect(test.search).toBeUndefined();
       });
-      it('should set search as a filter object', () => {
-        const query = { s: 'foo||eq||bar' };
-        const expected: QueryFilter = { field: 'foo', operator: 'eq', value: 'bar' };
-        const test = qp.parseQuery(query);
-        expect(test.search).toMatchObject(expected);
+      it('should throw an error, 1', () => {
+        const query = { s: 'invalid' };
+        expect(qp.parseQuery.bind(qp, query)).toThrowError(RequestQueryException);
       });
-      it('should set search as a filter array', () => {
-        const query = { s: ['foo||eq||bar', 'baz||eq||false'] };
-        const expected: QueryFilter[] = [
-          { field: 'foo', operator: 'eq', value: 'bar' },
-          { field: 'baz', operator: 'eq', value: false },
-        ];
-        const test = qp.parseQuery(query);
-        expect(test.search).toIncludeSameMembers(expected);
+      it('should throw an error, 2', () => {
+        const query = { s: 'true' };
+        expect(qp.parseQuery.bind(qp, query)).toThrowError(RequestQueryException);
       });
-      it('should set search', () => {
-        const filter = 'foo||in||1,2';
-        const s: QuerySearch = {
-          or: [
-            { and: ['foo||eq||bar', 'baz||eq||false'] },
-            { and: ['foo||eq||mee', 'baz||eq||true'] },
-          ],
-        };
-        const expected: QuerySearchParsed = {
-          or: [
-            {
-              and: [
-                { field: 'foo', operator: 'eq', value: 'bar' },
-                { field: 'baz', operator: 'eq', value: false },
-              ],
-            },
-            {
-              and: [
-                { field: 'foo', operator: 'eq', value: 'mee' },
-                { field: 'baz', operator: 'eq', value: true },
-              ],
-            },
-          ],
-        };
-        const test = qp.parseQuery({ s, filter });
+      it('should parse search', () => {
+        const query = { s: '{"$or":[{"id":1},{"name":"foo"}]}' };
+        const expected = { $or: [{ id: 1 }, { name: 'foo' }] };
+        const test = qp.parseQuery(query);
         expect(test.search).toMatchObject(expected);
       });
     });

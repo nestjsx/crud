@@ -1,17 +1,17 @@
 import {
   QueryFields,
-  QuerySearch,
   QueryFilter,
   QueryFilterArr,
   QueryJoin,
   QueryJoinArr,
   QuerySort,
   QuerySortArr,
+  SCondition,
 } from '../types';
 
 export interface CreateQueryParams {
   fields?: QueryFields;
-  search?: QuerySearch;
+  search?: SCondition;
   filter?: QueryFilter | QueryFilterArr | Array<QueryFilter | QueryFilterArr>;
   or?: QueryFilter | QueryFilterArr | Array<QueryFilter | QueryFilterArr>;
   join?: QueryJoin | QueryJoinArr | Array<QueryJoin | QueryJoinArr>;

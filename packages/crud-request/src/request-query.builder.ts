@@ -18,13 +18,13 @@ import {
 } from './request-query.validator';
 import {
   QueryFields,
-  QuerySearch,
   QueryFilter,
   QueryFilterArr,
   QueryJoin,
   QueryJoinArr,
   QuerySort,
   QuerySortArr,
+  SCondition,
 } from './types';
 
 // tslint:disable:variable-name ban-types
@@ -103,9 +103,9 @@ export class RequestQueryBuilder {
     return this;
   }
 
-  search(s: QuerySearch): this {
-    if (!isNil(s)) {
-      this.queryObject[this.paramNames.search] = s;
+  search(s: SCondition) {
+    if (!isNil(s) && isObject(s)) {
+      this.queryObject[this.paramNames.search] = JSON.stringify(s);
     }
     return this;
   }

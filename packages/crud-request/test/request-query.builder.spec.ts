@@ -320,15 +320,6 @@ describe('#request-query', () => {
         expect(test).toBe(expected);
         expect(test2).toBe(expected2);
       });
-      it('should return valid query string with search', () => {
-        const test = qb
-          .select(['foo', 'bar'])
-          .search(qb.cond({ field: 'foo', operator: 'eq', value: 'bar' }))
-          .setFilter({ field: 'is', operator: 'notnull' })
-          .query(false);
-        const expected = 'fields=foo,bar&s=foo||eq||bar';
-        expect(test).toBe(expected);
-      });
       it('should return valid query string with filters', () => {
         const test = qb
           .select(['foo', 'bar'])
@@ -359,56 +350,23 @@ describe('#request-query', () => {
     });
 
     describe('#search', () => {
-      it('should not throw', () => {
+      it('should not throw, 1', () => {
         (qb as any).search();
         expect(qb.queryObject.search).toBeUndefined();
       });
-      it('should return a valid query string, 1', () => {
-        const test = qb
-          .search(qb.cond({ field: 'foo', operator: 'eq', value: 'bar' }))
-          .query(false);
-        const expected = 's=foo||eq||bar';
+      it('should not throw, 2', () => {
+        (qb as any).search(false);
+        expect(qb.queryObject.search).toBeUndefined();
+      });
+      it('should set search string, 1', () => {
+        const test = qb.search({ $or: [{ id: 1 }, { name: 'foo' }] }).query(false);
+        const expected = 's={"$or":[{"id":1},{"name":"foo"}]}';
         expect(test).toBe(expected);
       });
-      it('should return a valid query string, 2', () => {
-        const test = qb
-          .search([
-            qb.cond({ field: 'foo', operator: 'eq', value: 'bar' }),
-            qb.cond({ field: 'voo', operator: 'eq', value: 'baz' }),
-          ])
-          .query(false);
-        const expected = 's[0]=foo||eq||bar&s[1]=voo||eq||baz';
-        expect(test).toBe(expected);
-      });
-      it('should return a valid query string, 2', () => {
-        const test = qb
-          .search({
-            and: [
-              qb.cond({ field: 'foo', operator: 'eq', value: 'bar' }),
-              qb.cond({ field: 'voo', operator: 'eq', value: 'baz' }),
-            ],
-          })
-          .query(false);
-        const expected = 's[and][0]=foo||eq||bar&s[and][1]=voo||eq||baz';
-        expect(test).toBe(expected);
-      });
-      it('should return a valid query string, 3', () => {
-        const test = qb
-          .search({
-            and: [
-              qb.cond(['foo', 'eq', 'bar']),
-              {
-                or: [
-                  qb.cond(['voo', 'eq', 'baz']),
-                  qb.cond(['voo', 'eq', 'maa']),
-                  qb.cond(['voo', 'eq', 'faa']),
-                ],
-              },
-            ],
-          })
-          .query(false);
+      it('should set search string, 2', () => {
+        const test = qb.search({ $or: [{ id: 1 }, { name: 'foo' }] }).query();
         const expected =
-          's[and][0]=foo||eq||bar&s[and][1][or][0]=voo||eq||baz&s[and][1][or][1]=voo||eq||maa&s[and][1][or][2]=voo||eq||faa';
+          's=%7B%22%24or%22%3A%5B%7B%22id%22%3A1%7D%2C%7B%22name%22%3A%22foo%22%7D%5D%7D';
         expect(test).toBe(expected);
       });
     });

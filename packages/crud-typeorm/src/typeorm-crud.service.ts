@@ -12,16 +12,19 @@ import {
   QueryFilter,
   QueryJoin,
   QuerySort,
-  QuerySearchOrParsed,
+  SCondition,
+  SConditionKey,
+  ComparisonOperator,
 } from '@nestjsx/crud-request';
 import {
   hasLength,
   isArrayFull,
   isObject,
+  isObjectFull,
   isUndefined,
   objKeys,
   isNil,
-  isString,
+  isNull,
 } from '@nestjsx/util';
 import { plainToClass } from 'class-transformer';
 import { ClassType } from 'class-transformer/ClassTransformer';
@@ -216,18 +219,13 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     // select fields
     builder.select(select);
 
-    // set mandatory where condition from CrudOptions.query.filter
-    const hasMandatoryFilters = isArrayFull(options.query.filter);
-    if (hasMandatoryFilters) {
-      for (let i = 0; i < options.query.filter.length; i++) {
-        this.setAndWhere(options.query.filter[i], `optionsFilter${i}`, builder);
-      }
-    }
-
     // legacy filter and or params
     // will be deprecated in the next major release
     if (isNil(parsed.search)) {
-      const filters = [...parsed.paramsFilter, ...parsed.filter];
+      const defaultSearch = this.getDefaultSearchCondition(options, parsed);
+      this.setSearchCondition(builder, { $and: defaultSearch });
+
+      const filters = parsed.filter;
       const hasFilter = isArrayFull(filters);
       const hasOr = isArrayFull(parsed.or);
 
@@ -282,12 +280,12 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
         }
       }
     } else {
-      // set search condition
-      if (hasMandatoryFilters && !isNil((parsed.search as QuerySearchOrParsed).or)) {
-        this.setSearchCondition(parsed.search, builder, 'and', 'or', false);
-      } else {
-        this.setSearchCondition(parsed.search, builder);
-      }
+      // new search condition mechanism
+      const defaultSearch = this.getDefaultSearchCondition(options, parsed);
+      const search: SCondition = defaultSearch.length
+        ? { $and: [...defaultSearch, parsed.search] }
+        : /* istanbul ignore next */ parsed.search;
+      this.setSearchCondition(builder, search);
     }
 
     // set joins
@@ -346,6 +344,26 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     }
 
     return builder;
+  }
+
+  private getDefaultSearchCondition(
+    options: CrudRequestOptions,
+    parsed: ParsedRequestParams,
+  ): any[] {
+    const filter = this.queryFilterToSearch(options.query.filter as QueryFilter[]);
+    const paramsFilter = this.queryFilterToSearch(parsed.paramsFilter);
+
+    return [...filter, ...paramsFilter];
+  }
+
+  private queryFilterToSearch(filter: QueryFilter[]): any {
+    return isArrayFull(filter)
+      ? filter.map((item) => ({
+          [item.field]: { [item.operator]: item.value },
+        }))
+      : isObject(filter)
+      ? [filter]
+      : [];
   }
 
   private onInitMapEntityColumns() {
@@ -562,57 +580,208 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
   }
 
   private setSearchCondition(
-    search: any,
     builder: SelectQueryBuilder<T>,
-    currCtx: 'and' | 'or' = 'and',
-    setCtx: 'and' | 'or' = 'and',
-    init = true,
+    search: SCondition,
+    condition: SConditionKey = '$and',
   ) {
-    if (isArrayFull(search)) {
-      const setInArray = (qb: any, curr: 'and' | 'or', set: 'and' | 'or') => {
-        for (let ii = 0; ii < search.length; ii++) {
-          this.setSearchCondition(search[ii], qb as any, curr, set, false);
-        }
-      };
-
-      if (currCtx === 'and') {
-        builder.andWhere(
-          new Brackets((qb) => {
-            setInArray(qb, 'and', setCtx);
-          }),
-        );
-      } else {
-        builder.orWhere(
-          new Brackets((qb) => {
-            setInArray(qb, 'or', setCtx);
-          }),
-        );
-      }
-      // TODO: refactor when this https://github.com/gotwarlost/istanbul/issues/781 is fixed :(
-    } else {
+    /* istanbul ignore else */
+    if (isObject(search)) {
+      const keys = objKeys(search);
       /* istanbul ignore else */
-      if (isObject(search)) {
-        if (isString((search as QueryFilter).field)) {
-          const index = `${process.hrtime()[1]}_${currCtx}_${setCtx}`;
-          if (setCtx === 'and') {
-            this.setAndWhere(search, index, builder);
-          } else {
-            this.setOrWhere(search, index, builder);
+      if (keys.length) {
+        // search: {$and: [...], ...}
+        if (isArrayFull(search.$and)) {
+          // search: {$and: [{}]}
+          if (search.$and.length === 1) {
+            this.setSearchCondition(builder, search.$and[0], condition);
           }
-        } else if (!isNil(search.and)) {
-          this.setSearchCondition(search.and, builder, currCtx, 'and', false);
-          // TODO same ^
-        } else {
-          /* istanbul ignore else */
-          if (!isNil(search.or)) {
-            this.setSearchCondition(
-              search.or,
+          // search: {$and: [{}, {}, ...]}
+          else {
+            this.builderAddBrackets(
               builder,
-              init ? 'or' : currCtx,
-              'or',
-              false,
+              condition,
+              new Brackets((qb: any) => {
+                search.$and.forEach((item: any) => {
+                  this.setSearchCondition(qb, item, '$and');
+                });
+              }),
             );
           }
+        }
+        // search: {$or: [...], ...}
+        else if (isArrayFull(search.$or)) {
+          // search: {$or: [...]}
+          if (keys.length === 1) {
+            // search: {$or: [{}]}
+            if (search.$or.length === 1) {
+              this.setSearchCondition(builder, search.$or[0], condition);
+            }
+            // search: {$or: [{}, {}, ...]}
+            else {
+              this.builderAddBrackets(
+                builder,
+                condition,
+                new Brackets((qb: any) => {
+                  search.$or.forEach((item: any) => {
+                    this.setSearchCondition(qb, item, '$or');
+                  });
+                }),
+              );
+            }
+          }
+          // search: {$or: [...], foo, ...}
+          else {
+            this.builderAddBrackets(
+              builder,
+              condition,
+              new Brackets((qb: any) => {
+                keys.forEach((field: string) => {
+                  if (field !== '$or') {
+                    const value = search[field];
+                    if (!isObject(value)) {
+                      this.builderSetWhere(qb, '$and', field, value);
+                    } else {
+                      this.setSearchFieldObjectCondition(qb, '$and', field, value);
+                    }
+                  } else {
+                    if (search.$or.length === 1) {
+                      this.setSearchCondition(builder, search.$or[0], '$and');
+                    } else {
+                      this.builderAddBrackets(
+                        qb,
+                        '$and',
+                        new Brackets((qb2: any) => {
+                          search.$or.forEach((item: any) => {
+                            this.setSearchCondition(qb2, item, '$or');
+                          });
+                        }),
+                      );
+                    }
+                  }
+                });
+              }),
+            );
+          }
+        }
+        // search: {...}
+        else {
+          // search: {foo}
+          if (keys.length === 1) {
+            const field = keys[0];
+            const value = search[field];
+            if (!isObject(value)) {
+              this.builderSetWhere(builder, condition, field, value);
+            } else {
+              this.setSearchFieldObjectCondition(builder, condition, field, value);
+            }
+          }
+          // search: {foo, ...}
+          else {
+            this.builderAddBrackets(
+              builder,
+              condition,
+              new Brackets((qb: any) => {
+                keys.forEach((field: string) => {
+                  const value = search[field];
+                  if (!isObject(value)) {
+                    this.builderSetWhere(qb, '$and', field, value);
+                  } else {
+                    this.setSearchFieldObjectCondition(qb, '$and', field, value);
+                  }
+                });
+              }),
+            );
+          }
+        }
+      }
+    }
+  }
+
+  private builderAddBrackets(
+    builder: SelectQueryBuilder<T>,
+    condition: SConditionKey,
+    brackets: Brackets,
+  ) {
+    if (condition === '$and') {
+      builder.andWhere(brackets);
+    } else {
+      builder.orWhere(brackets);
+    }
+  }
+
+  private builderSetWhere(
+    builder: SelectQueryBuilder<T>,
+    condition: SConditionKey,
+    field: string,
+    value: any,
+    operator: ComparisonOperator = '$eq',
+  ) {
+    const time = process.hrtime();
+    const index = `${field}${time[0]}${time[1]}`;
+    const args = [
+      { field, operator: isNull(value) ? '$isnull' : operator, value },
+      index,
+      builder,
+    ];
+    const fn = condition === '$and' ? this.setAndWhere : this.setOrWhere;
+    fn.apply(this, args);
+  }
+
+  private setSearchFieldObjectCondition(
+    builder: SelectQueryBuilder<T>,
+    condition: SConditionKey,
+    field: string,
+    object: any,
+  ) {
+    /* istanbul ignore else */
+    if (isObject(object)) {
+      const operators = objKeys(object);
+
+      if (operators.length === 1) {
+        const operator = operators[0] as ComparisonOperator;
+        const value = object[operator];
+
+        if (isObject(object.$or)) {
+          const orKeys = objKeys(object.$or);
+          this.setSearchFieldObjectCondition(
+            builder,
+            orKeys.length === 1 ? condition : '$or',
+            field,
+            object.$or,
+          );
+        } else {
+          this.builderSetWhere(builder, condition, field, value, operator);
+        }
+      } else {
+        /* istanbul ignore else */
+        if (operators.length > 1) {
+          this.builderAddBrackets(
+            builder,
+            condition,
+            new Brackets((qb: any) => {
+              operators.forEach((operator: ComparisonOperator) => {
+                const value = object[operator];
+
+                if (operator !== '$or') {
+                  this.builderSetWhere(qb, condition, field, value, operator);
+                } else {
+                  const orKeys = objKeys(object.$or);
+
+                  if (orKeys.length === 1) {
+                    this.setSearchFieldObjectCondition(qb, condition, field, object.$or);
+                  } else {
+                    this.builderAddBrackets(
+                      qb,
+                      condition,
+                      new Brackets((qb2: any) => {
+                        this.setSearchFieldObjectCondition(qb2, '$or', field, object.$or);
+                      }),
+                    );
+                  }
+                }
+              });
+            }),
+          );
         }
       }
     }
@@ -703,52 +872,56 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     let str: string;
     let params: ObjectLiteral;
 
+    if (cond.operator[0] !== '$') {
+      cond.operator = ('$' + cond.operator) as ComparisonOperator;
+    }
+
     switch (cond.operator) {
-      case 'eq':
+      case '$eq':
         str = `${field} = :${param}`;
         break;
 
-      case 'ne':
+      case '$ne':
         str = `${field} != :${param}`;
         break;
 
-      case 'gt':
+      case '$gt':
         str = `${field} > :${param}`;
         break;
 
-      case 'lt':
+      case '$lt':
         str = `${field} < :${param}`;
         break;
 
-      case 'gte':
+      case '$gte':
         str = `${field} >= :${param}`;
         break;
 
-      case 'lte':
+      case '$lte':
         str = `${field} <= :${param}`;
         break;
 
-      case 'starts':
+      case '$starts':
         str = `${field} LIKE :${param}`;
         params = { [param]: `${cond.value}%` };
         break;
 
-      case 'ends':
+      case '$ends':
         str = `${field} LIKE :${param}`;
         params = { [param]: `%${cond.value}` };
         break;
 
-      case 'cont':
+      case '$cont':
         str = `${field} LIKE :${param}`;
         params = { [param]: `%${cond.value}%` };
         break;
 
-      case 'excl':
+      case '$excl':
         str = `${field} NOT LIKE :${param}`;
         params = { [param]: `%${cond.value}%` };
         break;
 
-      case 'in':
+      case '$in':
         /* istanbul ignore if */
         if (!Array.isArray(cond.value) || !cond.value.length) {
           this.throwBadRequestException(`Invalid column '${cond.field}' value`);
@@ -756,7 +929,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
         str = `${field} IN (:...${param})`;
         break;
 
-      case 'notin':
+      case '$notin':
         /* istanbul ignore if */
         if (!Array.isArray(cond.value) || !cond.value.length) {
           this.throwBadRequestException(`Invalid column '${cond.field}' value`);
@@ -764,17 +937,17 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
         str = `${field} NOT IN (:...${param})`;
         break;
 
-      case 'isnull':
+      case '$isnull':
         str = `${field} IS NULL`;
         params = {};
         break;
 
-      case 'notnull':
+      case '$notnull':
         str = `${field} IS NOT NULL`;
         params = {};
         break;
 
-      case 'between':
+      case '$between':
         /* istanbul ignore if */
         if (!Array.isArray(cond.value) || !cond.value.length || cond.value.length !== 2) {
           this.throwBadRequestException(`Invalid column '${cond.field}' value`);
