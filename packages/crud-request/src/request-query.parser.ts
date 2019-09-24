@@ -254,10 +254,11 @@ export class RequestQueryParser implements ParsedRequestParams {
   private paramParser(name: string): QueryFilter {
     validateParamOption(this._paramsOptions, name);
     const option = this._paramsOptions[name];
-    const value = this.parseValue(this._params[name]);
+    let value = this._params[name];
 
     switch (option.type) {
       case 'number':
+        value = this.parseValue(value);
         validateNumeric(value, `param ${name}`);
         break;
       case 'uuid':

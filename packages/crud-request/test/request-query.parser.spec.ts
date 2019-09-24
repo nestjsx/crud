@@ -410,17 +410,20 @@ describe('#request-query', () => {
           foo: 'cb1751fd-7fcf-4eb5-b38e-86428b1fd88d',
           bar: '1',
           buz: 'string',
+          bigInt: '9007199254740999', // Bigger than Number.MAX_SAFE_INTEGER
         };
         const options: ParamsOptions = {
           foo: { field: 'foo', type: 'uuid' },
           bar: { field: 'bb', type: 'number' },
           buz: { field: 'buz', type: 'string' },
+          bigInt: { field: 'bigInt', type: 'string' },
         };
         const test = qp.parseParams(params, options);
         const expected = [
           { field: 'foo', operator: 'eq', value: 'cb1751fd-7fcf-4eb5-b38e-86428b1fd88d' },
           { field: 'bb', operator: 'eq', value: 1 },
           { field: 'buz', operator: 'eq', value: 'string' },
+          { field: 'bigInt', operator: 'eq', value: '9007199254740999' },
         ];
         expect(test.paramsFilter).toMatchObject(expected);
       });
