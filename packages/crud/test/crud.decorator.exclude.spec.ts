@@ -1,25 +1,25 @@
-import * as request from 'supertest';
-import { Test } from '@nestjs/testing';
-import { Controller, INestApplication } from '@nestjs/common';
-import { APP_FILTER } from '@nestjs/core';
+import { Controller, INestApplication } from "@nestjs/common";
+import { APP_FILTER } from "@nestjs/core";
+import { Test } from "@nestjs/testing";
+import * as request from "supertest";
 
-import { Crud } from '../src/decorators';
-import { HttpExceptionFilter } from './__fixture__/exception.filter';
-import { TestModel } from './__fixture__/test.model';
-import { TestService } from './__fixture__/test.service';
+import { Crud } from "../src/decorators";
+import { HttpExceptionFilter } from "./__fixture__/exception.filter";
+import { TestModel } from "./__fixture__/test.model";
+import { TestService } from "./__fixture__/test.service";
 
-describe('#crud', () => {
-  describe('#exclude routes', () => {
+describe("#crud", () => {
+  describe("#exclude routes", () => {
     let app: INestApplication;
     let server: any;
 
     @Crud({
       model: { type: TestModel },
       routes: {
-        exclude: ['getManyBase'],
-      },
+        exclude: ["getManyBase"]
+      }
     })
-    @Controller('test')
+    @Controller("test")
     class TestController {
       constructor(public service: TestService<TestModel>) {}
     }
@@ -27,7 +27,10 @@ describe('#crud', () => {
     beforeAll(async () => {
       const fixture = await Test.createTestingModule({
         controllers: [TestController],
-        providers: [{ provide: APP_FILTER, useClass: HttpExceptionFilter }, TestService],
+        providers: [
+          { provide: APP_FILTER, useClass: HttpExceptionFilter },
+          TestService
+        ]
       }).compile();
 
       app = fixture.createNestApplication();
@@ -40,26 +43,26 @@ describe('#crud', () => {
       app.close();
     });
 
-    describe('#getManyBase excluded', () => {
-      it('should return status 404', () => {
+    describe("#getManyBase excluded", () => {
+      it("should return status 404", () => {
         return request(server)
-          .get('/test')
+          .get("/test")
           .expect(404);
       });
     });
   });
 
-  describe('#only routes', () => {
+  describe("#only routes", () => {
     let app: INestApplication;
     let server: any;
 
     @Crud({
       model: { type: TestModel },
       routes: {
-        only: ['getManyBase'],
-      },
+        only: ["getManyBase"]
+      }
     })
-    @Controller('test')
+    @Controller("test")
     class TestController {
       constructor(public service: TestService<TestModel>) {}
     }
@@ -67,7 +70,10 @@ describe('#crud', () => {
     beforeAll(async () => {
       const fixture = await Test.createTestingModule({
         controllers: [TestController],
-        providers: [{ provide: APP_FILTER, useClass: HttpExceptionFilter }, TestService],
+        providers: [
+          { provide: APP_FILTER, useClass: HttpExceptionFilter },
+          TestService
+        ]
       }).compile();
 
       app = fixture.createNestApplication();
@@ -80,18 +86,18 @@ describe('#crud', () => {
       app.close();
     });
 
-    describe('#getManyBase only', () => {
-      it('should return status 200', () => {
+    describe("#getManyBase only", () => {
+      it("should return status 200", () => {
         return request(server)
-          .get('/test')
+          .get("/test")
           .expect(200);
       });
     });
 
-    describe('#getOneBase excluded', () => {
-      it('should return status 404', () => {
+    describe("#getOneBase excluded", () => {
+      it("should return status 404", () => {
         return request(server)
-          .get('/test/1')
+          .get("/test/1")
           .expect(404);
       });
     });

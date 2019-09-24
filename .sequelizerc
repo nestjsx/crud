@@ -1,0 +1,4 @@
+module.exports = {
+  'config': 'integration/crud-sequelize/config.json',
+  'seeders-path': 'integration/crud-sequelize'
+}

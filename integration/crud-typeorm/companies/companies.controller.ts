@@ -2,8 +2,8 @@ import { Controller } from '@nestjs/common';
 import { ApiUseTags } from '@nestjs/swagger';
 import { Crud } from '@nestjsx/crud';
 
-import { Company } from './company.entity';
 import { CompaniesService } from './companies.service';
+import { Company } from './company.entity';
 
 @Crud({
   model: {

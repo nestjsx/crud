@@ -1,38 +1,38 @@
 import {
   hasLength,
   hasValue,
-  isObject,
-  isString,
   isArrayFull,
   isNil,
-} from '@nestjsx/util';
+  isObject,
+  isString
+} from "@nestjsx/util";
 
-import { RequestQueryBuilderOptions, CreateQueryParams } from './interfaces';
+import { CreateQueryParams, RequestQueryBuilderOptions } from "./interfaces";
 import {
   validateCondition,
   validateFields,
   validateJoin,
   validateNumeric,
-  validateSort,
-} from './request-query.validator';
-import { QueryFields, QueryFilter, QueryJoin, QuerySort } from './types';
+  validateSort
+} from "./request-query.validator";
+import { QueryFields, QueryFilter, QueryJoin, QuerySort } from "./types";
 
 // tslint:disable:variable-name ban-types
 export class RequestQueryBuilder {
   private static _options: RequestQueryBuilderOptions = {
-    delim: '||',
-    delimStr: ',',
+    delim: "||",
+    delimStr: ",",
     paramNamesMap: {
-      fields: ['fields', 'select'],
-      filter: 'filter',
-      or: 'or',
-      join: 'join',
-      sort: 'sort',
-      limit: ['per_page', 'limit'],
-      offset: 'offset',
-      page: 'page',
-      cache: 'cache',
-    },
+      fields: ["fields", "select"],
+      filter: "filter",
+      or: "or",
+      join: "join",
+      sort: "sort",
+      limit: ["per_page", "limit"],
+      offset: "offset",
+      page: "page",
+      cache: "cache"
+    }
   };
 
   private _fields: QueryFields = [];
@@ -53,8 +53,8 @@ export class RequestQueryBuilder {
       ...options,
       paramNamesMap: {
         ...RequestQueryBuilder._options.paramNamesMap,
-        ...(options.paramNamesMap ? options.paramNamesMap : {}),
-      },
+        ...(options.paramNamesMap ? options.paramNamesMap : {})
+      }
     };
   }
 
@@ -74,14 +74,14 @@ export class RequestQueryBuilder {
   query(): string {
     this.queryString = (
       this.getJoin() +
-      this.getCondition('filter') +
-      this.getCondition('or') +
+      this.getCondition("filter") +
+      this.getCondition("or") +
       this.getFields() +
       this.getSort() +
-      this.getNumeric('limit') +
-      this.getNumeric('offset') +
-      this.getNumeric('page') +
-      this.getNumeric('cache')
+      this.getNumeric("limit") +
+      this.getNumeric("offset") +
+      this.getNumeric("page") +
+      this.getNumeric("cache")
     ).slice(0, -1);
     return this.queryString;
   }
@@ -93,13 +93,13 @@ export class RequestQueryBuilder {
   }
 
   setFilter(filter: QueryFilter): this {
-    validateCondition(filter, 'filter');
+    validateCondition(filter, "filter");
     this._filter.push(filter);
     return this;
   }
 
   setOr(or: QueryFilter): this {
-    validateCondition(or, 'or');
+    validateCondition(or, "or");
     this._or.push(or);
     return this;
   }
@@ -117,19 +117,19 @@ export class RequestQueryBuilder {
   }
 
   setLimit(limit: number): this {
-    validateNumeric(limit, 'limit');
+    validateNumeric(limit, "limit");
     this._limit = limit;
     return this;
   }
 
   setOffset(offset: number): this {
-    validateNumeric(offset, 'offset');
+    validateNumeric(offset, "offset");
     this._offset = offset;
     return this;
   }
 
   setPage(page: number): this {
-    validateNumeric(page, 'page');
+    validateNumeric(page, "page");
     this._page = page;
     return this;
   }
@@ -146,19 +146,19 @@ export class RequestQueryBuilder {
     }
     /* istanbul ignore else */
     if (isArrayFull(params.filter)) {
-      params.filter.forEach((filter) => this.setFilter(filter));
+      params.filter.forEach(filter => this.setFilter(filter));
     }
     /* istanbul ignore else */
     if (isArrayFull(params.or)) {
-      params.or.forEach((or) => this.setOr(or));
+      params.or.forEach(or => this.setOr(or));
     }
     /* istanbul ignore else */
     if (isArrayFull(params.join)) {
-      params.join.forEach((join) => this.setJoin(join));
+      params.join.forEach(join => this.setJoin(join));
     }
     /* istanbul ignore else */
     if (isArrayFull(params.sort)) {
-      params.sort.forEach((sort) => this.sortBy(sort));
+      params.sort.forEach(sort => this.sortBy(sort));
     }
     /* istanbul ignore else */
     if (!isNil(params.limit)) {
@@ -180,25 +180,27 @@ export class RequestQueryBuilder {
     return this;
   }
 
-  private getParamName(param: keyof RequestQueryBuilderOptions['paramNamesMap']): string {
+  private getParamName(
+    param: keyof RequestQueryBuilderOptions["paramNamesMap"]
+  ): string {
     const name = this.options.paramNamesMap[param];
     return isString(name) ? (name as string) : (name[0] as string);
   }
 
   private getFields(): string {
     if (!hasLength(this._fields)) {
-      return '';
+      return "";
     }
 
-    const param = this.getParamName('fields');
+    const param = this.getParamName("fields");
     const value = this._fields.join(this.options.delimStr);
 
     return `${param}=${value}&`;
   }
 
-  private getCondition(cond: 'filter' | 'or'): string {
+  private getCondition(cond: "filter" | "or"): string {
     if (!hasLength(this[`_${cond}`])) {
-      return '';
+      return "";
     }
 
     const param = this.getParamName(cond);
@@ -210,19 +212,19 @@ export class RequestQueryBuilder {
         .map(
           (f: QueryFilter) =>
             `${param}${br}=${f.field}${d}${f.operator}${
-              hasValue(f.value) ? d + f.value : ''
-            }`,
+              hasValue(f.value) ? d + f.value : ""
+            }`
         )
-        .join('&') + '&'
+        .join("&") + "&"
     );
   }
 
   private getJoin(): string {
     if (!hasLength(this._join)) {
-      return '';
+      return "";
     }
 
-    const param = this.getParamName('join');
+    const param = this.getParamName("join");
     const d = this.options.delim;
     const ds = this.options.delimStr;
     const br = this.addBrackets(this._join);
@@ -232,32 +234,32 @@ export class RequestQueryBuilder {
         .map(
           (j: QueryJoin) =>
             `${param}${br}=${j.field}${
-              isArrayFull(j.select) ? d + j.select.join(ds) : ''
-            }`,
+              isArrayFull(j.select) ? d + j.select.join(ds) : ""
+            }`
         )
-        .join('&') + '&'
+        .join("&") + "&"
     );
   }
 
   private getSort(): string {
     if (!hasLength(this._sort)) {
-      return '';
+      return "";
     }
 
-    const param = this.getParamName('sort');
+    const param = this.getParamName("sort");
     const ds = this.options.delimStr;
     const br = this.addBrackets(this._sort);
 
     return (
       this._sort
         .map((s: QuerySort) => `${param}${br}=${s.field}${ds}${s.order}`)
-        .join('&') + '&'
+        .join("&") + "&"
     );
   }
 
-  private getNumeric(num: 'limit' | 'offset' | 'page' | 'cache'): string {
+  private getNumeric(num: "limit" | "offset" | "page" | "cache"): string {
     if (isNil(this[`_${num}`])) {
-      return '';
+      return "";
     }
 
     const param = this.getParamName(num);
@@ -267,6 +269,6 @@ export class RequestQueryBuilder {
   }
 
   private addBrackets(arr: any[]): string {
-    return arr.length > 1 ? '[]' : '';
+    return arr.length > 1 ? "[]" : "";
   }
 }

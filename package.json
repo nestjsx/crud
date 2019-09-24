@@ -8,24 +8,28 @@
   ],
   "private": true,
   "scripts": {
-    "bootstrap": "npx lerna bootstrap",
-    "s": "npx nps",
+    "bootstrap": "lerna bootstrap",
+    "s": "nps",
     "s:list": "yarn s --scripts",
     "build": "yarn s build",
     "clean": "yarn s clean",
-    "pretest": "npm run db:prepare:typeorm",
+    "pretest": "npm run db:prepare:typeorm && npm run db:prepare:sequelize",
     "test": "yarn s test",
     "pretest:coveralls": "yarn pretest",
     "test:coveralls": "yarn s test.coveralls",
-    "start:typeorm": "npx nodemon -w ./integration/crud-typeorm -e ts node_modules/.bin/ts-node integration/crud-typeorm/main.ts",
-    "db:sync:typeorm": "cd ./integration/crud-typeorm && npx ts-node -r tsconfig-paths/register ../../node_modules/typeorm/cli.js schema:sync -f=orm",
-    "db:drop:typeorm": "cd ./integration/crud-typeorm && npx ts-node -r tsconfig-paths/register ../../node_modules/typeorm/cli.js schema:drop -f=orm",
-    "db:seeds:typeorm": "cd ./integration/crud-typeorm && npx ts-node -r tsconfig-paths/register ../../node_modules/typeorm/cli.js migration:run -f=orm",
+    "start:typeorm": "nodemon -w ./integration/crud-typeorm -e ts node_modules/.bin/ts-node integration/crud-typeorm/main.ts",
+    "db:sync:typeorm": "cd ./integration/crud-typeorm && ts-node -r tsconfig-paths/register ../../node_modules/typeorm/cli.js schema:sync -f=orm",
+    "db:drop:typeorm": "cd ./integration/crud-typeorm && ts-node -r tsconfig-paths/register ../../node_modules/typeorm/cli.js schema:drop -f=orm",
+    "db:seeds:typeorm": "cd ./integration/crud-typeorm && ts-node -r tsconfig-paths/register ../../node_modules/typeorm/cli.js migration:run -f=orm",
     "db:prepare:typeorm": "npm run db:drop:typeorm && npm run db:sync:typeorm && npm run db:seeds:typeorm",
-    "format": "npx pretty-quick --pattern \"packages/**/!(*.d).ts\"",
-    "lint": "npx tslint 'packages/**/*.ts'",
-    "commit": "npx git-cz",
-    "postinstall": "npx opencollective"
+    "start:sequelize": "nodemon -w ./integration/crud-sequelize -e ts node_modules/.bin/ts-node integration/crud-sequelize/main.ts",
+    "db:sync:sequelize": "ts-node integration/crud-sequelize/database.init.ts",
+    "db:seed:sequelize": "sequelize db:seed --seed=integration/crud-sequelize/seeds.js",
+    "db:prepare:sequelize": "npm run db:sync:sequelize && npm run db:seed:sequelize",
+    "format": "pretty-quick --pattern \"packages/**/!(*.d).ts\"",
+    "lint": "tslint 'packages/**/*.ts'",
+    "commit": "git-cz",
+    "postinstall": "opencollective"
   },
   "config": {
     "commitizen": {
@@ -39,7 +43,7 @@
   "husky": {
     "hooks": {
       "pre-commit": "yarn format --staged",
-      "commit-msg": "npx validate-commit-msg"
+      "commit-msg": "validate-commit-msg"
     }
   },
   "collective": {
@@ -61,6 +65,7 @@
     "@nuxtjs/opencollective": "0.2.2",
     "@types/jest": "24.0.18",
     "@types/node": "12.7.5",
+    "@types/sequelize": "^4.28.4",
     "@types/supertest": "2.0.8",
     "class-transformer": "0.2.3",
     "class-validator": "0.10.0",
@@ -81,6 +86,9 @@
     "reflect-metadata": "0.1.13",
     "rimraf": "3.0.0",
     "rxjs": "6.5.3",
+    "sequelize": "^5.18.4",
+    "sequelize-cli": "^5.5.1",
+    "sequelize-typescript": "^1.0.0",
     "supertest": "4.0.2",
     "swagger-ui-express": "4.1.0",
     "ts-jest": "24.1.0",

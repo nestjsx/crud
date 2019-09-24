@@ -1,37 +1,37 @@
 import {
   hasLength,
   hasValue,
-  isString,
   isArrayFull,
   isDate,
   isDateString,
   isObject,
+  isString,
   isStringFull,
-  objKeys,
-} from '@nestjsx/util';
+  objKeys
+} from "@nestjsx/util";
 
-import { RequestQueryException } from './exceptions';
+import { RequestQueryException } from "./exceptions";
 import {
   ParamsOptions,
   ParsedRequestParams,
-  RequestQueryBuilderOptions,
-} from './interfaces';
-import { RequestQueryBuilder } from './request-query.builder';
+  RequestQueryBuilderOptions
+} from "./interfaces";
+import { RequestQueryBuilder } from "./request-query.builder";
 import {
   validateCondition,
   validateJoin,
   validateNumeric,
   validateParamOption,
   validateSort,
-  validateUUID,
-} from './request-query.validator';
+  validateUUID
+} from "./request-query.validator";
 import {
   ComparisonOperator,
   QueryFields,
   QueryFilter,
   QueryJoin,
-  QuerySort,
-} from './types';
+  QuerySort
+} from "./types";
 
 // tslint:disable:variable-name ban-types
 export class RequestQueryParser implements ParsedRequestParams {
@@ -70,7 +70,7 @@ export class RequestQueryParser implements ParsedRequestParams {
       limit: this.limit,
       offset: this.offset,
       page: this.page,
-      cache: this.cache,
+      cache: this.cache
     };
   }
 
@@ -83,29 +83,32 @@ export class RequestQueryParser implements ParsedRequestParams {
         this._paramNames = paramNames;
 
         this.fields =
-          this.parseQueryParam('fields', this.fieldsParser.bind(this))[0] || [];
+          this.parseQueryParam("fields", this.fieldsParser.bind(this))[0] || [];
         this.filter = this.parseQueryParam(
-          'filter',
-          this.conditionParser.bind(this, 'filter'),
+          "filter",
+          this.conditionParser.bind(this, "filter")
         );
-        this.or = this.parseQueryParam('or', this.conditionParser.bind(this, 'or'));
-        this.join = this.parseQueryParam('join', this.joinParser.bind(this));
-        this.sort = this.parseQueryParam('sort', this.sortParser.bind(this));
+        this.or = this.parseQueryParam(
+          "or",
+          this.conditionParser.bind(this, "or")
+        );
+        this.join = this.parseQueryParam("join", this.joinParser.bind(this));
+        this.sort = this.parseQueryParam("sort", this.sortParser.bind(this));
         this.limit = this.parseQueryParam(
-          'limit',
-          this.numericParser.bind(this, 'limit'),
+          "limit",
+          this.numericParser.bind(this, "limit")
         )[0];
         this.offset = this.parseQueryParam(
-          'offset',
-          this.numericParser.bind(this, 'offset'),
+          "offset",
+          this.numericParser.bind(this, "offset")
         )[0];
         this.page = this.parseQueryParam(
-          'page',
-          this.numericParser.bind(this, 'page'),
+          "page",
+          this.numericParser.bind(this, "page")
         )[0];
         this.cache = this.parseQueryParam(
-          'cache',
-          this.numericParser.bind(this, 'cache'),
+          "cache",
+          this.numericParser.bind(this, "cache")
         )[0];
       }
     }
@@ -120,7 +123,7 @@ export class RequestQueryParser implements ParsedRequestParams {
       if (hasLength(paramNames)) {
         this._params = params;
         this._paramsOptions = options;
-        this.paramsFilter = paramNames.map((name) => this.paramParser(name));
+        this.paramsFilter = paramNames.map(name => this.paramParser(name));
       }
     }
 
@@ -128,11 +131,13 @@ export class RequestQueryParser implements ParsedRequestParams {
   }
 
   private getParamNames(
-    type: keyof RequestQueryBuilderOptions['paramNamesMap'],
+    type: keyof RequestQueryBuilderOptions["paramNamesMap"]
   ): string[] {
-    return this._paramNames.filter((p) => {
+    return this._paramNames.filter(p => {
       const name = this._options.paramNamesMap[type];
-      return isString(name) ? name === p : (name as string[]).some((m) => m === p);
+      return isString(name)
+        ? name === p
+        : (name as string[]).some(m => m === p);
     });
   }
 
@@ -142,22 +147,22 @@ export class RequestQueryParser implements ParsedRequestParams {
     }
 
     if (isArrayFull(value)) {
-      return (value as string[]).map((val) => parser(val));
+      return (value as string[]).map(val => parser(val));
     }
 
     return [];
   }
 
   private parseQueryParam(
-    type: keyof RequestQueryBuilderOptions['paramNamesMap'],
-    parser: Function,
+    type: keyof RequestQueryBuilderOptions["paramNamesMap"],
+    parser: Function
   ) {
     const param = this.getParamNames(type);
 
     if (isArrayFull(param)) {
       return param.reduce(
         (a, name) => [...a, ...this.getParamValues(this._query[name], parser)],
-        [],
+        []
       );
     }
 
@@ -195,21 +200,21 @@ export class RequestQueryParser implements ParsedRequestParams {
     return data.split(this._options.delimStr);
   }
 
-  private conditionParser(cond: 'filter' | 'or', data: string): QueryFilter {
-    const isArrayValue = ['in', 'notin', 'between'];
-    const isEmptyValue = ['isnull', 'notnull'];
+  private conditionParser(cond: "filter" | "or", data: string): QueryFilter {
+    const isArrayValue = ["in", "notin", "between"];
+    const isEmptyValue = ["isnull", "notnull"];
     const param = data.split(this._options.delim);
     const field = param[0];
     const operator = param[1] as ComparisonOperator;
-    let value = param[2] || '';
+    let value = param[2] || "";
 
-    if (isArrayValue.some((name) => name === operator)) {
+    if (isArrayValue.some(name => name === operator)) {
       value = value.split(this._options.delimStr) as any;
     }
 
     value = this.parseValues(value);
 
-    if (!isEmptyValue.some((name) => name === operator) && !hasValue(value)) {
+    if (!isEmptyValue.some(name => name === operator) && !hasValue(value)) {
       throw new RequestQueryException(`Invalid ${cond} value`);
     }
 
@@ -223,7 +228,9 @@ export class RequestQueryParser implements ParsedRequestParams {
     const param = data.split(this._options.delim);
     const join: QueryJoin = {
       field: param[0],
-      select: isStringFull(param[1]) ? param[1].split(this._options.delimStr) : undefined,
+      select: isStringFull(param[1])
+        ? param[1].split(this._options.delimStr)
+        : undefined
     };
     validateJoin(join);
 
@@ -234,7 +241,7 @@ export class RequestQueryParser implements ParsedRequestParams {
     const param = data.split(this._options.delimStr);
     const sort: QuerySort = {
       field: param[0],
-      order: param[1] as any,
+      order: param[1] as any
     };
     validateSort(sort);
 
@@ -242,8 +249,8 @@ export class RequestQueryParser implements ParsedRequestParams {
   }
 
   private numericParser(
-    num: 'limit' | 'offset' | 'page' | 'cache',
-    data: string,
+    num: "limit" | "offset" | "page" | "cache",
+    data: string
   ): number {
     const val = this.parseValue(data);
     validateNumeric(val, num);
@@ -257,16 +264,16 @@ export class RequestQueryParser implements ParsedRequestParams {
     const value = this.parseValue(this._params[name]);
 
     switch (option.type) {
-      case 'number':
+      case "number":
         validateNumeric(value, `param ${name}`);
         break;
-      case 'uuid':
+      case "uuid":
         validateUUID(value, name);
         break;
       default:
         break;
     }
 
-    return { field: option.field, operator: 'eq', value };
+    return { field: option.field, operator: "eq", value };
   }
 }

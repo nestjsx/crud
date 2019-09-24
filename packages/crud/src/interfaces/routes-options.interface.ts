@@ -1,4 +1,4 @@
-import { BaseRouteName } from '../types';
+import { BaseRouteName } from "../types";
 
 export interface RoutesOptions {
   exclude?: BaseRouteName[];
@@ -14,7 +14,7 @@ export interface RoutesOptions {
 
 export interface BaseRouteOptions {
   interceptors?: any[];
-  decorators?: (PropertyDecorator | MethodDecorator)[];
+  decorators?: Array<PropertyDecorator | MethodDecorator>;
 }
 
 export interface GetMayRouteOptions extends BaseRouteOptions {}

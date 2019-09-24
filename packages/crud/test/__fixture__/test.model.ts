@@ -1,13 +1,13 @@
 import {
-  IsString,
   IsEmail,
+  IsEmpty,
+  IsNotEmpty,
   IsNumber,
   IsOptional,
-  IsNotEmpty,
-  IsEmpty,
-} from 'class-validator';
+  IsString
+} from "class-validator";
 
-import { CrudValidationGroups } from '../../src';
+import { CrudValidationGroups } from "../../src";
 
 const { CREATE, UPDATE } = CrudValidationGroups;
 

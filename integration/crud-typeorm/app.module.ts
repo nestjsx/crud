@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-import { withCache } from './orm.config';
 import { CompaniesModule } from './companies/companies.module';
+import { withCache } from './orm.config';
 import { ProjectsModule } from './projects/projects.module';
 import { UsersModule } from './users/users.module';
 

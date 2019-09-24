@@ -1,20 +1,20 @@
-import { Entity, Column, JoinColumn, OneToOne, ManyToOne, ManyToMany } from 'typeorm';
+import { CrudValidationGroups } from '@nestjsx/crud';
+import { Type } from 'class-transformer';
 import {
+  IsBoolean,
+  IsEmail,
+  IsNotEmpty,
   IsOptional,
   IsString,
   MaxLength,
-  IsNotEmpty,
-  IsEmail,
-  IsBoolean,
   ValidateNested,
 } from 'class-validator';
-import { Type } from 'class-transformer';
-import { CrudValidationGroups } from '@nestjsx/crud';
+import { Column, Entity, JoinColumn, ManyToMany, ManyToOne, OneToOne } from 'typeorm';
 
 import { BaseEntity } from '../base-entity';
-import { UserProfile } from '../users-profiles/user-profile.entity';
 import { Company } from '../companies/company.entity';
 import { Project } from '../projects/project.entity';
+import { UserProfile } from '../users-profiles/user-profile.entity';
 
 const { CREATE, UPDATE } = CrudValidationGroups;
 

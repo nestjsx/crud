@@ -1,25 +1,30 @@
-import { RequestMethod, HttpStatus } from '@nestjs/common';
-import { RouteParamtypes } from '@nestjs/common/enums/route-paramtypes.enum';
+import { HttpStatus, RequestMethod } from "@nestjs/common";
+import { RouteParamtypes } from "@nestjs/common/enums/route-paramtypes.enum";
 import {
+  getOwnPropNames,
   hasLength,
   isArrayFull,
-  isObjectFull,
-  objKeys,
-  isIn,
   isEqual,
-  getOwnPropNames,
+  isIn,
   isNil,
-} from '@nestjsx/util';
-import * as deepmerge from 'deepmerge';
+  isObjectFull,
+  objKeys
+} from "@nestjsx/util";
+import * as deepmerge from "deepmerge";
 
-import { R } from './reflection.helper';
-import { Swagger } from './swagger.helper';
-import { Validation } from './validation.helper';
-import { CrudRequestInterceptor } from '../interceptors';
-import { BaseRoute, CrudOptions, CrudRequest, ParamsOptions } from '../interfaces';
-import { BaseRouteName } from '../types';
-import { CrudActions, CrudValidationGroups } from '../enums';
-import { CrudConfigService } from '../module';
+import { CrudActions, CrudValidationGroups } from "../enums";
+import { CrudRequestInterceptor } from "../interceptors";
+import {
+  BaseRoute,
+  CrudOptions,
+  CrudRequest,
+  ParamsOptions
+} from "../interfaces";
+import { CrudConfigService } from "../module";
+import { BaseRouteName } from "../types";
+import { R } from "./reflection.helper";
+import { Swagger } from "./swagger.helper";
+import { Validation } from "./validation.helper";
 
 export class CrudRoutesFactory {
   constructor(private target: any, private options: CrudOptions) {
@@ -50,7 +55,7 @@ export class CrudRoutesFactory {
       createOneBase: CrudActions.CreateOne,
       updateOneBase: CrudActions.UpdateOne,
       deleteOneBase: CrudActions.DeleteOne,
-      replaceOneBase: CrudActions.ReplaceOne,
+      replaceOneBase: CrudActions.ReplaceOne
     };
   }
 
@@ -70,7 +75,7 @@ export class CrudRoutesFactory {
     // merge routes config
     const routes = isObjectFull(this.options.routes) ? this.options.routes : {};
     this.options.routes = deepmerge(CrudConfigService.config.routes, routes, {
-      arrayMerge: (a, b, c) => b,
+      arrayMerge: (a, b, c) => b
     });
 
     // merge params
@@ -83,54 +88,54 @@ export class CrudRoutesFactory {
   private getRoutesSchema(): BaseRoute[] {
     return [
       {
-        name: 'getManyBase',
-        path: '/',
+        name: "getManyBase",
+        path: "/",
         method: RequestMethod.GET,
         enable: false,
-        override: false,
+        override: false
       },
       {
-        name: 'getOneBase',
-        path: '',
+        name: "getOneBase",
+        path: "",
         method: RequestMethod.GET,
         enable: false,
-        override: false,
+        override: false
       },
       {
-        name: 'createOneBase',
-        path: '/',
+        name: "createOneBase",
+        path: "/",
         method: RequestMethod.POST,
         enable: false,
-        override: false,
+        override: false
       },
       {
-        name: 'createManyBase',
-        path: '/bulk',
+        name: "createManyBase",
+        path: "/bulk",
         method: RequestMethod.POST,
         enable: false,
-        override: false,
+        override: false
       },
       {
-        name: 'updateOneBase',
-        path: '',
+        name: "updateOneBase",
+        path: "",
         method: RequestMethod.PATCH,
         enable: false,
-        override: false,
+        override: false
       },
       {
-        name: 'replaceOneBase',
-        path: '',
+        name: "replaceOneBase",
+        path: "",
         method: RequestMethod.PUT,
         enable: false,
-        override: false,
+        override: false
       },
       {
-        name: 'deleteOneBase',
-        path: '',
+        name: "deleteOneBase",
+        path: "",
         method: RequestMethod.DELETE,
         enable: false,
-        override: false,
-      },
+        override: false
+      }
     ];
   }
 
@@ -147,25 +152,37 @@ export class CrudRoutesFactory {
   }
 
   private createOneBase(name: BaseRouteName) {
-    this.targetProto[name] = function createOneBase(req: CrudRequest, dto: any) {
+    this.targetProto[name] = function createOneBase(
+      req: CrudRequest,
+      dto: any
+    ) {
       return this.service.createOne(req, dto);
     };
   }
 
   private createManyBase(name: BaseRouteName) {
-    this.targetProto[name] = function createManyBase(req: CrudRequest, dto: any) {
+    this.targetProto[name] = function createManyBase(
+      req: CrudRequest,
+      dto: any
+    ) {
       return this.service.createMany(req, dto);
     };
   }
 
   private updateOneBase(name: BaseRouteName) {
-    this.targetProto[name] = function updateOneBase(req: CrudRequest, dto: any) {
+    this.targetProto[name] = function updateOneBase(
+      req: CrudRequest,
+      dto: any
+    ) {
       return this.service.updateOne(req, dto);
     };
   }
 
   private replaceOneBase(name: BaseRouteName) {
-    this.targetProto[name] = function replaceOneBase(req: CrudRequest, dto: any) {
+    this.targetProto[name] = function replaceOneBase(
+      req: CrudRequest,
+      dto: any
+    ) {
       return this.service.replaceOne(req, dto);
     };
   }
@@ -181,11 +198,11 @@ export class CrudRoutesFactory {
     const exclude = this.options.routes.exclude;
 
     if (isArrayFull(only)) {
-      return only.some((route) => route === name);
+      return only.some(route => route === name);
     }
 
     if (isArrayFull(exclude)) {
-      return !exclude.some((route) => route === name);
+      return !exclude.some(route => route === name);
     }
 
     return true;
@@ -194,7 +211,7 @@ export class CrudRoutesFactory {
   private createRoutes(routesSchema: BaseRoute[]) {
     const primaryParam = this.getPrimaryParam();
 
-    routesSchema.forEach((route) => {
+    routesSchema.forEach(route => {
       if (this.canCreateRoute(route.name)) {
         // create base method
         this[route.name](route.name);
@@ -210,9 +227,9 @@ export class CrudRoutesFactory {
   }
 
   private overrideRoutes(routesSchema: BaseRoute[]) {
-    getOwnPropNames(this.targetProto).forEach((name) => {
+    getOwnPropNames(this.targetProto).forEach(name => {
       const override = R.getOverrideRoute(this.targetProto[name]);
-      const route = routesSchema.find((r) => isEqual(r.name, override));
+      const route = routesSchema.find(r => isEqual(r.name, override));
 
       if (override && route && route.enable) {
         // get metadata
@@ -220,9 +237,14 @@ export class CrudRoutesFactory {
         const baseInterceptors = R.getInterceptors(this.targetProto[override]);
         const baseAction = R.getAction(this.targetProto[override]);
         const baseSwaggerParams = Swagger.getParams(this.targetProto[override]);
-        const baseResponseOk = Swagger.getResponseOk(this.targetProto[override]);
+        const baseResponseOk = Swagger.getResponseOk(
+          this.targetProto[override]
+        );
         // set metadata
-        R.setInterceptors([...baseInterceptors, ...interceptors], this.targetProto[name]);
+        R.setInterceptors(
+          [...baseInterceptors, ...interceptors],
+          this.targetProto[name]
+        );
         R.setAction(baseAction, this.targetProto[name]);
         Swagger.setOperation(override, this.modelName, this.targetProto[name]);
         Swagger.setParams(baseSwaggerParams, this.targetProto[name]);
@@ -236,7 +258,7 @@ export class CrudRoutesFactory {
   }
 
   private enableRoutes(routesSchema: BaseRoute[]) {
-    routesSchema.forEach((route) => {
+    routesSchema.forEach(route => {
       if (!route.override && route.enable) {
         R.setRoute(route, this.targetProto[route.name]);
       }
@@ -245,10 +267,10 @@ export class CrudRoutesFactory {
 
   private overrideParsedBodyDecorator(override: BaseRouteName, name: string) {
     const allowed = [
-      'createManyBase',
-      'createOneBase',
-      'updateOneBase',
-      'replaceOneBase',
+      "createManyBase",
+      "createOneBase",
+      "updateOneBase",
+      "replaceOneBase"
     ] as BaseRouteName[];
     const withBody = isIn(override, allowed);
     const parsedBody = R.getParsedBody(this.targetProto[name]);
@@ -264,15 +286,15 @@ export class CrudRoutesFactory {
           ...routeArgs,
           [key]: {
             ...baseBodyArg,
-            index: parsedBody.index,
-          },
+            index: parsedBody.index
+          }
         },
         this.target,
-        name,
+        name
       );
 
       /* istanbul ignore else */
-      if (isEqual(override, 'createManyBase')) {
+      if (isEqual(override, "createManyBase")) {
         const paramTypes = R.getRouteArgsTypes(this.targetProto, name);
         const metatype = paramTypes[parsedBody.index];
         const types = [String, Boolean, Number, Array, Object];
@@ -281,7 +303,10 @@ export class CrudRoutesFactory {
 
         /* istanbul ignore else */
         if (toCopy) {
-          const baseParamTypes = R.getRouteArgsTypes(this.targetProto, override);
+          const baseParamTypes = R.getRouteArgsTypes(
+            this.targetProto,
+            override
+          );
           const baseMetatype = baseParamTypes[1];
           paramTypes.splice(parsedBody.index, 1, baseMetatype);
           R.setRouteArgsTypes(paramTypes, this.targetProto, name);
@@ -292,7 +317,7 @@ export class CrudRoutesFactory {
 
   private getPrimaryParam(): string {
     return objKeys(this.options.params).find(
-      (param) => this.options.params[param].primary,
+      param => this.options.params[param].primary
     );
   }
 
@@ -312,31 +337,33 @@ export class CrudRoutesFactory {
   private setRouteArgs(name: BaseRouteName) {
     let rest = {};
     const toValidate: BaseRouteName[] = [
-      'createManyBase',
-      'createOneBase',
-      'updateOneBase',
-      'replaceOneBase',
+      "createManyBase",
+      "createOneBase",
+      "updateOneBase",
+      "replaceOneBase"
     ];
 
     if (isIn(name, toValidate)) {
       const group =
-        isEqual(name, 'updateOneBase') || isEqual(name, 'replaceOneBase')
+        isEqual(name, "updateOneBase") || isEqual(name, "replaceOneBase")
           ? CrudValidationGroups.UPDATE
           : CrudValidationGroups.CREATE;
-      rest = R.setBodyArg(1, [Validation.getValidationPipe(this.options, group)]);
+      rest = R.setBodyArg(1, [
+        Validation.getValidationPipe(this.options, group)
+      ]);
     }
 
     R.setRouteArgs({ ...R.setParsedRequestArg(0), ...rest }, this.target, name);
   }
 
   private setRouteArgsTypes(name: BaseRouteName) {
-    if (isEqual(name, 'createManyBase')) {
+    if (isEqual(name, "createManyBase")) {
       const bulkDto = Validation.createBulkDto(this.options);
       R.setRouteArgsTypes([Object, bulkDto], this.targetProto, name);
     } else if (
-      isEqual(name, 'createOneBase') ||
-      isEqual(name, 'updateOneBase') ||
-      isEqual(name, 'replaceOneBase')
+      isEqual(name, "createOneBase") ||
+      isEqual(name, "updateOneBase") ||
+      isEqual(name, "replaceOneBase")
     ) {
       R.setRouteArgsTypes([Object, this.modelType], this.targetProto, name);
     } else {
@@ -349,9 +376,11 @@ export class CrudRoutesFactory {
     R.setInterceptors(
       [
         CrudRequestInterceptor,
-        ...(isArrayFull(interceptors) ? /* istanbul ignore next */ interceptors : []),
+        ...(isArrayFull(interceptors)
+          ? /* istanbul ignore next */ interceptors
+          : [])
       ],
-      this.targetProto[name],
+      this.targetProto[name]
     );
   }
 
@@ -360,7 +389,7 @@ export class CrudRoutesFactory {
     R.setDecorators(
       isArrayFull(decorators) ? /* istanbul ignore next */ decorators : [],
       this.targetProto,
-      name,
+      name
     );
   }
 
@@ -375,15 +404,17 @@ export class CrudRoutesFactory {
   private setSwaggerPathParams(name: BaseRouteName) {
     const metadata = Swagger.getParams(this.targetProto[name]);
     const withoutPrimary: BaseRouteName[] = [
-      'createManyBase',
-      'createOneBase',
-      'getManyBase',
+      "createManyBase",
+      "createOneBase",
+      "getManyBase"
     ];
     const params = isIn(name, withoutPrimary)
       ? objKeys(this.options.params).reduce(
           (a, c) =>
-            this.options.params[c].primary ? a : { ...a, [c]: this.options.params[c] },
-          {},
+            this.options.params[c].primary
+              ? a
+              : { ...a, [c]: this.options.params[c] },
+          {}
         )
       : this.options.params;
     const pathParamsMeta = Swagger.createPathParasmMeta(params);
@@ -393,17 +424,28 @@ export class CrudRoutesFactory {
   private setSwaggerQueryParams(name: BaseRouteName) {
     const metadata = Swagger.getParams(this.targetProto[name]);
     const queryParamsMeta = Swagger.createQueryParamsMeta(name);
-    Swagger.setParams([...metadata, ...queryParamsMeta], this.targetProto[name]);
+    Swagger.setParams(
+      [...metadata, ...queryParamsMeta],
+      this.targetProto[name]
+    );
   }
 
   private setSwaggerResponseOk(name: BaseRouteName) {
     const status =
-      isEqual(name, 'createManyBase') || isEqual(name, 'createOneBase')
+      isEqual(name, "createManyBase") || isEqual(name, "createOneBase")
         ? HttpStatus.CREATED
         : HttpStatus.OK;
-    const isArray = isEqual(name, 'createManyBase') || isEqual(name, 'getManyBase');
+    const isArray =
+      isEqual(name, "createManyBase") || isEqual(name, "getManyBase");
     const metadata = Swagger.getResponseOk(this.targetProto[name]);
-    const responseOkMeta = Swagger.createReponseOkMeta(status, isArray, this.modelType);
-    Swagger.setResponseOk({ ...metadata, ...responseOkMeta }, this.targetProto[name]);
+    const responseOkMeta = Swagger.createReponseOkMeta(
+      status,
+      isArray,
+      this.modelType
+    );
+    Swagger.setResponseOk(
+      { ...metadata, ...responseOkMeta },
+      this.targetProto[name]
+    );
   }
 }

@@ -1,11 +1,15 @@
-import { BaseRouteName } from '../types/base-route-name.type';
-import { OVERRIDE_METHOD_METADATA } from '../constants';
+import { OVERRIDE_METHOD_METADATA } from "../constants";
+import { BaseRouteName } from "../types/base-route-name.type";
 
 export const Override = (name?: BaseRouteName) => (
   target,
   key,
-  descriptor: PropertyDescriptor,
+  descriptor: PropertyDescriptor
 ) => {
-  Reflect.defineMetadata(OVERRIDE_METHOD_METADATA, name || `${key}Base`, target[key]);
+  Reflect.defineMetadata(
+    OVERRIDE_METHOD_METADATA,
+    name || `${key}Base`,
+    target[key]
+  );
   return descriptor;
 };

@@ -1,30 +1,30 @@
-import { RouteParamtypes } from '@nestjs/common/enums/route-paramtypes.enum';
 import {
   CUSTOM_ROUTE_AGRS_METADATA,
   INTERCEPTORS_METADATA,
   METHOD_METADATA,
   PARAMTYPES_METADATA,
   PATH_METADATA,
-  ROUTE_ARGS_METADATA,
-} from '@nestjs/common/constants';
+  ROUTE_ARGS_METADATA
+} from "@nestjs/common/constants";
+import { RouteParamtypes } from "@nestjs/common/enums/route-paramtypes.enum";
 
-import { BaseRoute, CrudOptions } from '../interfaces';
-import { BaseRouteName } from '../types';
 import {
-  CRUD_OPTIONS_METADATA,
   ACTION_NAME_METADATA,
-  PARSED_CRUD_REQUEST_KEY,
-  PARSED_BODY_METADATA,
+  CRUD_OPTIONS_METADATA,
   OVERRIDE_METHOD_METADATA,
-} from '../constants';
-import { CrudActions } from '../enums';
+  PARSED_BODY_METADATA,
+  PARSED_CRUD_REQUEST_KEY
+} from "../constants";
+import { CrudActions } from "../enums";
+import { BaseRoute, CrudOptions } from "../interfaces";
+import { BaseRouteName } from "../types";
 
 export class R {
   static set(
     metadataKey: any,
     metadataValue: any,
     target: Object,
-    propertyKey: string | symbol = undefined,
+    propertyKey: string | symbol = undefined
   ) {
     if (propertyKey) {
       Reflect.defineMetadata(metadataKey, metadataValue, target, propertyKey);
@@ -36,7 +36,7 @@ export class R {
   static get<T extends any>(
     metadataKey: any,
     target: Object,
-    propertyKey: string | symbol = undefined,
+    propertyKey: string | symbol = undefined
   ): T {
     return propertyKey
       ? Reflect.getMetadata(metadataKey, target, propertyKey)
@@ -48,15 +48,15 @@ export class R {
     index: number,
     /* istanbul ignore next */
     pipes: any[] = [],
-    data = undefined,
+    data = undefined
   ): any {
     return {
       [`${paramtype}${CUSTOM_ROUTE_AGRS_METADATA}:${index}`]: {
         index,
         factory: (_, req) => req[paramtype],
         data,
-        pipes,
-      },
+        pipes
+      }
     };
   }
 
@@ -65,21 +65,21 @@ export class R {
     index: number,
     /* istanbul ignore next */
     pipes: any[] = [],
-    data = undefined,
+    data = undefined
   ): any {
     return {
       [`${paramtype}:${index}`]: {
         index,
         pipes,
-        data,
-      },
+        data
+      }
     };
   }
 
   static setDecorators(
-    decorators: (PropertyDecorator | MethodDecorator)[],
+    decorators: Array<PropertyDecorator | MethodDecorator>,
     target: object,
-    name: string,
+    name: string
   ) {
     // this makes proxy decorator works
     Reflect.defineProperty(
@@ -89,8 +89,8 @@ export class R {
         decorators,
         target,
         name,
-        Reflect.getOwnPropertyDescriptor(target, name),
-      ),
+        Reflect.getOwnPropertyDescriptor(target, name)
+      )
     );
 
     // this makes metadata decorator works
@@ -98,7 +98,7 @@ export class R {
       decorators,
       target,
       name,
-      Reflect.getOwnPropertyDescriptor(target, name),
+      Reflect.getOwnPropertyDescriptor(target, name)
     );
   }
 
@@ -106,7 +106,10 @@ export class R {
     return R.createCustomRouteArg(PARSED_CRUD_REQUEST_KEY, index);
   }
 
-  static setBodyArg(index: number, /* istanbul ignore next */ pipes: any[] = []) {
+  static setBodyArg(
+    index: number,
+    /* istanbul ignore next */ pipes: any[] = []
+  ) {
     return R.createRouteArg(RouteParamtypes.BODY, index, pipes);
   }
 
@@ -156,7 +159,9 @@ export class R {
   }
 
   static getRouteArgsTypes(target: any, name: string): any[] {
-    return R.get(PARAMTYPES_METADATA, target, name) || /* istanbul ignore next */ [];
+    return (
+      R.get(PARAMTYPES_METADATA, target, name) || /* istanbul ignore next */ []
+    );
   }
 
   static getParsedBody(func: Function): any {

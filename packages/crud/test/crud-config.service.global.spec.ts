@@ -1,51 +1,51 @@
-import * as request from 'supertest';
-import { Test } from '@nestjs/testing';
-import { Controller, INestApplication } from '@nestjs/common';
-import { APP_FILTER } from '@nestjs/core';
+import { Controller, INestApplication } from "@nestjs/common";
+import { APP_FILTER } from "@nestjs/core";
+import { Test } from "@nestjs/testing";
+import * as request from "supertest";
 
-import { CrudGlobalConfig } from '../src/interfaces';
-import { CrudConfigService } from '../src/module/crud-config.service';
+import { CrudGlobalConfig } from "../src/interfaces";
+import { CrudConfigService } from "../src/module/crud-config.service";
 
 // IMPORTANT:
 // CrudConfigService.load() should be called before importing @Crud() controllers
 
 const conf: CrudGlobalConfig = {
   query: {
-    limit: 10,
+    limit: 10
   },
   params: {
     id: {
-      field: 'id',
-      type: 'uuid',
-      primary: true,
-    },
+      field: "id",
+      type: "uuid",
+      primary: true
+    }
   },
   routes: {
     updateOneBase: {
-      allowParamsOverride: true,
+      allowParamsOverride: true
     },
     replaceOneBase: {
-      allowParamsOverride: true,
-    },
-  },
+      allowParamsOverride: true
+    }
+  }
 };
 
 CrudConfigService.load(conf);
 
-import { Crud } from '../src/decorators/crud.decorator';
-import { HttpExceptionFilter } from './__fixture__/exception.filter';
-import { TestModel } from './__fixture__/test.model';
-import { TestService } from './__fixture__/test.service';
+import { Crud } from "../src/decorators/crud.decorator";
+import { HttpExceptionFilter } from "./__fixture__/exception.filter";
+import { TestModel } from "./__fixture__/test.model";
+import { TestService } from "./__fixture__/test.service";
 
-describe('#crud', () => {
-  describe('#CrudConfigService', () => {
+describe("#crud", () => {
+  describe("#CrudConfigService", () => {
     let app: INestApplication;
     let server: any;
 
     @Crud({
-      model: { type: TestModel },
+      model: { type: TestModel }
     })
-    @Controller('test')
+    @Controller("test")
     class GlobalTestController {
       constructor(public service: TestService<TestModel>) {}
     }
@@ -53,28 +53,28 @@ describe('#crud', () => {
     @Crud({
       model: { type: TestModel },
       query: {
-        limit: 12,
+        limit: 12
       },
       params: {
         id: {
-          field: 'id',
-          type: 'number',
-          primary: true,
-        },
+          field: "id",
+          type: "number",
+          primary: true
+        }
       },
       routes: {
         updateOneBase: {
-          allowParamsOverride: false,
+          allowParamsOverride: false
         },
         replaceOneBase: {
-          allowParamsOverride: false,
+          allowParamsOverride: false
         },
         deleteOneBase: {
-          returnDeleted: true,
-        },
-      },
+          returnDeleted: true
+        }
+      }
     })
-    @Controller('test2')
+    @Controller("test2")
     class GlobalTestController2 {
       constructor(public service: TestService<TestModel>) {}
     }
@@ -82,7 +82,10 @@ describe('#crud', () => {
     beforeAll(async () => {
       const fixture = await Test.createTestingModule({
         controllers: [GlobalTestController, GlobalTestController2],
-        providers: [{ provide: APP_FILTER, useClass: HttpExceptionFilter }, TestService],
+        providers: [
+          { provide: APP_FILTER, useClass: HttpExceptionFilter },
+          TestService
+        ]
       }).compile();
 
       app = fixture.createNestApplication();
@@ -95,44 +98,46 @@ describe('#crud', () => {
       app.close();
     });
 
-    it('should use global config', (done) => {
+    it("should use global config", done => {
       return request(server)
-        .get('/test')
+        .get("/test")
         .end((_, res) => {
           expect(res.status).toBe(200);
           expect(res.body.req.options.query).toMatchObject(conf.query);
           expect(res.body.req.options.params).toMatchObject(conf.params);
-          expect(res.body.req.options.routes.updateOneBase.allowParamsOverride).toBe(
-            true,
-          );
-          expect(res.body.req.options.routes.replaceOneBase.allowParamsOverride).toBe(
-            true,
-          );
+          expect(
+            res.body.req.options.routes.updateOneBase.allowParamsOverride
+          ).toBe(true);
+          expect(
+            res.body.req.options.routes.replaceOneBase.allowParamsOverride
+          ).toBe(true);
           done();
         });
     });
-    it('should use merged config', (done) => {
+    it("should use merged config", done => {
       return request(server)
-        .get('/test2')
+        .get("/test2")
         .end((_, res) => {
           expect(res.status).toBe(200);
           expect(res.body.req.options.query).toMatchObject({
-            limit: 12,
+            limit: 12
           });
           expect(res.body.req.options.params).toMatchObject({
             id: {
-              field: 'id',
-              type: 'number',
-              primary: true,
-            },
+              field: "id",
+              type: "number",
+              primary: true
+            }
           });
-          expect(res.body.req.options.routes.updateOneBase.allowParamsOverride).toBe(
-            false,
+          expect(
+            res.body.req.options.routes.updateOneBase.allowParamsOverride
+          ).toBe(false);
+          expect(
+            res.body.req.options.routes.replaceOneBase.allowParamsOverride
+          ).toBe(false);
+          expect(res.body.req.options.routes.deleteOneBase.returnDeleted).toBe(
+            true
           );
-          expect(res.body.req.options.routes.replaceOneBase.allowParamsOverride).toBe(
-            false,
-          );
-          expect(res.body.req.options.routes.deleteOneBase.returnDeleted).toBe(true);
           done();
         });
     });

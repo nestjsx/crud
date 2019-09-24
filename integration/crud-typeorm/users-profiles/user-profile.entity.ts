@@ -1,5 +1,5 @@
-import { Entity, Column, OneToOne } from 'typeorm';
 import { IsOptional, IsString, MaxLength } from 'class-validator';
+import { Column, Entity, OneToOne } from 'typeorm';
 
 import { BaseEntity } from '../base-entity';
 import { User } from '../users/user.entity';

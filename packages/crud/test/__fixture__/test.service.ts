@@ -1,7 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable } from "@nestjs/common";
 
-import { CrudRequest, CreateManyDto } from '../../src/interfaces';
-import { CrudService } from '../../src/services';
+import { CreateManyDto, CrudRequest } from "../../src/interfaces";
+import { CrudService } from "../../src/services";
 
 @Injectable()
 export class TestService<T> extends CrudService<T> {
