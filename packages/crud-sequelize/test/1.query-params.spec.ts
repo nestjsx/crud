@@ -12,6 +12,7 @@ import { ProjectDto } from '../../../integration/crud-sequelize/projects';
 import { UserDto } from '../../../integration/crud-sequelize/users';
 import { HttpExceptionFilter } from '../../../integration/shared/https-exception.filter';
 import { CompaniesService } from './__fixture__/companies.service';
+import { DatabaseService } from './__fixture__/database.service';
 import { ProjectsService } from './__fixture__/projects.service';
 import {
   companiesProviders,
@@ -26,6 +27,7 @@ describe('#crud-sequelize', () => {
     let app: INestApplication;
     let server: any;
     let qb: RequestQueryBuilder;
+    let dbService: DatabaseService;
 
     @Crud({
       model: { type: CompanyDto },
@@ -91,6 +93,7 @@ describe('#crud-sequelize', () => {
           ...companiesProviders,
           ...projectsProviders,
           ...usersProviders,
+          DatabaseService,
         ],
       }).compile();
 
@@ -98,6 +101,7 @@ describe('#crud-sequelize', () => {
 
       await app.init();
       server = app.getHttpServer();
+      dbService = app.get<DatabaseService>(DatabaseService);
     });
 
     beforeEach(() => {
@@ -105,6 +109,7 @@ describe('#crud-sequelize', () => {
     });
 
     afterAll(async () => {
+      await dbService.closeConnection();
       await app.close();
     });
 

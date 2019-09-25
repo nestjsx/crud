@@ -1,5 +1,4 @@
 module.exports = {
-  forceExit: true,
   moduleNameMapper: {
     '^@nestjsx/(.+)': '<rootDir>/packages/$1/src',
   },
