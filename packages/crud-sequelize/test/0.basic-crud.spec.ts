@@ -90,7 +90,7 @@ describe('#crud-sequelize', () => {
     });
 
     afterAll(async () => {
-      app.close();
+      await app.close();
     });
 
     describe('#find', () => {
