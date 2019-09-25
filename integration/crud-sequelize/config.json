@@ -2,8 +2,9 @@
   "development": {
     "dialect": "postgres",
     "host": "127.0.0.1",
-    "username": "nest_user",
-    "password": "password",
+    "port": 5456,
+    "username": "root",
+    "password": "root",
     "database": "nestjsx_crud_sequelize",
     "logging": true
   }

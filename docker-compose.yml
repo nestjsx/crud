@@ -15,6 +15,17 @@ services:
     networks:
       - nestjsx_crud
 
+  postresql_sequelize:
+    image: postgres
+    ports:
+      - 5456:5432
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: nestjsx_crud_sequelize
+    networks:
+      - nestjsx_crud
+
   redis:
     image: redis:alpine
     ports:
