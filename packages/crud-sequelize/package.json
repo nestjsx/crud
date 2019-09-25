@@ -1,0 +1,50 @@
+{
+  "name": "@nestjsx/crud-sequelize",
+  "description": "NestJs CRUD for RESTful APIs - Sequelize",
+  "version": "4.2.0",
+  "license": "MIT",
+  "main": "lib/index.js",
+  "typings": "lib/index.d.ts",
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "lib"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nestjsx/crud.git"
+  },
+  "bugs": {
+    "url": "https://github.com/nestjsx/crud/issues"
+  },
+  "keywords": [
+    "typescript",
+    "sequelize",
+    "nest",
+    "nestjs",
+    "rest",
+    "restful",
+    "api",
+    "crud",
+    "crud-generator",
+    "backend",
+    "frameworks"
+  ],
+  "authors": [{
+    "name": "Hisham J. Shikha",
+    "email": "hishamshikha96@gmail.com"
+  }, {
+    "name": "Hani Ghazi",
+    "email": "hani1993ghazi@gmail.com"
+  }, {
+    "name": "Sami Sammour",
+    "email": "samisammour@gmail.com"
+  }],
+  "scripts": {
+    "build": "npx tsc -b"
+  },
+  "dependencies": {
+    "lodash": "^4.17.15"
+  }
+}
