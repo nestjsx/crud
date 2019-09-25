@@ -1,4 +1,4 @@
-import { Entity, Column, ManyToOne, ManyToMany, JoinTable } from 'typeorm';
+import { Entity, Column, ManyToOne, ManyToMany, JoinTable, OneToMany } from 'typeorm';
 import {
   IsOptional,
   IsString,
@@ -12,6 +12,7 @@ import { CrudValidationGroups } from '@nestjsx/crud';
 import { BaseEntity } from '../base-entity';
 import { Company } from '../companies/company.entity';
 import { User } from '../users/user.entity';
+import { UserProject } from './userProject.entity';
 
 const { CREATE, UPDATE } = CrudValidationGroups;
 
@@ -46,6 +47,20 @@ export class Project extends BaseEntity {
   company?: Company;
 
   @ManyToMany((type) => User, (u) => u.projects, { cascade: true })
-  @JoinTable()
+  @JoinTable({
+    name: 'user_projects',
+    joinColumn: {
+      name: 'projectId',
+      referencedColumnName: 'id',
+    },
+    inverseJoinColumn: {
+      name: 'userId',
+      referencedColumnName: 'id',
+    },
+  })
   users?: User[];
+
+  @OneToMany((type) => UserProject, (el) => el.project, { persistence: false, onDelete: 'CASCADE' })
+  userProjects!: UserProject[];
+
 }

@@ -91,6 +91,15 @@ export class Seeds1544303473346 implements MigrationInterface {
       ('19@email.com', false, 2, 19),
       ('20@email.com', false, 2, 20);
     `);
+
+    // userProjects
+    await queryRunner.query(`
+      INSERT INTO public.user_projects ("projectId", "userId", "review") VALUES
+      (1, 1, 'User project 1 1'),
+      (1, 2, 'User project 1 2'),
+      (2, 2, 'User project 2 2'),
+      (3, 3, 'User project 3 3');
+    `);
   }
 
   public async down(queryRunner: QueryRunner): Promise<any> {}

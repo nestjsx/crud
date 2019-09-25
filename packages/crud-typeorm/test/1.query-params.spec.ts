@@ -51,6 +51,8 @@ describe('#crud-typeorm', () => {
             persist: ['id'],
             exclude: ['updatedAt', 'createdAt'],
           },
+          users: {},
+          userProjects: {},
         },
         sort: [{ field: 'id', order: 'ASC' }],
         limit: 100,
@@ -261,6 +263,26 @@ describe('#crud-typeorm', () => {
             expect(res.status).toBe(200);
             expect(res.body.users).toBeDefined();
             expect(res.body.users.length).not.toBe(0);
+            done();
+          });
+      });
+
+      it('should return joined entity, 3', (done) => {
+        const query = qb
+          .setJoin({ field: 'users' })
+          .setJoin({ field: 'userProjects' })
+          .query();
+        return request(server)
+          .get('/projects/1')
+          .query(query)
+          .end((_, res) => {
+            expect(res.status).toBe(200);
+            expect(res.body.users).toBeDefined();
+            expect(res.body.users.length).toBe(2);
+            expect(res.body.users[0].id).toBe(1);
+            expect(res.body.userProjects).toBeDefined();
+            expect(res.body.userProjects.length).toBe(2);
+            expect(res.body.userProjects[0].review).toBe('User project 1 1');
             done();
           });
       });
