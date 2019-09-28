@@ -17,29 +17,57 @@ export class Seeds1544303473346 implements MigrationInterface {
       ('Name10', 'Domain10');
     `);
 
+    // files
+    await queryRunner.query(`
+      INSERT INTO public.files ("path") VALUES
+      ('/uploads/file1.txt'),
+      ('/uploads/file2.txt'),
+      ('/uploads/file4.txt'),
+      ('/uploads/file5.txt'),
+      ('/uploads/file6.txt'),
+      ('/uploads/file7.txt'),
+      ('/uploads/file8.txt'),
+      ('/uploads/file9.txt'),
+      ('/uploads/file10.txt');
+    `);
+
+    // categories
+    await queryRunner.query(`
+      INSERT INTO public.categories ("title", "imageId", "parentId") VALUES
+      ('Category1', 1, NULL),
+      ('Category2', 2, NULL),
+      ('Category1.1', 3, 1),
+      ('Category1.2', 4, 1),
+      ('Category2.1', 5, 2),
+      ('Category2.2', 6, 2),
+      ('Category1.1.1', 7, 3),
+      ('Category1.1.2', 8, 3),
+      ('Category1.1.3', 9, 4);
+    `);
+
     // projects
     await queryRunner.query(`
-      INSERT INTO public.projects ("name", "description", "isActive", "companyId") VALUES
-      ('Project1', 'description1', true, 1),
-      ('Project2', 'description2', true, 1),
-      ('Project3', 'description3', true, 2),
-      ('Project4', 'description4', true, 2),
-      ('Project5', 'description5', true, 3),
-      ('Project6', 'description6', true, 3),
-      ('Project7', 'description7', true, 4),
-      ('Project8', 'description8', true, 4),
-      ('Project9', 'description9', true, 5),
-      ('Project10', 'description10', true, 5),
-      ('Project11', 'description11', false, 6),
-      ('Project12', 'description12', false, 6),
-      ('Project13', 'description13', false, 7),
-      ('Project14', 'description14', false, 7),
-      ('Project15', 'description15', false, 8),
-      ('Project16', 'description16', false, 8),
-      ('Project17', 'description17', false, 9),
-      ('Project18', 'description18', false, 9),
-      ('Project19', 'description19', false, 10),
-      ('Project20', 'description20', false, 10);
+      INSERT INTO public.projects ("name", "description", "isActive", "companyId", "categoryId") VALUES
+      ('Project1', 'description1', true, 1, 1),
+      ('Project2', 'description2', true, 1, 1),
+      ('Project3', 'description3', true, 2, 1),
+      ('Project4', 'description4', true, 2, 2),
+      ('Project5', 'description5', true, 3, 2),
+      ('Project6', 'description6', true, 3, 2),
+      ('Project7', 'description7', true, 4, 3),
+      ('Project8', 'description8', true, 4, 3),
+      ('Project9', 'description9', true, 5, 3),
+      ('Project10', 'description10', true, 5, 4),
+      ('Project11', 'description11', false, 6, 4),
+      ('Project12', 'description12', false, 6, NULL),
+      ('Project13', 'description13', false, 7, NULL),
+      ('Project14', 'description14', false, 7, NULL),
+      ('Project15', 'description15', false, 8, NULL),
+      ('Project16', 'description16', false, 8, NULL),
+      ('Project17', 'description17', false, 9, NULL),
+      ('Project18', 'description18', false, 9, NULL),
+      ('Project19', 'description19', false, 10, NULL),
+      ('Project20', 'description20', false, 10, NULL);
     `);
 
     // users-profiles

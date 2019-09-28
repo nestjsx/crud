@@ -334,7 +334,7 @@ describe('#crud-typeorm', () => {
             done();
           });
       });
-      it('should return joined entity, 1', (done) => {
+      it('should return joined entity, 1 with nested', (done) => {
         const query = qb
           .setFilter({ field: 'company.name', operator: 'excl', value: 'invalid' })
           .setJoin({ field: 'company' })
@@ -350,8 +350,7 @@ describe('#crud-typeorm', () => {
             done();
           });
       });
-
-      it('should return joined entity, 2', (done) => {
+      it('should return joined entity, 2 with nested', (done) => {
         const query = qb
           .setFilter({ field: 'company.projects.id', operator: 'notnull' })
           .setJoin({ field: 'company' })

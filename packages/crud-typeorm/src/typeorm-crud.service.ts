@@ -7,7 +7,12 @@ import {
   JoinOptions,
   QueryOptions,
 } from '@nestjsx/crud';
-import { ParsedRequestParams, QueryFilter, QueryJoin, QuerySort } from '@nestjsx/crud-request';
+import {
+  ParsedRequestParams,
+  QueryFilter,
+  QueryJoin,
+  QuerySort,
+} from '@nestjsx/crud-request';
 import { hasLength, isArrayFull, isObject, isUndefined, objKeys } from '@nestjsx/util';
 import { plainToClass } from 'class-transformer';
 import { ClassType } from 'class-transformer/ClassTransformer';
@@ -341,8 +346,8 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
           type: this.getJoinType(curr.relationType),
           columns: curr.inverseEntityMetadata.columns.map((col) => col.propertyName),
           referencedColumn: (curr.joinColumns.length
-              ? curr.joinColumns[0]
-              : curr.inverseRelation.joinColumns[0]
+            ? curr.joinColumns[0]
+            : curr.inverseRelation.joinColumns[0]
           ).referencedColumn.propertyName,
         },
       }),
@@ -430,42 +435,57 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
 
   private getAllowedColumns(columns: string[], options: QueryOptions): string[] {
     return (!options.exclude || !options.exclude.length) &&
-    (!options.allow || /* istanbul ignore next */ !options.allow.length)
+      (!options.allow || /* istanbul ignore next */ !options.allow.length)
       ? columns
       : columns.filter(
-        (column) =>
-          (options.exclude && options.exclude.length
-            ? !options.exclude.some((col) => col === column)
-            : /* istanbul ignore next */ true) &&
-          (options.allow && options.allow.length
-            ? options.allow.some((col) => col === column)
-            : /* istanbul ignore next */ true),
-      );
+          (column) =>
+            (options.exclude && options.exclude.length
+              ? !options.exclude.some((col) => col === column)
+              : /* istanbul ignore next */ true) &&
+            (options.allow && options.allow.length
+              ? options.allow.some((col) => col === column)
+              : /* istanbul ignore next */ true),
+        );
   }
 
-  private getRelationMetadata(field: string) {
+  private getRelationMetadata(
+    field: string,
+  ): [RelationMetadata, RelationMetadata] | null {
     try {
       const fields = field.split('.');
       const target = fields[fields.length - 1];
       const paths = fields.slice(0, fields.length - 1);
 
+      let previous_relations: RelationMetadata[] | null = null;
       let relations = this.repo.metadata.relations;
 
       for (const propertyName of paths) {
+        previous_relations = relations;
         relations = relations.find((o) => o.propertyName === propertyName)
           .inverseEntityMetadata.relations;
       }
 
+      const previous_relation: RelationMetadata & {
+        nestedRelation?: string;
+      } = previous_relations.find((o) => o.propertyName === fields[fields.length - 2]);
       const relation: RelationMetadata & { nestedRelation?: string } = relations.find(
         (o) => o.propertyName === target,
       );
 
-      relation.nestedRelation = `${fields[fields.length - 2]}.${target}`;
-
-      return relation;
+      return [previous_relation, relation];
     } catch (e) {
       return null;
     }
+  }
+
+  private getUniqueAlias(name: string, builder: SelectQueryBuilder<T>, acc: number = 1) {
+    const already_exist_alias = builder.expressionMap.aliases.find(
+      (alias) => alias.name === name,
+    );
+    if (already_exist_alias) {
+      return this.getUniqueAlias(name + acc, builder, ++acc);
+    }
+    return name;
   }
 
   private setJoin(
@@ -474,22 +494,35 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     builder: SelectQueryBuilder<T>,
   ) {
     if (this.entityRelationsHash[cond.field] === undefined && cond.field.includes('.')) {
-      const curr = this.getRelationMetadata(cond.field);
+      const [prev, curr] = this.getRelationMetadata(cond.field);
       if (!curr) {
         this.entityRelationsHash[cond.field] = null;
         return true;
       }
 
-      this.entityRelationsHash[cond.field] = {
-        name: curr.propertyName,
+      /** Build new hash to this.entityRelationsHash */
+      const hash = {
+        name: curr.propertyName, // another alias
         type: this.getJoinType(curr.relationType),
         columns: curr.inverseEntityMetadata.columns.map((col) => col.propertyName),
         referencedColumn: (curr.joinColumns.length
-            ? /* istanbul ignore next */ curr.joinColumns[0]
-            : curr.inverseRelation.joinColumns[0]
+          ? /* istanbul ignore next */ curr.joinColumns[0]
+          : curr.inverseRelation.joinColumns[0]
         ).referencedColumn.propertyName,
-        nestedRelation: curr.nestedRelation,
+        nestedRelation: `${prev.propertyName}.${curr.propertyName}`,
+        relation: curr,
       };
+
+      const prev_hash = Object.values(this.entityRelationsHash)
+        .reverse()
+        .find((relation_hash) => relation_hash.relation === prev);
+
+      hash.name = this.getUniqueAlias(hash.name, builder);
+      if (prev_hash) {
+        hash.nestedRelation = `${prev_hash.name}.${curr.propertyName}`;
+      }
+
+      this.entityRelationsHash[cond.field] = hash;
     }
 
     /* istanbul ignore else */
@@ -556,8 +589,8 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     return query.page && take
       ? take * (query.page - 1)
       : query.offset
-        ? query.offset
-        : null;
+      ? query.offset
+      : null;
   }
 
   private getTake(query: ParsedRequestParams, options: QueryOptions): number | null {
@@ -584,8 +617,8 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     return query.sort && query.sort.length
       ? this.mapSort(query.sort)
       : options.sort && options.sort.length
-        ? this.mapSort(options.sort)
-        : {};
+      ? this.mapSort(options.sort)
+      : {};
   }
 
   private getFieldWithAlias(field: string) {
