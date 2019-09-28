@@ -31,24 +31,12 @@ describe('#crud-typeorm', () => {
       model: { type: Project },
       query: {
         join: {
-          category: {
-            eager: true,
-          },
-          'category.image': {
-            eager: true,
-          },
-          'category.children': {
-            eager: true,
-          },
-          'category.children.image': {
-            eager: true,
-          },
-          'category.children.children': {
-            eager: true,
-          },
-          'category.children.children.image': {
-            eager: true,
-          },
+          category: {},
+          'category.image': {},
+          'category.children': {},
+          'category.children.image': {},
+          'category.children.children': {},
+          'category.children.children.image': {},
         },
       },
     })
@@ -109,8 +97,29 @@ describe('#crud-typeorm', () => {
       describe('has three level of categories in response', () => {
         let res: any;
         beforeAll(async () => {
+          const q = new RequestQueryBuilder()
+            .setJoin({
+              field: 'category',
+            })
+            .setJoin({
+              field: 'category.image',
+            })
+            .setJoin({
+              field: 'category.children',
+            })
+            .setJoin({
+              field: 'category.children.image',
+            })
+            .setJoin({
+              field: 'category.children.children',
+            })
+            .setJoin({
+              field: 'category.children.children.image',
+            })
+            .query();
           res = await request(server)
             .get('/projects/1')
+            .query(q)
             .expect(200)
             .then((res) => res);
         });

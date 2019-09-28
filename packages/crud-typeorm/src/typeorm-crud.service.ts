@@ -207,6 +207,34 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     // select fields
     builder.select(select);
 
+    // set joins
+    const joinOptions = options.query.join || {};
+    const allowedJoins = objKeys(joinOptions);
+
+    if (hasLength(allowedJoins)) {
+      const eagerJoins: any = {};
+
+      for (let i = 0; i < allowedJoins.length; i++) {
+        /* istanbul ignore else */
+        if (joinOptions[allowedJoins[i]].eager) {
+          const cond = parsed.join.find((j) => j && j.field === allowedJoins[i]) || {
+            field: allowedJoins[i],
+          };
+          this.setJoin(cond, joinOptions, builder);
+          eagerJoins[allowedJoins[i]] = true;
+        }
+      }
+
+      if (isArrayFull(parsed.join)) {
+        for (let i = 0; i < parsed.join.length; i++) {
+          /* istanbul ignore else */
+          if (!eagerJoins[parsed.join[i].field]) {
+            this.setJoin(parsed.join[i], joinOptions, builder);
+          }
+        }
+      }
+    }
+
     // set mandatory where condition from CrudOptions.query.filter
     if (isArrayFull(options.query.filter)) {
       for (let i = 0; i < options.query.filter.length; i++) {
@@ -266,34 +294,6 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
       // WHERE :filter AND :filter AND ...
       for (let i = 0; i < filters.length; i++) {
         this.setAndWhere(filters[i], `filter${i}`, builder);
-      }
-    }
-
-    // set joins
-    const joinOptions = options.query.join || {};
-    const allowedJoins = objKeys(joinOptions);
-
-    if (hasLength(allowedJoins)) {
-      const eagerJoins: any = {};
-
-      for (let i = 0; i < allowedJoins.length; i++) {
-        /* istanbul ignore else */
-        if (joinOptions[allowedJoins[i]].eager) {
-          const cond = parsed.join.find((j) => j && j.field === allowedJoins[i]) || {
-            field: allowedJoins[i],
-          };
-          this.setJoin(cond, joinOptions, builder);
-          eagerJoins[allowedJoins[i]] = true;
-        }
-      }
-
-      if (isArrayFull(parsed.join)) {
-        for (let i = 0; i < parsed.join.length; i++) {
-          /* istanbul ignore else */
-          if (!eagerJoins[parsed.join[i].field]) {
-            this.setJoin(parsed.join[i], joinOptions, builder);
-          }
-        }
       }
     }
 
