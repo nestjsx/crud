@@ -7,8 +7,25 @@ import {
   JoinOptions,
   QueryOptions,
 } from '@nestjsx/crud';
-import { ParsedRequestParams, QueryFilter, QueryJoin, QuerySort } from '@nestjsx/crud-request';
-import { hasLength, isArrayFull, isObject, isUndefined, objKeys } from '@nestjsx/util';
+import {
+  ParsedRequestParams,
+  QueryFilter,
+  QueryJoin,
+  QuerySort,
+  SCondition,
+  SConditionKey,
+  ComparisonOperator,
+} from '@nestjsx/crud-request';
+import {
+  hasLength,
+  isArrayFull,
+  isObject,
+  isObjectFull,
+  isUndefined,
+  objKeys,
+  isNil,
+  isNull,
+} from '@nestjsx/util';
 import { plainToClass } from 'class-transformer';
 import { ClassType } from 'class-transformer/ClassTransformer';
 import { Brackets, ObjectLiteral, Repository, SelectQueryBuilder } from 'typeorm';
@@ -196,72 +213,79 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     // create query builder
     const builder = this.repo.createQueryBuilder(this.alias);
 
-    // get selet fields
+    // get select fields
     const select = this.getSelect(parsed, options.query);
 
     // select fields
     builder.select(select);
 
-    // set mandatory where condition from CrudOptions.query.filter
-    if (isArrayFull(options.query.filter)) {
-      for (let i = 0; i < options.query.filter.length; i++) {
-        this.setAndWhere(options.query.filter[i], `optionsFilter${i}`, builder);
-      }
-    }
+    // legacy filter and or params
+    // will be deprecated in the next major release
+    if (isNil(parsed.search)) {
+      const defaultSearch = this.getDefaultSearchCondition(options, parsed);
+      this.setSearchCondition(builder, { $and: defaultSearch });
 
-    const filters = [...parsed.paramsFilter, ...parsed.filter];
-    const hasFilter = isArrayFull(filters);
-    const hasOr = isArrayFull(parsed.or);
+      const filters = parsed.filter;
+      const hasFilter = isArrayFull(filters);
+      const hasOr = isArrayFull(parsed.or);
 
-    if (hasFilter && hasOr) {
-      if (filters.length === 1 && parsed.or.length === 1) {
-        // WHERE :filter OR :or
-        this.setOrWhere(filters[0], `filter0`, builder);
-        this.setOrWhere(parsed.or[0], `or0`, builder);
-      } else if (filters.length === 1) {
-        this.setAndWhere(filters[0], `filter0`, builder);
-        builder.orWhere(
-          new Brackets((qb) => {
-            for (let i = 0; i < parsed.or.length; i++) {
-              this.setAndWhere(parsed.or[i], `or${i}`, qb as any);
-            }
-          }),
-        );
-      } else if (parsed.or.length === 1) {
-        this.setAndWhere(parsed.or[0], `or0`, builder);
-        builder.orWhere(
-          new Brackets((qb) => {
-            for (let i = 0; i < filters.length; i++) {
-              this.setAndWhere(filters[i], `filter${i}`, qb as any);
-            }
-          }),
-        );
-      } else {
-        builder.andWhere(
-          new Brackets((qb) => {
-            for (let i = 0; i < filters.length; i++) {
-              this.setAndWhere(filters[i], `filter${i}`, qb as any);
-            }
-          }),
-        );
-        builder.orWhere(
-          new Brackets((qb) => {
-            for (let i = 0; i < parsed.or.length; i++) {
-              this.setAndWhere(parsed.or[i], `or${i}`, qb as any);
-            }
-          }),
-        );
+      if (hasFilter && hasOr) {
+        if (filters.length === 1 && parsed.or.length === 1) {
+          // WHERE :filter OR :or
+          this.setOrWhere(filters[0], `filter0`, builder);
+          this.setOrWhere(parsed.or[0], `or0`, builder);
+        } else if (filters.length === 1) {
+          this.setAndWhere(filters[0], `filter0`, builder);
+          builder.orWhere(
+            new Brackets((qb) => {
+              for (let i = 0; i < parsed.or.length; i++) {
+                this.setAndWhere(parsed.or[i], `or${i}`, qb as any);
+              }
+            }),
+          );
+        } else if (parsed.or.length === 1) {
+          this.setAndWhere(parsed.or[0], `or0`, builder);
+          builder.orWhere(
+            new Brackets((qb) => {
+              for (let i = 0; i < filters.length; i++) {
+                this.setAndWhere(filters[i], `filter${i}`, qb as any);
+              }
+            }),
+          );
+        } else {
+          builder.andWhere(
+            new Brackets((qb) => {
+              for (let i = 0; i < filters.length; i++) {
+                this.setAndWhere(filters[i], `filter${i}`, qb as any);
+              }
+            }),
+          );
+          builder.orWhere(
+            new Brackets((qb) => {
+              for (let i = 0; i < parsed.or.length; i++) {
+                this.setAndWhere(parsed.or[i], `or${i}`, qb as any);
+              }
+            }),
+          );
+        }
+      } else if (hasOr) {
+        // WHERE :or OR :or OR ...
+        for (let i = 0; i < parsed.or.length; i++) {
+          this.setOrWhere(parsed.or[i], `or${i}`, builder);
+        }
+      } else if (hasFilter) {
+        // WHERE :filter AND :filter AND ...
+        for (let i = 0; i < filters.length; i++) {
+          this.setAndWhere(filters[i], `filter${i}`, builder);
+        }
       }
-    } else if (hasOr) {
-      // WHERE :or OR :or OR ...
-      for (let i = 0; i < parsed.or.length; i++) {
-        this.setOrWhere(parsed.or[i], `or${i}`, builder);
-      }
-    } else if (hasFilter) {
-      // WHERE :filter AND :filter AND ...
-      for (let i = 0; i < filters.length; i++) {
-        this.setAndWhere(filters[i], `filter${i}`, builder);
-      }
+    } else {
+      // new search condition mechanism
+      const defaultSearch = this.getDefaultSearchCondition(options, parsed);
+      const search: SCondition = defaultSearch.length
+        ? { $and: [...defaultSearch, parsed.search] }
+        : /* istanbul ignore next */ parsed.search;
+      this.setSearchCondition(builder, search);
     }
 
     // set joins
@@ -322,6 +346,26 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     return builder;
   }
 
+  private getDefaultSearchCondition(
+    options: CrudRequestOptions,
+    parsed: ParsedRequestParams,
+  ): any[] {
+    const filter = this.queryFilterToSearch(options.query.filter as QueryFilter[]);
+    const paramsFilter = this.queryFilterToSearch(parsed.paramsFilter);
+
+    return [...filter, ...paramsFilter];
+  }
+
+  private queryFilterToSearch(filter: QueryFilter[]): any {
+    return isArrayFull(filter)
+      ? filter.map((item) => ({
+          [item.field]: { [item.operator]: item.value },
+        }))
+      : isObject(filter)
+      ? [filter]
+      : [];
+  }
+
   private onInitMapEntityColumns() {
     this.entityColumns = this.repo.metadata.columns.map((prop) => {
       this.entityColumnsHash[prop.propertyName] = true;
@@ -341,8 +385,8 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
           type: this.getJoinType(curr.relationType),
           columns: curr.inverseEntityMetadata.columns.map((col) => col.propertyName),
           referencedColumn: (curr.joinColumns.length
-              ? curr.joinColumns[0]
-              : curr.inverseRelation.joinColumns[0]
+            ? curr.joinColumns[0]
+            : curr.inverseRelation.joinColumns[0]
           ).referencedColumn.propertyName,
         },
       }),
@@ -430,17 +474,17 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
 
   private getAllowedColumns(columns: string[], options: QueryOptions): string[] {
     return (!options.exclude || !options.exclude.length) &&
-    (!options.allow || /* istanbul ignore next */ !options.allow.length)
+      (!options.allow || /* istanbul ignore next */ !options.allow.length)
       ? columns
       : columns.filter(
-        (column) =>
-          (options.exclude && options.exclude.length
-            ? !options.exclude.some((col) => col === column)
-            : /* istanbul ignore next */ true) &&
-          (options.allow && options.allow.length
-            ? options.allow.some((col) => col === column)
-            : /* istanbul ignore next */ true),
-      );
+          (column) =>
+            (options.exclude && options.exclude.length
+              ? !options.exclude.some((col) => col === column)
+              : /* istanbul ignore next */ true) &&
+            (options.allow && options.allow.length
+              ? options.allow.some((col) => col === column)
+              : /* istanbul ignore next */ true),
+        );
   }
 
   private getRelationMetadata(field: string) {
@@ -485,8 +529,8 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
         type: this.getJoinType(curr.relationType),
         columns: curr.inverseEntityMetadata.columns.map((col) => col.propertyName),
         referencedColumn: (curr.joinColumns.length
-            ? /* istanbul ignore next */ curr.joinColumns[0]
-            : curr.inverseRelation.joinColumns[0]
+          ? /* istanbul ignore next */ curr.joinColumns[0]
+          : curr.inverseRelation.joinColumns[0]
         ).referencedColumn.propertyName,
         nestedRelation: curr.nestedRelation,
       };
@@ -535,6 +579,214 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     builder.orWhere(str, params);
   }
 
+  private setSearchCondition(
+    builder: SelectQueryBuilder<T>,
+    search: SCondition,
+    condition: SConditionKey = '$and',
+  ) {
+    /* istanbul ignore else */
+    if (isObject(search)) {
+      const keys = objKeys(search);
+      /* istanbul ignore else */
+      if (keys.length) {
+        // search: {$and: [...], ...}
+        if (isArrayFull(search.$and)) {
+          // search: {$and: [{}]}
+          if (search.$and.length === 1) {
+            this.setSearchCondition(builder, search.$and[0], condition);
+          }
+          // search: {$and: [{}, {}, ...]}
+          else {
+            this.builderAddBrackets(
+              builder,
+              condition,
+              new Brackets((qb: any) => {
+                search.$and.forEach((item: any) => {
+                  this.setSearchCondition(qb, item, '$and');
+                });
+              }),
+            );
+          }
+        }
+        // search: {$or: [...], ...}
+        else if (isArrayFull(search.$or)) {
+          // search: {$or: [...]}
+          if (keys.length === 1) {
+            // search: {$or: [{}]}
+            if (search.$or.length === 1) {
+              this.setSearchCondition(builder, search.$or[0], condition);
+            }
+            // search: {$or: [{}, {}, ...]}
+            else {
+              this.builderAddBrackets(
+                builder,
+                condition,
+                new Brackets((qb: any) => {
+                  search.$or.forEach((item: any) => {
+                    this.setSearchCondition(qb, item, '$or');
+                  });
+                }),
+              );
+            }
+          }
+          // search: {$or: [...], foo, ...}
+          else {
+            this.builderAddBrackets(
+              builder,
+              condition,
+              new Brackets((qb: any) => {
+                keys.forEach((field: string) => {
+                  if (field !== '$or') {
+                    const value = search[field];
+                    if (!isObject(value)) {
+                      this.builderSetWhere(qb, '$and', field, value);
+                    } else {
+                      this.setSearchFieldObjectCondition(qb, '$and', field, value);
+                    }
+                  } else {
+                    if (search.$or.length === 1) {
+                      this.setSearchCondition(builder, search.$or[0], '$and');
+                    } else {
+                      this.builderAddBrackets(
+                        qb,
+                        '$and',
+                        new Brackets((qb2: any) => {
+                          search.$or.forEach((item: any) => {
+                            this.setSearchCondition(qb2, item, '$or');
+                          });
+                        }),
+                      );
+                    }
+                  }
+                });
+              }),
+            );
+          }
+        }
+        // search: {...}
+        else {
+          // search: {foo}
+          if (keys.length === 1) {
+            const field = keys[0];
+            const value = search[field];
+            if (!isObject(value)) {
+              this.builderSetWhere(builder, condition, field, value);
+            } else {
+              this.setSearchFieldObjectCondition(builder, condition, field, value);
+            }
+          }
+          // search: {foo, ...}
+          else {
+            this.builderAddBrackets(
+              builder,
+              condition,
+              new Brackets((qb: any) => {
+                keys.forEach((field: string) => {
+                  const value = search[field];
+                  if (!isObject(value)) {
+                    this.builderSetWhere(qb, '$and', field, value);
+                  } else {
+                    this.setSearchFieldObjectCondition(qb, '$and', field, value);
+                  }
+                });
+              }),
+            );
+          }
+        }
+      }
+    }
+  }
+
+  private builderAddBrackets(
+    builder: SelectQueryBuilder<T>,
+    condition: SConditionKey,
+    brackets: Brackets,
+  ) {
+    if (condition === '$and') {
+      builder.andWhere(brackets);
+    } else {
+      builder.orWhere(brackets);
+    }
+  }
+
+  private builderSetWhere(
+    builder: SelectQueryBuilder<T>,
+    condition: SConditionKey,
+    field: string,
+    value: any,
+    operator: ComparisonOperator = '$eq',
+  ) {
+    const time = process.hrtime();
+    const index = `${field}${time[0]}${time[1]}`;
+    const args = [
+      { field, operator: isNull(value) ? '$isnull' : operator, value },
+      index,
+      builder,
+    ];
+    const fn = condition === '$and' ? this.setAndWhere : this.setOrWhere;
+    fn.apply(this, args);
+  }
+
+  private setSearchFieldObjectCondition(
+    builder: SelectQueryBuilder<T>,
+    condition: SConditionKey,
+    field: string,
+    object: any,
+  ) {
+    /* istanbul ignore else */
+    if (isObject(object)) {
+      const operators = objKeys(object);
+
+      if (operators.length === 1) {
+        const operator = operators[0] as ComparisonOperator;
+        const value = object[operator];
+
+        if (isObject(object.$or)) {
+          const orKeys = objKeys(object.$or);
+          this.setSearchFieldObjectCondition(
+            builder,
+            orKeys.length === 1 ? condition : '$or',
+            field,
+            object.$or,
+          );
+        } else {
+          this.builderSetWhere(builder, condition, field, value, operator);
+        }
+      } else {
+        /* istanbul ignore else */
+        if (operators.length > 1) {
+          this.builderAddBrackets(
+            builder,
+            condition,
+            new Brackets((qb: any) => {
+              operators.forEach((operator: ComparisonOperator) => {
+                const value = object[operator];
+
+                if (operator !== '$or') {
+                  this.builderSetWhere(qb, condition, field, value, operator);
+                } else {
+                  const orKeys = objKeys(object.$or);
+
+                  if (orKeys.length === 1) {
+                    this.setSearchFieldObjectCondition(qb, condition, field, object.$or);
+                  } else {
+                    this.builderAddBrackets(
+                      qb,
+                      condition,
+                      new Brackets((qb2: any) => {
+                        this.setSearchFieldObjectCondition(qb2, '$or', field, object.$or);
+                      }),
+                    );
+                  }
+                }
+              });
+            }),
+          );
+        }
+      }
+    }
+  }
+
   private getSelect(query: ParsedRequestParams, options: QueryOptions): string[] {
     const allowed = this.getAllowedColumns(this.entityColumns, options);
 
@@ -556,8 +808,8 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     return query.page && take
       ? take * (query.page - 1)
       : query.offset
-        ? query.offset
-        : null;
+      ? query.offset
+      : null;
   }
 
   private getTake(query: ParsedRequestParams, options: QueryOptions): number | null {
@@ -584,8 +836,8 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     return query.sort && query.sort.length
       ? this.mapSort(query.sort)
       : options.sort && options.sort.length
-        ? this.mapSort(options.sort)
-        : {};
+      ? this.mapSort(options.sort)
+      : {};
   }
 
   private getFieldWithAlias(field: string) {
@@ -620,52 +872,56 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     let str: string;
     let params: ObjectLiteral;
 
+    if (cond.operator[0] !== '$') {
+      cond.operator = ('$' + cond.operator) as ComparisonOperator;
+    }
+
     switch (cond.operator) {
-      case 'eq':
+      case '$eq':
         str = `${field} = :${param}`;
         break;
 
-      case 'ne':
+      case '$ne':
         str = `${field} != :${param}`;
         break;
 
-      case 'gt':
+      case '$gt':
         str = `${field} > :${param}`;
         break;
 
-      case 'lt':
+      case '$lt':
         str = `${field} < :${param}`;
         break;
 
-      case 'gte':
+      case '$gte':
         str = `${field} >= :${param}`;
         break;
 
-      case 'lte':
+      case '$lte':
         str = `${field} <= :${param}`;
         break;
 
-      case 'starts':
+      case '$starts':
         str = `${field} LIKE :${param}`;
         params = { [param]: `${cond.value}%` };
         break;
 
-      case 'ends':
+      case '$ends':
         str = `${field} LIKE :${param}`;
         params = { [param]: `%${cond.value}` };
         break;
 
-      case 'cont':
+      case '$cont':
         str = `${field} LIKE :${param}`;
         params = { [param]: `%${cond.value}%` };
         break;
 
-      case 'excl':
+      case '$excl':
         str = `${field} NOT LIKE :${param}`;
         params = { [param]: `%${cond.value}%` };
         break;
 
-      case 'in':
+      case '$in':
         /* istanbul ignore if */
         if (!Array.isArray(cond.value) || !cond.value.length) {
           this.throwBadRequestException(`Invalid column '${cond.field}' value`);
@@ -673,7 +929,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
         str = `${field} IN (:...${param})`;
         break;
 
-      case 'notin':
+      case '$notin':
         /* istanbul ignore if */
         if (!Array.isArray(cond.value) || !cond.value.length) {
           this.throwBadRequestException(`Invalid column '${cond.field}' value`);
@@ -681,17 +937,17 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
         str = `${field} NOT IN (:...${param})`;
         break;
 
-      case 'isnull':
+      case '$isnull':
         str = `${field} IS NULL`;
         params = {};
         break;
 
-      case 'notnull':
+      case '$notnull':
         str = `${field} IS NOT NULL`;
         params = {};
         break;
 
-      case 'between':
+      case '$between':
         /* istanbul ignore if */
         if (!Array.isArray(cond.value) || !cond.value.length || cond.value.length !== 2) {
           this.throwBadRequestException(`Invalid column '${cond.field}' value`);

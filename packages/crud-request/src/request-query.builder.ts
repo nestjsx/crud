@@ -1,11 +1,12 @@
 import {
-  hasLength,
   hasValue,
   isObject,
   isString,
   isArrayFull,
   isNil,
+  isUndefined,
 } from '@nestjsx/util';
+import { stringify } from 'qs';
 
 import { RequestQueryBuilderOptions, CreateQueryParams } from './interfaces';
 import {
@@ -15,15 +16,29 @@ import {
   validateNumeric,
   validateSort,
 } from './request-query.validator';
-import { QueryFields, QueryFilter, QueryJoin, QuerySort } from './types';
+import {
+  QueryFields,
+  QueryFilter,
+  QueryFilterArr,
+  QueryJoin,
+  QueryJoinArr,
+  QuerySort,
+  QuerySortArr,
+  SCondition,
+} from './types';
 
 // tslint:disable:variable-name ban-types
 export class RequestQueryBuilder {
+  constructor() {
+    this.setParamNames();
+  }
+
   private static _options: RequestQueryBuilderOptions = {
     delim: '||',
     delimStr: ',',
     paramNamesMap: {
       fields: ['fields', 'select'],
+      search: 's',
       filter: 'filter',
       or: 'or',
       join: 'join',
@@ -34,17 +49,10 @@ export class RequestQueryBuilder {
       cache: 'cache',
     },
   };
-
-  private _fields: QueryFields = [];
-  private _filter: QueryFilter[] = [];
-  private _or: QueryFilter[] = [];
-  private _join: QueryJoin[] = [];
-  private _sort: QuerySort[] = [];
-  private _limit: number;
-  private _offset: number;
-  private _page: number;
-  private _cache: number;
-
+  private paramNames: {
+    [key in keyof RequestQueryBuilderOptions['paramNamesMap']]: string;
+  } = {};
+  public queryObject: { [key: string]: any } = {};
   public queryString: string;
 
   static setOptions(options: RequestQueryBuilderOptions) {
@@ -71,202 +79,172 @@ export class RequestQueryBuilder {
     return RequestQueryBuilder._options;
   }
 
-  query(): string {
-    this.queryString = (
-      this.getJoin() +
-      this.getCondition('filter') +
-      this.getCondition('or') +
-      this.getFields() +
-      this.getSort() +
-      this.getNumeric('limit') +
-      this.getNumeric('offset') +
-      this.getNumeric('page') +
-      this.getNumeric('cache')
-    ).slice(0, -1);
+  setParamNames() {
+    Object.keys(RequestQueryBuilder._options.paramNamesMap).forEach((key) => {
+      const name = RequestQueryBuilder._options.paramNamesMap[key];
+      this.paramNames[key] = isString(name) ? (name as string) : (name[0] as string);
+    });
+  }
+
+  query(encode = true): string {
+    if (this.queryObject[this.paramNames.search]) {
+      this.queryObject[this.paramNames.filter] = undefined;
+      this.queryObject[this.paramNames.or] = undefined;
+    }
+    this.queryString = stringify(this.queryObject, { encode });
     return this.queryString;
   }
 
   select(fields: QueryFields): this {
-    validateFields(fields);
-    this._fields = fields;
+    if (isArrayFull(fields)) {
+      validateFields(fields);
+      this.queryObject[this.paramNames.fields] = fields.join(this.options.delimStr);
+    }
     return this;
   }
 
-  setFilter(filter: QueryFilter): this {
-    validateCondition(filter, 'filter');
-    this._filter.push(filter);
+  search(s: SCondition) {
+    if (!isNil(s) && isObject(s)) {
+      this.queryObject[this.paramNames.search] = JSON.stringify(s);
+    }
     return this;
   }
 
-  setOr(or: QueryFilter): this {
-    validateCondition(or, 'or');
-    this._or.push(or);
+  setFilter(f: QueryFilter | QueryFilterArr | Array<QueryFilter | QueryFilterArr>): this {
+    this.setCondition(f, 'filter');
     return this;
   }
 
-  setJoin(join: QueryJoin): this {
-    validateJoin(join);
-    this._join.push(join);
+  setOr(f: QueryFilter | QueryFilterArr | Array<QueryFilter | QueryFilterArr>): this {
+    this.setCondition(f, 'or');
     return this;
   }
 
-  sortBy(sort: QuerySort): this {
-    validateSort(sort);
-    this._sort.push(sort);
+  setJoin(j: QueryJoin | QueryJoinArr | Array<QueryJoin | QueryJoinArr>): this {
+    if (!isNil(j)) {
+      const param = this.checkQueryObjectParam('join', []);
+      this.queryObject[param] = [
+        ...this.queryObject[param],
+        ...(Array.isArray(j) && !isString(j[0])
+          ? (j as Array<QueryJoin | QueryJoinArr>).map((o) => this.addJoin(o))
+          : [this.addJoin(j as QueryJoin | QueryJoinArr)]),
+      ];
+    }
     return this;
   }
 
-  setLimit(limit: number): this {
-    validateNumeric(limit, 'limit');
-    this._limit = limit;
+  sortBy(s: QuerySort | QuerySortArr | Array<QuerySort | QuerySortArr>): this {
+    if (!isNil(s)) {
+      const param = this.checkQueryObjectParam('sort', []);
+      this.queryObject[param] = [
+        ...this.queryObject[param],
+        ...(Array.isArray(s) && !isString(s[0])
+          ? (s as Array<QuerySort | QuerySortArr>).map((o) => this.addSortBy(o))
+          : [this.addSortBy(s as QuerySort | QuerySortArr)]),
+      ];
+    }
     return this;
   }
 
-  setOffset(offset: number): this {
-    validateNumeric(offset, 'offset');
-    this._offset = offset;
+  setLimit(n: number): this {
+    this.setNumeric(n, 'limit');
     return this;
   }
 
-  setPage(page: number): this {
-    validateNumeric(page, 'page');
-    this._page = page;
+  setOffset(n: number): this {
+    this.setNumeric(n, 'offset');
+    return this;
+  }
+
+  setPage(n: number): this {
+    this.setNumeric(n, 'page');
     return this;
   }
 
   resetCache(): this {
-    this._cache = 0;
+    this.setNumeric(0, 'cache');
     return this;
+  }
+
+  cond(
+    f: QueryFilter | QueryFilterArr,
+    cond: 'filter' | 'or' | 'search' = 'search',
+  ): string {
+    const filter = Array.isArray(f) ? { field: f[0], operator: f[1], value: f[2] } : f;
+    validateCondition(filter, cond);
+    const d = this.options.delim;
+
+    return (
+      filter.field +
+      d +
+      filter.operator +
+      (hasValue(filter.value) ? d + filter.value : '')
+    );
+  }
+
+  private addJoin(j: QueryJoin | QueryJoinArr): string {
+    const join = Array.isArray(j) ? { field: j[0], select: j[1] } : j;
+    validateJoin(join);
+    const d = this.options.delim;
+    const ds = this.options.delimStr;
+
+    return join.field + (isArrayFull(join.select) ? d + join.select.join(ds) : '');
+  }
+
+  private addSortBy(s: QuerySort | QuerySortArr): string {
+    const sort = Array.isArray(s) ? { field: s[0], order: s[1] } : s;
+    validateSort(sort);
+    const ds = this.options.delimStr;
+
+    return sort.field + ds + sort.order;
   }
 
   private createFromParams(params: CreateQueryParams): this {
-    /* istanbul ignore else */
-    if (isArrayFull(params.fields)) {
-      this.select(params.fields);
-    }
-    /* istanbul ignore else */
-    if (isArrayFull(params.filter)) {
-      params.filter.forEach((filter) => this.setFilter(filter));
-    }
-    /* istanbul ignore else */
-    if (isArrayFull(params.or)) {
-      params.or.forEach((or) => this.setOr(or));
-    }
-    /* istanbul ignore else */
-    if (isArrayFull(params.join)) {
-      params.join.forEach((join) => this.setJoin(join));
-    }
-    /* istanbul ignore else */
-    if (isArrayFull(params.sort)) {
-      params.sort.forEach((sort) => this.sortBy(sort));
-    }
-    /* istanbul ignore else */
-    if (!isNil(params.limit)) {
-      this.setLimit(params.limit);
-    }
-    /* istanbul ignore else */
-    if (!isNil(params.offset)) {
-      this.setOffset(params.offset);
-    }
-    /* istanbul ignore else */
-    if (!isNil(params.page)) {
-      this.setPage(params.page);
-    }
-    /* istanbul ignore else */
+    this.select(params.fields);
+    this.search(params.search);
+    this.setFilter(params.filter);
+    this.setOr(params.or);
+    this.setJoin(params.join);
+    this.setLimit(params.limit);
+    this.setOffset(params.offset);
+    this.setPage(params.page);
+    this.sortBy(params.sort);
     if (params.resetCache) {
       this.resetCache();
     }
-
     return this;
   }
 
-  private getParamName(param: keyof RequestQueryBuilderOptions['paramNamesMap']): string {
-    const name = this.options.paramNamesMap[param];
-    return isString(name) ? (name as string) : (name[0] as string);
-  }
-
-  private getFields(): string {
-    if (!hasLength(this._fields)) {
-      return '';
+  private checkQueryObjectParam(
+    cond: keyof RequestQueryBuilderOptions['paramNamesMap'],
+    defaults: any,
+  ): string {
+    const param = this.paramNames[cond];
+    if (isNil(this.queryObject[param]) && !isUndefined(defaults)) {
+      this.queryObject[param] = defaults;
     }
-
-    const param = this.getParamName('fields');
-    const value = this._fields.join(this.options.delimStr);
-
-    return `${param}=${value}&`;
+    return param;
   }
 
-  private getCondition(cond: 'filter' | 'or'): string {
-    if (!hasLength(this[`_${cond}`])) {
-      return '';
+  private setCondition(
+    f: QueryFilter | QueryFilterArr | Array<QueryFilter | QueryFilterArr>,
+    cond: 'filter' | 'or',
+  ): void {
+    if (!isNil(f)) {
+      const param = this.checkQueryObjectParam(cond, []);
+      this.queryObject[param] = [
+        ...this.queryObject[param],
+        ...(Array.isArray(f) && !isString(f[0])
+          ? (f as Array<QueryFilter | QueryFilterArr>).map((o) => this.cond(o, cond))
+          : [this.cond(f as QueryFilter | QueryFilterArr, cond)]),
+      ];
     }
-
-    const param = this.getParamName(cond);
-    const d = this.options.delim;
-    const br = this.addBrackets(this[`_${cond}`]);
-
-    return (
-      this[`_${cond}`]
-        .map(
-          (f: QueryFilter) =>
-            `${param}${br}=${f.field}${d}${f.operator}${
-              hasValue(f.value) ? d + f.value : ''
-            }`,
-        )
-        .join('&') + '&'
-    );
   }
 
-  private getJoin(): string {
-    if (!hasLength(this._join)) {
-      return '';
+  private setNumeric(n: number, cond: 'limit' | 'offset' | 'page' | 'cache'): void {
+    if (!isNil(n)) {
+      validateNumeric(n, cond);
+      this.queryObject[this.paramNames[cond]] = n;
     }
-
-    const param = this.getParamName('join');
-    const d = this.options.delim;
-    const ds = this.options.delimStr;
-    const br = this.addBrackets(this._join);
-
-    return (
-      this._join
-        .map(
-          (j: QueryJoin) =>
-            `${param}${br}=${j.field}${
-              isArrayFull(j.select) ? d + j.select.join(ds) : ''
-            }`,
-        )
-        .join('&') + '&'
-    );
-  }
-
-  private getSort(): string {
-    if (!hasLength(this._sort)) {
-      return '';
-    }
-
-    const param = this.getParamName('sort');
-    const ds = this.options.delimStr;
-    const br = this.addBrackets(this._sort);
-
-    return (
-      this._sort
-        .map((s: QuerySort) => `${param}${br}=${s.field}${ds}${s.order}`)
-        .join('&') + '&'
-    );
-  }
-
-  private getNumeric(num: 'limit' | 'offset' | 'page' | 'cache'): string {
-    if (isNil(this[`_${num}`])) {
-      return '';
-    }
-
-    const param = this.getParamName(num);
-    const value = this[`_${num}`];
-
-    return `${param}=${value}&`;
-  }
-
-  private addBrackets(arr: any[]): string {
-    return arr.length > 1 ? '[]' : '';
   }
 }

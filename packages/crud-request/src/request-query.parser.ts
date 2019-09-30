@@ -8,6 +8,7 @@ import {
   isObject,
   isStringFull,
   objKeys,
+  isNil,
 } from '@nestjsx/util';
 
 import { RequestQueryException } from './exceptions';
@@ -31,12 +32,15 @@ import {
   QueryFilter,
   QueryJoin,
   QuerySort,
+  SCondition,
 } from './types';
 
 // tslint:disable:variable-name ban-types
 export class RequestQueryParser implements ParsedRequestParams {
   public fields: QueryFields = [];
   public paramsFilter: QueryFilter[] = [];
+  public search: SCondition;
+  public searchJson: SCondition;
   public filter: QueryFilter[] = [];
   public or: QueryFilter[] = [];
   public join: QueryJoin[] = [];
@@ -63,6 +67,7 @@ export class RequestQueryParser implements ParsedRequestParams {
     return {
       fields: this.fields,
       paramsFilter: this.paramsFilter,
+      search: this.search,
       filter: this.filter,
       or: this.or,
       join: this.join,
@@ -81,14 +86,18 @@ export class RequestQueryParser implements ParsedRequestParams {
       if (hasLength(paramNames)) {
         this._query = query;
         this._paramNames = paramNames;
+        let searchData = this._query[this.getParamNames('search')[0]];
 
+        this.search = this.parseSearchQueryParam(searchData) as any;
+        if (isNil(this.search)) {
+          this.filter = this.parseQueryParam(
+            'filter',
+            this.conditionParser.bind(this, 'filter'),
+          );
+          this.or = this.parseQueryParam('or', this.conditionParser.bind(this, 'or'));
+        }
         this.fields =
           this.parseQueryParam('fields', this.fieldsParser.bind(this))[0] || [];
-        this.filter = this.parseQueryParam(
-          'filter',
-          this.conditionParser.bind(this, 'filter'),
-        );
-        this.or = this.parseQueryParam('or', this.conditionParser.bind(this, 'or'));
         this.join = this.parseQueryParam('join', this.joinParser.bind(this));
         this.sort = this.parseQueryParam('sort', this.sortParser.bind(this));
         this.limit = this.parseQueryParam(
@@ -195,7 +204,25 @@ export class RequestQueryParser implements ParsedRequestParams {
     return data.split(this._options.delimStr);
   }
 
-  private conditionParser(cond: 'filter' | 'or', data: string): QueryFilter {
+  private parseSearchQueryParam(d: any): SCondition {
+    try {
+      if (isNil(d)) {
+        return undefined;
+      }
+
+      const data = JSON.parse(d);
+
+      if (!isObject(data)) {
+        throw new Error();
+      }
+
+      return data;
+    } catch (_) {
+      throw new RequestQueryException('Invalid search param. JSON expected');
+    }
+  }
+
+  private conditionParser(cond: 'filter' | 'or' | 'search', data: string): QueryFilter {
     const isArrayValue = ['in', 'notin', 'between'];
     const isEmptyValue = ['isnull', 'notnull'];
     const param = data.split(this._options.delim);
