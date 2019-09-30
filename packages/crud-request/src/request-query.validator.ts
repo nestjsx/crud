@@ -46,9 +46,14 @@ export function validateFields(fields: QueryFields): void {
   }
 }
 
-export function validateCondition(val: QueryFilter, cond: 'filter' | 'or'): void {
+export function validateCondition(
+  val: QueryFilter,
+  cond: 'filter' | 'or' | 'search',
+): void {
   if (!isObject(val) || !isStringFull(val.field)) {
-    throw new RequestQueryException(`Invalid ${cond} field. String expected`);
+    throw new RequestQueryException(
+      `Invalid field type in ${cond} condition. String expected`,
+    );
   }
   validateComparisonOperator(val.operator);
 }

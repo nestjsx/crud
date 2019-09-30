@@ -1,3 +1,4 @@
+import 'jest-extended';
 import { RequestQueryException } from '../src/exceptions/request-query.exception';
 import { ParamsOptions, ParsedRequestParams } from '../src/interfaces';
 import { RequestQueryParser } from '../src/request-query.parser';
@@ -358,6 +359,28 @@ describe('#request-query', () => {
       });
     });
 
+    describe('#parse search', () => {
+      it('should set undefined', () => {
+        const query = { foo: '' };
+        const test = qp.parseQuery(query);
+        expect(test.search).toBeUndefined();
+      });
+      it('should throw an error, 1', () => {
+        const query = { s: 'invalid' };
+        expect(qp.parseQuery.bind(qp, query)).toThrowError(RequestQueryException);
+      });
+      it('should throw an error, 2', () => {
+        const query = { s: 'true' };
+        expect(qp.parseQuery.bind(qp, query)).toThrowError(RequestQueryException);
+      });
+      it('should parse search', () => {
+        const query = { s: '{"$or":[{"id":1},{"name":"foo"}]}' };
+        const expected = { $or: [{ id: 1 }, { name: 'foo' }] };
+        const test = qp.parseQuery(query);
+        expect(test.search).toMatchObject(expected);
+      });
+    });
+
     describe('#parseParams', () => {
       it('should return instance of RequestQueryParse', () => {
         expect((qp as any).parseParams()).toBeInstanceOf(RequestQueryParser);
@@ -431,6 +454,7 @@ describe('#request-query', () => {
         const expected: ParsedRequestParams = {
           fields: [],
           paramsFilter: [],
+          search: undefined,
           filter: [],
           or: [],
           join: [],
