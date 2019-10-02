@@ -62,13 +62,49 @@ describe('#crud-typeorm', () => {
       constructor(public service: UsersService) {}
     }
 
+    @Crud({
+      model: { type: User },
+      query: {
+        join: {
+          profile: {
+            eager: true,
+            required: true,
+          },
+        },
+      },
+    })
+    @Controller('/users2')
+    class UsersController2 {
+      constructor(public service: UsersService) {}
+    }
+
+    @Crud({
+      model: { type: User },
+      query: {
+        join: {
+          profile: {
+            eager: true,
+          },
+        },
+      },
+    })
+    @Controller('/users3')
+    class UsersController3 {
+      constructor(public service: UsersService) {}
+    }
+
     beforeAll(async () => {
       const fixture = await Test.createTestingModule({
         imports: [
           TypeOrmModule.forRoot({ ...withCache, logging: false }),
           TypeOrmModule.forFeature([Company, Project, User, UserProfile]),
         ],
-        controllers: [CompaniesController, UsersController],
+        controllers: [
+          CompaniesController,
+          UsersController,
+          UsersController2,
+          UsersController3,
+        ],
         providers: [
           { provide: APP_FILTER, useClass: HttpExceptionFilter },
           CompaniesService,
@@ -328,7 +364,7 @@ describe('#crud-typeorm', () => {
       it('should return updated entity, 2', (done) => {
         const dto = { isActive: false, companyId: 5 };
         return request(server)
-          .patch('/companies/1/users/21')
+          .patch('/companies/1/users/22')
           .send(dto)
           .end((_, res) => {
             expect(res.status).toBe(200);
@@ -375,13 +411,28 @@ describe('#crud-typeorm', () => {
       });
       it('should return deleted entity', (done) => {
         return request(server)
-          .delete('/companies/1/users/21')
+          .delete('/companies/1/users/22')
           .end((_, res) => {
             expect(res.status).toBe(200);
-            expect(res.body.id).toBe(21);
+            expect(res.body.id).toBe(22);
             expect(res.body.companyId).toBe(1);
             done();
           });
+      });
+    });
+
+    describe('join options: required', () => {
+      const users2 = () => request(server).get('/users2/21');
+      const users3 = () => request(server).get('/users3/21');
+
+      it('should return status 404', async () => {
+        await users2().expect(404);
+      });
+
+      it('should return status 200', async () => {
+        const res = await users3().expect(200);
+        expect(res.body.id).toBe(21);
+        expect(res.body.profile).toBe(null);
       });
     });
   });

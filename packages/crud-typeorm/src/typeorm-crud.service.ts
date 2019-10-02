@@ -395,7 +395,6 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
         ...hash,
         [curr.propertyName]: {
           name: curr.propertyName,
-          type: this.getJoinType(curr.relationType),
           columns: curr.inverseEntityMetadata.columns.map((col) => col.propertyName),
           referencedColumn: (curr.joinColumns.length
             ? curr.joinColumns[0]
@@ -405,17 +404,6 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
       }),
       {},
     );
-  }
-
-  private getJoinType(relationType: string): string {
-    switch (relationType) {
-      case 'many-to-one':
-      case 'one-to-one':
-        return 'innerJoin';
-
-      default:
-        return 'leftJoin';
-    }
   }
 
   private async getOneOrFail(req: CrudRequest): Promise<T> {
@@ -539,7 +527,6 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
 
       this.entityRelationsHash[cond.field] = {
         name: curr.propertyName,
-        type: this.getJoinType(curr.relationType),
         columns: curr.inverseEntityMetadata.columns.map((col) => col.propertyName),
         referencedColumn: (curr.joinColumns.length
           ? /* istanbul ignore next */ curr.joinColumns[0]
@@ -572,8 +559,9 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
       ].map((col) => `${relation.name}.${col}`);
 
       const relationPath = relation.nestedRelation || `${this.alias}.${relation.name}`;
+      const relationType = options.required ? 'innerJoin' : 'leftJoin';
 
-      builder[relation.type](relationPath, relation.name);
+      builder[relationType](relationPath, relation.name);
       builder.addSelect(select);
     }
 
