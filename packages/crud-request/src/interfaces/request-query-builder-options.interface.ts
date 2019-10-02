@@ -3,6 +3,7 @@ export interface RequestQueryBuilderOptions {
   delimStr?: string;
   paramNamesMap?: {
     fields?: string | string[];
+    search?: string | string[];
     filter?: string | string[];
     or?: string | string[];
     join?: string | string[];

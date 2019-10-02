@@ -1,11 +1,21 @@
-import { QueryFields, QueryFilter, QueryJoin, QuerySort } from '../types';
+import {
+  QueryFields,
+  QueryFilter,
+  QueryFilterArr,
+  QueryJoin,
+  QueryJoinArr,
+  QuerySort,
+  QuerySortArr,
+  SCondition,
+} from '../types';
 
 export interface CreateQueryParams {
   fields?: QueryFields;
-  filter?: QueryFilter[];
-  or?: QueryFilter[];
-  join?: QueryJoin[];
-  sort?: QuerySort[];
+  search?: SCondition;
+  filter?: QueryFilter | QueryFilterArr | Array<QueryFilter | QueryFilterArr>;
+  or?: QueryFilter | QueryFilterArr | Array<QueryFilter | QueryFilterArr>;
+  join?: QueryJoin | QueryJoinArr | Array<QueryJoin | QueryJoinArr>;
+  sort?: QuerySort | QuerySortArr | Array<QuerySort | QuerySortArr>;
   limit?: number;
   offset?: number;
   page?: number;

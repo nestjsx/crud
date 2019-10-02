@@ -18,3 +18,4 @@ lerna-debug.log
 
 # dist
 packages/**/lib
+packages/**/tsconfig.tsbuildinfo

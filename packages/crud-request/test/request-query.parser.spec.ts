@@ -1,3 +1,4 @@
+import 'jest-extended';
 import { RequestQueryException } from '../src/exceptions/request-query.exception';
 import { ParamsOptions, ParsedRequestParams } from '../src/interfaces';
 import { RequestQueryParser } from '../src/request-query.parser';
@@ -358,6 +359,28 @@ describe('#request-query', () => {
       });
     });
 
+    describe('#parse search', () => {
+      it('should set undefined', () => {
+        const query = { foo: '' };
+        const test = qp.parseQuery(query);
+        expect(test.search).toBeUndefined();
+      });
+      it('should throw an error, 1', () => {
+        const query = { s: 'invalid' };
+        expect(qp.parseQuery.bind(qp, query)).toThrowError(RequestQueryException);
+      });
+      it('should throw an error, 2', () => {
+        const query = { s: 'true' };
+        expect(qp.parseQuery.bind(qp, query)).toThrowError(RequestQueryException);
+      });
+      it('should parse search', () => {
+        const query = { s: '{"$or":[{"id":1},{"name":"foo"}]}' };
+        const expected = { $or: [{ id: 1 }, { name: 'foo' }] };
+        const test = qp.parseQuery(query);
+        expect(test.search).toMatchObject(expected);
+      });
+    });
+
     describe('#parseParams', () => {
       it('should return instance of RequestQueryParse', () => {
         expect((qp as any).parseParams()).toBeInstanceOf(RequestQueryParser);
@@ -410,17 +433,20 @@ describe('#request-query', () => {
           foo: 'cb1751fd-7fcf-4eb5-b38e-86428b1fd88d',
           bar: '1',
           buz: 'string',
+          bigInt: '9007199254740999', // Bigger than Number.MAX_SAFE_INTEGER
         };
         const options: ParamsOptions = {
           foo: { field: 'foo', type: 'uuid' },
           bar: { field: 'bb', type: 'number' },
           buz: { field: 'buz', type: 'string' },
+          bigInt: { field: 'bigInt', type: 'string' },
         };
         const test = qp.parseParams(params, options);
         const expected = [
           { field: 'foo', operator: 'eq', value: 'cb1751fd-7fcf-4eb5-b38e-86428b1fd88d' },
           { field: 'bb', operator: 'eq', value: 1 },
           { field: 'buz', operator: 'eq', value: 'string' },
+          { field: 'bigInt', operator: 'eq', value: '9007199254740999' },
         ];
         expect(test.paramsFilter).toMatchObject(expected);
       });
@@ -431,6 +457,7 @@ describe('#request-query', () => {
         const expected: ParsedRequestParams = {
           fields: [],
           paramsFilter: [],
+          search: undefined,
           filter: [],
           or: [],
           join: [],
