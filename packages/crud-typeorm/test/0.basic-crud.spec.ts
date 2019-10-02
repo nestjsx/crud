@@ -28,8 +28,7 @@ describe('#crud-typeorm', () => {
     })
     @Controller('companies')
     class CompaniesController {
-      constructor(public service: CompaniesService) {
-      }
+      constructor(public service: CompaniesService) {}
     }
 
     @Crud({
@@ -60,8 +59,7 @@ describe('#crud-typeorm', () => {
     })
     @Controller('companies/:companyId/users')
     class UsersController {
-      constructor(public service: UsersService) {
-      }
+      constructor(public service: UsersService) {}
     }
 
     beforeAll(async () => {
@@ -207,6 +205,18 @@ describe('#crud-typeorm', () => {
             done();
           });
       });
+
+      it('should return an entity with its embedded entity properties', (done) => {
+        return request(server)
+          .get('/companies/1/users/1')
+          .end((_, res) => {
+            expect(res.status).toBe(200);
+            expect(res.body.id).toBe(1);
+            expect(res.body.name.first).toBe('firstname1');
+            expect(res.body.name.last).toBe('lastname1');
+            done();
+          });
+      });
     });
 
     describe('#createOneBase', () => {
@@ -237,6 +247,10 @@ describe('#crud-typeorm', () => {
         const dto: User = {
           email: 'test@test.com',
           isActive: true,
+          name: {
+            first: 'test',
+            last: 'last',
+          },
           profile: {
             name: 'testName',
           },

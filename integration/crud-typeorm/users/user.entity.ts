@@ -18,6 +18,18 @@ import { Project } from '../projects/project.entity';
 
 const { CREATE, UPDATE } = CrudValidationGroups;
 
+export class Name {   
+  @IsString({ always: true })
+  @Column({ nullable: true })
+  first: string;
+  
+  @IsString({ always: true })
+  @Column({ nullable: true })
+  last: string;
+}
+
+
+// tslint:disable-next-line:max-classes-per-file
 @Entity('users')
 export class User extends BaseEntity {
   @IsOptional({ groups: [UPDATE] })
@@ -33,6 +45,10 @@ export class User extends BaseEntity {
   @IsBoolean({ always: true })
   @Column({ type: 'boolean', default: true })
   isActive: boolean;
+
+  @Type((t) => Name)
+  @Column(type => Name)
+  name: Name;
 
   @Column({ nullable: true })
   profileId?: number;

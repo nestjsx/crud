@@ -368,6 +368,11 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
 
   private onInitMapEntityColumns() {
     this.entityColumns = this.repo.metadata.columns.map((prop) => {
+      // In case column is an embedded, use the propertyPath to get complete path
+      if (prop.embeddedMetadata) {
+        this.entityColumnsHash[prop.propertyPath] = true;
+        return prop.propertyPath;
+      }
       this.entityColumnsHash[prop.propertyName] = true;
       return prop.propertyName;
     });
