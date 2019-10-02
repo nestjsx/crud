@@ -145,6 +145,37 @@ describe('#crud-typeorm', () => {
           expect(res.body.category.children[0].children[0].image.id).toEqual(7);
         });
       });
+
+      describe('correct processing with the reverse ordering of defining fields', () => {
+        let res: any;
+        beforeAll(async () => {
+          const q = new RequestQueryBuilder()
+            .setJoin({
+              field: 'category.image',
+            })
+            .setJoin({
+              field: 'category',
+            })
+            .setJoin({
+              field: 'category.children',
+            })
+            .query();
+          res = await request(server)
+            .get('/projects/1')
+            .query(q)
+            .expect(200)
+            .then((res) => res);
+        });
+        it('project has category', () => {
+          expect(res.body.category.id).toEqual(1);
+        });
+        it('category has children', () => {
+          expect(res.body.category.children.length).toEqual(2);
+        });
+        it('category has image', () => {
+          expect(res.body.category.image.id).toEqual(1);
+        });
+      });
     });
   });
 });

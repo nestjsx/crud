@@ -13,7 +13,15 @@ import {
   QueryJoin,
   QuerySort,
 } from '@nestjsx/crud-request';
-import { hasLength, isArrayFull, isObject, isUndefined, objKeys } from '@nestjsx/util';
+import {
+  hasLength,
+  isArrayFull,
+  isObject,
+  isUndefined,
+  objKeys,
+  sortFieldPathsByDepth,
+  sortJoinOptionsByDepth,
+} from '@nestjsx/util';
 import { plainToClass } from 'class-transformer';
 import { ClassType } from 'class-transformer/ClassTransformer';
 import { Brackets, ObjectLiteral, Repository, SelectQueryBuilder } from 'typeorm';
@@ -209,7 +217,8 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
 
     // set joins
     const joinOptions = options.query.join || {};
-    const allowedJoins = objKeys(joinOptions);
+    const allowedJoins = sortFieldPathsByDepth(objKeys(joinOptions));
+    const sortedParsedJoins = sortJoinOptionsByDepth(parsed.join);
 
     if (hasLength(allowedJoins)) {
       const eagerJoins: any = {};
@@ -217,7 +226,9 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
       for (let i = 0; i < allowedJoins.length; i++) {
         /* istanbul ignore else */
         if (joinOptions[allowedJoins[i]].eager) {
-          const cond = parsed.join.find((j) => j && j.field === allowedJoins[i]) || {
+          const cond = sortedParsedJoins.find(
+            (j) => j && j.field === allowedJoins[i],
+          ) || {
             field: allowedJoins[i],
           };
           this.setJoin(cond, joinOptions, builder);
@@ -225,11 +236,11 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
         }
       }
 
-      if (isArrayFull(parsed.join)) {
-        for (let i = 0; i < parsed.join.length; i++) {
+      if (isArrayFull(sortedParsedJoins)) {
+        for (let i = 0; i < sortedParsedJoins.length; i++) {
           /* istanbul ignore else */
-          if (!eagerJoins[parsed.join[i].field]) {
-            this.setJoin(parsed.join[i], joinOptions, builder);
+          if (!eagerJoins[sortedParsedJoins[i].field]) {
+            this.setJoin(sortedParsedJoins[i], joinOptions, builder);
           }
         }
       }
