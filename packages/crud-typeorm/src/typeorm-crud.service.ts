@@ -474,6 +474,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
 
       return [previous_relation, relation];
     } catch (e) {
+      /* istanbul ignore next */
       return null;
     }
   }
