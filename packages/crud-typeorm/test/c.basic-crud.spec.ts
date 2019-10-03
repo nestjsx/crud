@@ -280,7 +280,7 @@ describe('#crud-typeorm', () => {
           });
       });
       it('should return saved entity with param', (done) => {
-        const dto: User = {
+        const dto: any = {
           email: 'test@test.com',
           isActive: true,
           name: {

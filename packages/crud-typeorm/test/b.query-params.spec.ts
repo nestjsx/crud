@@ -52,6 +52,8 @@ describe('#crud-typeorm', () => {
             persist: ['id'],
             exclude: ['updatedAt', 'createdAt'],
           },
+          users: {},
+          userProjects: {},
         },
         sort: [{ field: 'id', order: 'ASC' }],
         limit: 100,
@@ -98,6 +100,7 @@ describe('#crud-typeorm', () => {
         join: {
           company: {},
           'company.projects': {},
+          userLicenses: {},
         },
       },
     })
@@ -434,6 +437,39 @@ describe('#crud-typeorm', () => {
             expect(res.status).toBe(200);
             expect(res.body.company).toBeDefined();
             expect(res.body.company.projects).toBeDefined();
+            done();
+          });
+      });
+      it('should return joined entity with ManyToMany pivot table', (done) => {
+        const query = qb
+          .setJoin({ field: 'users' })
+          .setJoin({ field: 'userProjects' })
+          .query();
+        return request(server)
+          .get('/projects/1')
+          .query(query)
+          .end((_, res) => {
+            expect(res.status).toBe(200);
+            expect(res.body.users).toBeDefined();
+            expect(res.body.users.length).toBe(2);
+            expect(res.body.users[0].id).toBe(1);
+            expect(res.body.userProjects).toBeDefined();
+            expect(res.body.userProjects.length).toBe(2);
+            expect(res.body.userProjects[0].review).toBe('User project 1 1');
+            done();
+          });
+      });
+    });
+
+    describe('#query composite key join', () => {
+      it('should return joined relation', (done) => {
+        const query = qb.setJoin({ field: 'userLicenses' }).query();
+        return request(server)
+          .get('/users/1')
+          .query(query)
+          .end((_, res) => {
+            expect(res.status).toBe(200);
+            expect(res.body.userLicenses).toBeDefined();
             done();
           });
       });
