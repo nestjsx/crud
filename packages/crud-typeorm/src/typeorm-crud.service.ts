@@ -20,7 +20,6 @@ import {
   hasLength,
   isArrayFull,
   isObject,
-  isObjectFull,
   isUndefined,
   objKeys,
   isNil,
@@ -28,7 +27,13 @@ import {
 } from '@nestjsx/util';
 import { plainToClass } from 'class-transformer';
 import { ClassType } from 'class-transformer/ClassTransformer';
-import { Brackets, ObjectLiteral, Repository, SelectQueryBuilder } from 'typeorm';
+import {
+  Brackets,
+  ObjectLiteral,
+  Repository,
+  SelectQueryBuilder,
+  DeepPartial,
+} from 'typeorm';
 import { RelationMetadata } from 'typeorm/metadata/RelationMetadata';
 
 export class TypeOrmCrudService<T> extends CrudService<T> {
@@ -96,7 +101,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
    * @param req
    * @param dto
    */
-  public async createOne(req: CrudRequest, dto: T): Promise<T> {
+  public async createOne(req: CrudRequest, dto: DeepPartial<T>): Promise<T> {
     const entity = this.prepareEntityBeforeSave(dto, req.parsed.paramsFilter);
 
     /* istanbul ignore if */
@@ -112,7 +117,10 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
    * @param req
    * @param dto
    */
-  public async createMany(req: CrudRequest, dto: CreateManyDto<T>): Promise<T[]> {
+  public async createMany(
+    req: CrudRequest,
+    dto: CreateManyDto<DeepPartial<T>>,
+  ): Promise<T[]> {
     /* istanbul ignore if */
     if (!isObject(dto) || !isArrayFull(dto.bulk)) {
       this.throwBadRequestException(`Empty data. Nothing to save.`);
@@ -135,7 +143,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
    * @param req
    * @param dto
    */
-  public async updateOne(req: CrudRequest, dto: T): Promise<T> {
+  public async updateOne(req: CrudRequest, dto: DeepPartial<T>): Promise<T> {
     const found = await this.getOneOrFail(req);
 
     /* istanbul ignore else */
@@ -156,7 +164,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
    * @param req
    * @param dto
    */
-  public async replaceOne(req: CrudRequest, dto: T): Promise<T> {
+  public async replaceOne(req: CrudRequest, dto: DeepPartial<T>): Promise<T> {
     /* istanbul ignore else */
     if (
       hasLength(req.parsed.paramsFilter) &&
@@ -387,7 +395,6 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
         ...hash,
         [curr.propertyName]: {
           name: curr.propertyName,
-          type: this.getJoinType(curr.relationType),
           columns: curr.inverseEntityMetadata.columns.map((col) => col.propertyName),
           referencedColumn: (curr.joinColumns.length
             ? curr.joinColumns[0]
@@ -397,17 +404,6 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
       }),
       {},
     );
-  }
-
-  private getJoinType(relationType: string): string {
-    switch (relationType) {
-      case 'many-to-one':
-      case 'one-to-one':
-        return 'innerJoin';
-
-      default:
-        return 'leftJoin';
-    }
   }
 
   private async getOneOrFail(req: CrudRequest): Promise<T> {
@@ -422,7 +418,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     return found;
   }
 
-  private prepareEntityBeforeSave(dto: T, paramsFilter: QueryFilter[]): T {
+  private prepareEntityBeforeSave(dto: DeepPartial<T>, paramsFilter: QueryFilter[]): T {
     /* istanbul ignore if */
     if (!isObject(dto)) {
       return undefined;
@@ -531,7 +527,6 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
 
       this.entityRelationsHash[cond.field] = {
         name: curr.propertyName,
-        type: this.getJoinType(curr.relationType),
         columns: curr.inverseEntityMetadata.columns.map((col) => col.propertyName),
         referencedColumn: (curr.joinColumns.length
           ? /* istanbul ignore next */ curr.joinColumns[0]
@@ -564,8 +559,9 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
       ].map((col) => `${relation.name}.${col}`);
 
       const relationPath = relation.nestedRelation || `${this.alias}.${relation.name}`;
+      const relationType = options.required ? 'innerJoin' : 'leftJoin';
 
-      builder[relation.type](relationPath, relation.name);
+      builder[relationType](relationPath, relation.name);
       builder.addSelect(select);
     }
 

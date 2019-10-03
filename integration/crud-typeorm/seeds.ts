@@ -89,7 +89,8 @@ export class Seeds1544303473346 implements MigrationInterface {
       ('17@email.com', false, 2, 17, NULL, NULL),
       ('18@email.com', false, 2, 18, NULL, NULL),
       ('19@email.com', false, 2, 19, NULL, NULL),
-      ('20@email.com', false, 2, 20, NULL, NULL);
+      ('20@email.com', false, 2, 20, NULL, NULL),
+      ('21@email.com', false, 2, NULL, NULL, NULL);
     `);
   }
 
