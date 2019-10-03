@@ -27,10 +27,12 @@ export interface CreateManyRouteOptions extends BaseRouteOptions {}
 
 export interface ReplaceOneRouteOptions extends BaseRouteOptions {
   allowParamsOverride?: boolean;
+  returnShallow?: boolean;
 }
 
 export interface UpdateOneRouteOptions extends BaseRouteOptions {
   allowParamsOverride?: boolean;
+  returnShallow?: boolean;
 }
 
 export interface DeleteOneRouteOptions extends BaseRouteOptions {

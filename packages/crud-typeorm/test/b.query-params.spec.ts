@@ -139,7 +139,7 @@ describe('#crud-typeorm', () => {
     });
 
     afterAll(async () => {
-      app.close();
+      await app.close();
     });
 
     describe('#select', () => {

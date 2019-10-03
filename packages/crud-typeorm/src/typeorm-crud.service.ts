@@ -144,19 +144,23 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
    * @param dto
    */
   public async updateOne(req: CrudRequest, dto: DeepPartial<T>): Promise<T> {
-    const found = await this.getOneOrFail(req);
+    const { allowParamsOverride, returnShallow } = req.options.routes.updateOneBase;
+    const paramsFilters = this.getParamsFilters(req.parsed);
+    const found = await this.getOneShallowOrFail(paramsFilters);
 
-    /* istanbul ignore else */
-    if (
-      hasLength(req.parsed.paramsFilter) &&
-      !req.options.routes.updateOneBase.allowParamsOverride
-    ) {
-      for (const filter of req.parsed.paramsFilter) {
-        dto[filter.field] = filter.value;
-      }
+    const toSave = !allowParamsOverride
+      ? { ...found, ...dto, ...paramsFilters }
+      : { ...found, ...dto };
+    const updated = await this.repo.save(toSave);
+
+    if (returnShallow) {
+      return updated;
+    } else {
+      req.parsed.paramsFilter.forEach((filter) => {
+        filter.value = updated[filter.field];
+      });
+      return this.getOneOrFail(req);
     }
-
-    return this.repo.save<any>({ ...found, ...dto });
   }
 
   /**
@@ -165,17 +169,23 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
    * @param dto
    */
   public async replaceOne(req: CrudRequest, dto: DeepPartial<T>): Promise<T> {
-    /* istanbul ignore else */
-    if (
-      hasLength(req.parsed.paramsFilter) &&
-      !req.options.routes.replaceOneBase.allowParamsOverride
-    ) {
-      for (const filter of req.parsed.paramsFilter) {
-        dto[filter.field] = filter.value;
-      }
-    }
+    const { allowParamsOverride, returnShallow } = req.options.routes.replaceOneBase;
+    const paramsFilters = this.getParamsFilters(req.parsed);
 
-    return this.repo.save<any>(dto);
+    const toSave = !allowParamsOverride
+      ? { ...dto, ...paramsFilters }
+      : { ...paramsFilters, ...dto };
+
+    const replaced = await this.repo.save(toSave);
+
+    if (returnShallow) {
+      return replaced;
+    } else {
+      req.parsed.paramsFilter.forEach((filter) => {
+        filter.value = replaced[filter.field];
+      });
+      return this.getOneOrFail(req);
+    }
   }
 
   /**
@@ -183,18 +193,26 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
    * @param req
    */
   public async deleteOne(req: CrudRequest): Promise<void | T> {
-    const found = await this.getOneOrFail(req);
+    const { returnDeleted } = req.options.routes.deleteOneBase;
+    const paramsFilters = this.getParamsFilters(req.parsed);
+    const found = await this.getOneShallowOrFail(paramsFilters);
     const deleted = await this.repo.remove(found);
 
-    /* istanbul ignore else */
-    if (req.options.routes.deleteOneBase.returnDeleted) {
-      // set params, because id is undefined
-      for (const filter of req.parsed.paramsFilter) {
-        deleted[filter.field] = filter.value;
-      }
+    /* istanbul ignore next */
+    return returnDeleted ? { ...deleted, ...paramsFilters } : undefined;
+  }
 
-      return deleted;
+  public getParamsFilters(parsed: CrudRequest['parsed']): ObjectLiteral {
+    const paramsFilters = {};
+
+    /* istanbul ignore else */
+    if (hasLength(parsed.paramsFilter)) {
+      for (const filter of parsed.paramsFilter) {
+        paramsFilters[filter.field] = filter.value;
+      }
     }
+
+    return paramsFilters;
   }
 
   public decidePagination(
@@ -410,6 +428,16 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     const { parsed, options } = req;
     const builder = await this.createBuilder(parsed, options);
     const found = await builder.getOne();
+
+    if (!found) {
+      this.throwNotFoundException(this.alias);
+    }
+
+    return found;
+  }
+
+  private async getOneShallowOrFail(where: ObjectLiteral): Promise<T> {
+    const found = await this.findOne({ where });
 
     if (!found) {
       this.throwNotFoundException(this.alias);
