@@ -106,6 +106,22 @@ describe('#crud-typeorm', () => {
       constructor(public service: UsersService) {}
     }
 
+    @Crud({
+      model: { type: User },
+      query: {
+        join: {
+          company: {},
+          'company.projects': {
+            alias: 'pr',
+          },
+        },
+      },
+    })
+    @Controller('users2')
+    class UsersController2 {
+      constructor(public service: UsersService) {}
+    }
+
     beforeAll(async () => {
       const fixture = await Test.createTestingModule({
         imports: [
@@ -119,6 +135,7 @@ describe('#crud-typeorm', () => {
           ProjectsController3,
           ProjectsController4,
           UsersController,
+          UsersController2,
         ],
         providers: [
           { provide: APP_FILTER, useClass: HttpExceptionFilter },
@@ -149,7 +166,7 @@ describe('#crud-typeorm', () => {
           .get('/companies')
           .query(query)
           .end((_, res) => {
-            expect(res.status).toBe(400);
+            expect(res.status).toBe(500);
             done();
           });
       });
@@ -319,7 +336,7 @@ describe('#crud-typeorm', () => {
           .get('/users/1')
           .query(query)
           .end((_, res) => {
-            expect(res.status).toBe(400);
+            expect(res.status).toBe(500);
             done();
           });
       });
@@ -337,7 +354,7 @@ describe('#crud-typeorm', () => {
           .get('/users/1')
           .query(query)
           .end((_, res) => {
-            expect(res.status).toBe(400);
+            expect(res.status).toBe(500);
             done();
           });
       });
@@ -355,7 +372,7 @@ describe('#crud-typeorm', () => {
           .get('/users/1')
           .query(query)
           .end((_, res) => {
-            expect(res.status).toBe(400);
+            expect(res.status).toBe(500);
             done();
           });
       });
@@ -388,7 +405,6 @@ describe('#crud-typeorm', () => {
             done();
           });
       });
-
       it('should return joined entity, 2', (done) => {
         const query = qb
           .setFilter({ field: 'company.projects.id', operator: 'notnull' })
@@ -397,6 +413,22 @@ describe('#crud-typeorm', () => {
           .query();
         return request(server)
           .get('/users/1')
+          .query(query)
+          .end((_, res) => {
+            expect(res.status).toBe(200);
+            expect(res.body.company).toBeDefined();
+            expect(res.body.company.projects).toBeDefined();
+            done();
+          });
+      });
+      it('should return joined entity with alias', (done) => {
+        const query = qb
+          .setFilter({ field: 'pr.id', operator: 'notnull' })
+          .setJoin({ field: 'company' })
+          .setJoin({ field: 'company.projects' })
+          .query();
+        return request(server)
+          .get('/users2/1')
           .query(query)
           .end((_, res) => {
             expect(res.status).toBe(200);

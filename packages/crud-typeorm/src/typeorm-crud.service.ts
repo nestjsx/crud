@@ -466,41 +466,6 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     return dto instanceof this.entityType ? dto : plainToClass(this.entityType, dto);
   }
 
-  private hasColumn(column: string): boolean {
-    return this.entityColumnsHash[column];
-  }
-
-  private hasRelation(column: string): boolean {
-    return this.entityRelationsHash[column];
-  }
-
-  private validateHasColumn(column: string) {
-    if (column.indexOf('.') !== -1) {
-      const nests = column.split('.');
-      let relation;
-      column = nests[nests.length - 1];
-      relation = nests.slice(0, nests.length - 1).join('.');
-
-      if (!this.hasRelation(relation)) {
-        this.throwBadRequestException(`Invalid relation name '${relation}'`);
-      }
-
-      const noColumn = !(this.entityRelationsHash[relation].columns as string[]).find(
-        (o) => o === column,
-      );
-
-      if (noColumn) {
-        this.throwBadRequestException(
-          `Invalid column name '${column}' for relation '${relation}'`,
-        );
-      }
-    } else {
-      if (!this.hasColumn(column)) {
-        this.throwBadRequestException(`Invalid column name '${column}'`);
-      }
-    }
-  }
-
   private getAllowedColumns(columns: string[], options: QueryOptions): string[] {
     return (!options.exclude || !options.exclude.length) &&
       (!options.allow || /* istanbul ignore next */ !options.allow.length)
@@ -575,6 +540,8 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
         return true;
       }
 
+      const alias = options.alias ? options.alias : relation.name;
+
       const columns =
         !cond.select || !cond.select.length
           ? allowed
@@ -584,12 +551,12 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
         relation.referencedColumn,
         ...(options.persist && options.persist.length ? options.persist : []),
         ...columns,
-      ].map((col) => `${relation.name}.${col}`);
+      ].map((col) => `${alias}.${col}`);
 
       const relationPath = relation.nestedRelation || `${this.alias}.${relation.name}`;
       const relationType = options.required ? 'innerJoin' : 'leftJoin';
 
-      builder[relationType](relationPath, relation.name);
+      builder[relationType](relationPath, alias);
       builder.addSelect(select);
     }
 
@@ -597,13 +564,11 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
   }
 
   private setAndWhere(cond: QueryFilter, i: any, builder: SelectQueryBuilder<T>) {
-    this.validateHasColumn(cond.field);
     const { str, params } = this.mapOperatorsToQuery(cond, `andWhere${i}`);
     builder.andWhere(str, params);
   }
 
   private setOrWhere(cond: QueryFilter, i: any, builder: SelectQueryBuilder<T>) {
-    this.validateHasColumn(cond.field);
     const { str, params } = this.mapOperatorsToQuery(cond, `orWhere${i}`);
     builder.orWhere(str, params);
   }
@@ -886,7 +851,6 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     const params: ObjectLiteral = {};
 
     for (let i = 0; i < sort.length; i++) {
-      this.validateHasColumn(sort[i].field);
       params[this.getFieldWithAlias(sort[i].field)] = sort[i].order;
     }
 

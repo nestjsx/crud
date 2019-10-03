@@ -27,4 +27,5 @@ export interface JoinOption {
   persist?: QueryFields;
   eager?: boolean;
   required?: boolean;
+  alias?: string;
 }
