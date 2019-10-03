@@ -42,7 +42,7 @@ export class Seeds1544303473346 implements MigrationInterface {
       ('Project20', 'description20', false, 10);
     `);
 
-    // users-profiles
+    // user-profiles
     await queryRunner.query(`
       INSERT INTO public.user_profiles ("name") VALUES
       ('User1'),
@@ -103,13 +103,22 @@ export class Seeds1544303473346 implements MigrationInterface {
       ('License5');
     `);
 
-    // licenses
+    // user-licenses
     await queryRunner.query(`
       INSERT INTO public.user_licenses ("userId", "licenseId", "yearsActive") VALUES
       (1, 1, 3),
       (1, 2, 5),
       (1, 4, 7),
       (2, 5, 1);
+    `);
+
+    // user-projects
+    await queryRunner.query(`
+      INSERT INTO public.user_projects ("projectId", "userId", "review") VALUES
+      (1, 1, 'User project 1 1'),
+      (1, 2, 'User project 1 2'),
+      (2, 2, 'User project 2 2'),
+      (3, 3, 'User project 3 3');
     `);
   }
 

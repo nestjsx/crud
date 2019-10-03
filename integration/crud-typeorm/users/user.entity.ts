@@ -24,6 +24,7 @@ import { UserProfile } from '../users-profiles/user-profile.entity';
 import { UserLicense } from '../users-licenses/user-license.entity';
 import { Company } from '../companies/company.entity';
 import { Project } from '../projects/project.entity';
+import { UserProject } from '../projects/user-project.entity';
 
 const { CREATE, UPDATE } = CrudValidationGroups;
 
@@ -81,6 +82,12 @@ export class User extends BaseEntity {
 
   @ManyToMany((type) => Project, (c) => c.users)
   projects?: Project[];
+
+  @OneToMany((type) => UserProject, (el) => el.user, {
+    persistence: false,
+    onDelete: 'CASCADE',
+  })
+  userProjects!: UserProject[];
 
   @OneToMany((type) => UserLicense, (ul) => ul.user)
   @Type((t) => UserLicense)
