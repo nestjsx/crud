@@ -1,4 +1,12 @@
-import { Entity, Column, JoinColumn, OneToOne, ManyToOne, ManyToMany } from 'typeorm';
+import {
+  Entity,
+  Column,
+  JoinColumn,
+  OneToOne,
+  OneToMany,
+  ManyToOne,
+  ManyToMany,
+} from 'typeorm';
 import {
   IsOptional,
   IsString,
@@ -13,21 +21,21 @@ import { CrudValidationGroups } from '@nestjsx/crud';
 
 import { BaseEntity } from '../base-entity';
 import { UserProfile } from '../users-profiles/user-profile.entity';
+import { UserLicense } from '../users-licenses/user-license.entity';
 import { Company } from '../companies/company.entity';
 import { Project } from '../projects/project.entity';
 
 const { CREATE, UPDATE } = CrudValidationGroups;
 
-export class Name {   
+export class Name {
   @IsString({ always: true })
   @Column({ nullable: true })
   first: string;
-  
+
   @IsString({ always: true })
   @Column({ nullable: true })
   last: string;
 }
-
 
 // tslint:disable-next-line:max-classes-per-file
 @Entity('users')
@@ -47,7 +55,7 @@ export class User extends BaseEntity {
   isActive: boolean;
 
   @Type((t) => Name)
-  @Column(type => Name)
+  @Column((type) => Name)
   name: Name;
 
   @Column({ nullable: true })
@@ -73,4 +81,9 @@ export class User extends BaseEntity {
 
   @ManyToMany((type) => Project, (c) => c.users)
   projects?: Project[];
+
+  @OneToMany((type) => UserLicense, (ul) => ul.user)
+  @Type((t) => UserLicense)
+  @JoinColumn()
+  userLicenses?: UserLicense[];
 }

@@ -414,10 +414,9 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
         [curr.propertyName]: {
           name: curr.propertyName,
           columns: curr.inverseEntityMetadata.columns.map((col) => col.propertyName),
-          referencedColumn: (curr.joinColumns.length
-            ? curr.joinColumns[0]
-            : curr.inverseRelation.joinColumns[0]
-          ).referencedColumn.propertyName,
+          primaryColumns: curr.inverseEntityMetadata.primaryColumns.map(
+            (col) => col.propertyName,
+          ),
         },
       }),
       {},
@@ -521,10 +520,9 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
       this.entityRelationsHash[cond.field] = {
         name: curr.propertyName,
         columns: curr.inverseEntityMetadata.columns.map((col) => col.propertyName),
-        referencedColumn: (curr.joinColumns.length
-          ? /* istanbul ignore next */ curr.joinColumns[0]
-          : curr.inverseRelation.joinColumns[0]
-        ).referencedColumn.propertyName,
+        primaryColumns: curr.inverseEntityMetadata.primaryColumns.map(
+          (col) => col.propertyName,
+        ),
         nestedRelation: curr.nestedRelation,
       };
     }
@@ -548,7 +546,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
           : cond.select.filter((col) => allowed.some((a) => a === col));
 
       const select = [
-        relation.referencedColumn,
+        ...relation.primaryColumns,
         ...(options.persist && options.persist.length ? options.persist : []),
         ...columns,
       ].map((col) => `${alias}.${col}`);
