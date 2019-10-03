@@ -87,7 +87,7 @@ export class User extends BaseEntity {
     persistence: false,
     onDelete: 'CASCADE',
   })
-  userProjects!: UserProject[];
+  userProjects?: UserProject[];
 
   @OneToMany((type) => UserLicense, (ul) => ul.user)
   @Type((t) => UserLicense)
