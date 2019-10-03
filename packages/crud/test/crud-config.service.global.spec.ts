@@ -21,6 +21,7 @@ const conf: CrudGlobalConfig = {
     },
   },
   routes: {
+    exclude: ['createManyBase'],
     updateOneBase: {
       allowParamsOverride: true,
     },
@@ -30,6 +31,8 @@ const conf: CrudGlobalConfig = {
   },
 };
 
+// Important: load config before (!!!) you import AppModule
+// https://github.com/nestjsx/crud/wiki/Controllers#global-options
 CrudConfigService.load(conf);
 
 import { Crud } from '../src/decorators/crud.decorator';
@@ -133,6 +136,24 @@ describe('#crud', () => {
             false,
           );
           expect(res.body.req.options.routes.deleteOneBase.returnDeleted).toBe(true);
+          done();
+        });
+    });
+    it('should exclude route, 1', (done) => {
+      return request(server)
+        .post('/test/bulk')
+        .send({})
+        .end((_, res) => {
+          expect(res.status).toBe(404);
+          done();
+        });
+    });
+    it('should exclude route, 1', (done) => {
+      return request(server)
+        .post('/test2/bulk')
+        .send({})
+        .end((_, res) => {
+          expect(res.status).toBe(404);
           done();
         });
     });

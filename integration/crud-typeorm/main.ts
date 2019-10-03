@@ -1,14 +1,15 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
-import { RequestQueryBuilder } from '@nestjsx/crud-request';
+import { CrudConfigService } from '@nestjsx/crud';
 
-// RequestQueryBuilder.setOptions({
-//   paramNamesMap: {
-//     fields: ['select'],
-//     join: ['relation'],
-//   },
-// });
+// Important: load config before (!!!) you import AppModule
+// https://github.com/nestjsx/crud/wiki/Controllers#global-options
+CrudConfigService.load({
+  routes: {
+    exclude: ['createManyBase'],
+  },
+});
 
 import { HttpExceptionFilter } from '../shared/https-exception.filter';
 import { AppModule } from './app.module';
