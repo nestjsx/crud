@@ -31,6 +31,10 @@ import { UsersService } from './users.service';
       company: {
         exclude: ['description'],
       },
+      'company.projects': {
+        alias: 'pr',
+        exclude: ['description'],
+      },
       profile: {
         eager: true,
         exclude: ['updatedAt'],

@@ -82,8 +82,7 @@ describe('#crud-typeorm', () => {
           TypeOrmModule.forFeature([Company, Project, User, UserProfile]),
         ],
         controllers: [UsersController1, UsersController2],
-        // providers: [{ provide: APP_FILTER, useClass: HttpExceptionFilter }, UsersService],
-        providers: [UsersService],
+        providers: [{ provide: APP_FILTER, useClass: HttpExceptionFilter }, UsersService],
       }).compile();
 
       app = fixture.createNestApplication();
