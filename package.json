@@ -88,6 +88,7 @@
     "swagger-ui-express": "4.1.0",
     "ts-jest": "24.1.0",
     "ts-node": "8.3.0",
+    "tsconfig-extends": "^1.0.1",
     "tsconfig-paths": "3.9.0",
     "tslint": "5.20.0",
     "tslint-config-prettier": "1.18.0",

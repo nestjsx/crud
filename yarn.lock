@@ -8554,6 +8554,11 @@ ts-node@8.3.0:
     source-map-support "^0.5.6"
     yn "^3.0.0"
 
+tsconfig-extends@^1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/tsconfig-extends/-/tsconfig-extends-1.0.1.tgz#f5e5a4c3520a284c5642a7fb57713cbb7ae42f0f"
+  integrity sha1-9eWkw1IKKExWQqf7V3E8u3rkLw8=
+
 tsconfig-paths@3.9.0:
   version "3.9.0"
   resolved "https://registry.yarnpkg.com/tsconfig-paths/-/tsconfig-paths-3.9.0.tgz#098547a6c4448807e8fcb8eae081064ee9a3c90b"
