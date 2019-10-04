@@ -22,11 +22,10 @@ export class Swagger {
     };
   }
 
-  static setOperation(name: BaseRouteName, modelName: string, func: Function) {
+  static setOperation(metadata: any, func: Function) {
     /* istanbul ignore else */
     if (swaggerPkg) {
-      const summary = Swagger.operationsMap(modelName)[name];
-      R.set(swaggerPkg.DECORATORS.API_OPERATION, { summary }, func);
+      R.set(swaggerPkg.DECORATORS.API_OPERATION, metadata, func);
     }
   }
 
