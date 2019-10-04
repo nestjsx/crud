@@ -230,14 +230,24 @@ export class CrudRoutesFactory {
         const interceptors = R.getInterceptors(this.targetProto[name]);
         const baseInterceptors = R.getInterceptors(this.targetProto[override]);
         const baseAction = R.getAction(this.targetProto[override]);
+        const operation = Swagger.getOperation(this.targetProto[name]);
+        const baseOperation = Swagger.getOperation(this.targetProto[override]);
+        const swaggerParams = Swagger.getParams(this.targetProto[name]);
         const baseSwaggerParams = Swagger.getParams(this.targetProto[override]);
+        const responseOk = Swagger.getResponseOk(this.targetProto[name]);
         const baseResponseOk = Swagger.getResponseOk(this.targetProto[override]);
         // set metadata
         R.setInterceptors([...baseInterceptors, ...interceptors], this.targetProto[name]);
         R.setAction(baseAction, this.targetProto[name]);
-        Swagger.setOperation(override, this.modelName, this.targetProto[name]);
-        Swagger.setParams(baseSwaggerParams, this.targetProto[name]);
-        Swagger.setResponseOk(baseResponseOk, this.targetProto[name]);
+        Swagger.setOperation({ ...baseOperation, ...operation }, this.targetProto[name]);
+        Swagger.setParams(
+          [...baseSwaggerParams, ...swaggerParams],
+          this.targetProto[name],
+        );
+        Swagger.setResponseOk(
+          { ...baseResponseOk, ...responseOk },
+          this.targetProto[name],
+        );
         this.overrideParsedBodyDecorator(override, name);
         // enable route
         R.setRoute(route, this.targetProto[name]);
@@ -380,7 +390,8 @@ export class CrudRoutesFactory {
   }
 
   private setSwaggerOperation(name: BaseRouteName) {
-    Swagger.setOperation(name, this.modelName, this.targetProto[name]);
+    const summary = Swagger.operationsMap(this.modelName)[name];
+    Swagger.setOperation({ summary }, this.targetProto[name]);
   }
 
   private setSwaggerPathParams(name: BaseRouteName) {
