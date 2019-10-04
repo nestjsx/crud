@@ -26,13 +26,7 @@ export class CrudConfigService {
       },
       deleteOneBase: { interceptors: [], decorators: [], returnDeleted: false },
     },
-    params: {
-      id: {
-        field: 'id',
-        type: 'number',
-        primary: true,
-      },
-    },
+    params: {},
   };
 
   static load(config: CrudGlobalConfig = {}) {

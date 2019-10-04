@@ -5,6 +5,7 @@ import { withCache } from './orm.config';
 import { CompaniesModule } from './companies/companies.module';
 import { ProjectsModule } from './projects/projects.module';
 import { UsersModule } from './users/users.module';
+import { DevicesModule } from './devices/devices.module';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { UsersModule } from './users/users.module';
     CompaniesModule,
     ProjectsModule,
     UsersModule,
+    DevicesModule,
   ],
 })
 export class AppModule {}
