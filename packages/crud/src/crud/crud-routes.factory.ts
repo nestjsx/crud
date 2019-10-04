@@ -73,9 +73,20 @@ export class CrudRoutesFactory {
       arrayMerge: (a, b, c) => b,
     });
 
-    // merge params
-    const params = isObjectFull(this.options.params) ? this.options.params : {};
-    this.options.params = { ...CrudConfigService.config.params, ...params };
+    // set params
+    this.options.params = isObjectFull(this.options.params)
+      ? this.options.params
+      : isObjectFull(CrudConfigService.config.params)
+      ? CrudConfigService.config.params
+      : {};
+    const hasPrimary = this.getPrimaryParam();
+    if (!hasPrimary) {
+      this.options.params['id'] = {
+        field: 'id',
+        type: 'number',
+        primary: true,
+      };
+    }
 
     R.setCrudOptions(this.options, this.target);
   }
@@ -292,7 +303,7 @@ export class CrudRoutesFactory {
 
   private getPrimaryParam(): string {
     return objKeys(this.options.params).find(
-      (param) => this.options.params[param].primary,
+      (param) => this.options.params[param] && this.options.params[param].primary,
     );
   }
 
