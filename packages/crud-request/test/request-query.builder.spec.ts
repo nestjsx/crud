@@ -1,13 +1,6 @@
 import 'jest-extended';
 import { RequestQueryBuilder } from '../src/request-query.builder';
 import { RequestQueryException } from '../src/exceptions/request-query.exception';
-import {
-  QueryFields,
-  QueryFilter,
-  QueryJoin,
-  QuerySort,
-  CondOperator,
-} from '../src/types';
 
 const defaultOptions = { ...(RequestQueryBuilder as any)._options };
 

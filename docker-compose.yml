@@ -4,8 +4,9 @@ networks:
   nestjsx_crud:
 
 services:
-  postresql:
-    image: postgres
+  postgres:
+    # TypeORM fails with Postgres v.12
+    image: postgres:11.5
     ports:
       - 5455:5432
     environment:

@@ -1,8 +1,12 @@
+const tsconfig = require('tsconfig-extends');
+const { pathsToModuleNameMapper } = require('ts-jest/utils');
+const compilerOptions = tsconfig.load_file_sync('./tsconfig.jest.json', __dirname);
+
 module.exports = {
   setupFilesAfterEnv: ['jest-extended'],
-  moduleNameMapper: {
-    '^@nestjsx/(.+)': '<rootDir>/packages/$1/src',
-  },
+  moduleNameMapper: pathsToModuleNameMapper(compilerOptions.paths, {
+    prefix: '<rootDir>/packages/',
+  }),
   moduleFileExtensions: ['ts', 'js'],
   testRegex: '\\.spec.ts$',
   rootDir: '.',
