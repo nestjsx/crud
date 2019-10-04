@@ -151,7 +151,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     const toSave = !allowParamsOverride
       ? { ...found, ...dto, ...paramsFilters }
       : { ...found, ...dto };
-    const updated = await this.repo.save(toSave);
+    const updated = await this.repo.save(plainToClass(this.entityType, toSave));
 
     if (returnShallow) {
       return updated;
@@ -176,7 +176,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
       ? { ...dto, ...paramsFilters }
       : { ...paramsFilters, ...dto };
 
-    const replaced = await this.repo.save(toSave);
+    const replaced = await this.repo.save(plainToClass(this.entityType, toSave));
 
     if (returnShallow) {
       return replaced;
