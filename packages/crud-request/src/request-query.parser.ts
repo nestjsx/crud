@@ -180,6 +180,12 @@ export class RequestQueryParser implements ParsedRequestParams {
       if (!isDate(parsed) && isObject(parsed)) {
         // throw new Error('Don\'t support object now');
         return val;
+      } else if (
+        typeof parsed === 'number' &&
+        parsed.toLocaleString('fullwide', { useGrouping: false }) !== val
+      ) {
+        // JS cannot handle big numbers. Leave it as a string to prevent data loss
+        return val;
       }
 
       return parsed;
