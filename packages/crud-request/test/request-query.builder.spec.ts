@@ -1,6 +1,6 @@
 import 'jest-extended';
-import { RequestQueryBuilder } from '../src/request-query.builder';
 import { RequestQueryException } from '../src/exceptions/request-query.exception';
+import { RequestQueryBuilder } from '../src/request-query.builder';
 
 const defaultOptions = { ...(RequestQueryBuilder as any)._options };
 
@@ -43,12 +43,30 @@ describe('#request-query', () => {
         (qb as any).select();
         expect(qb.queryObject.fields).toBeUndefined();
       });
-      it('should throw an error', () => {
+      it('should throw an error, 1', () => {
         expect((qb.select as any).bind(qb, [false])).toThrowError(RequestQueryException);
       });
-      it('should set fields', () => {
+      it('should throw an error, 2', () => {
+        expect((qb.select as any).bind(qb, [{}])).toThrowError(RequestQueryException);
+      });
+      it('should throw an error, 3', () => {
+        expect(
+          (qb.select as any).bind(qb, [{ field: 'foo', alias: false }]),
+        ).toThrowError(RequestQueryException);
+      });
+      it('should throw an error, 4', () => {
+        expect(
+          (qb.select as any).bind(qb, [{ field: 'foo', aggregation: 'bar' }]),
+        ).toThrowError(RequestQueryException);
+      });
+      it('should set fields, 1', () => {
         qb.select(['foo', 'bar']);
         const expected = 'foo,bar';
+        expect(qb.queryObject.fields).toBe(expected);
+      });
+      it('should set fields, 2', () => {
+        qb.select([{ name: 'foo', aggregation: 'count' }]);
+        const expected = 'foo::count';
         expect(qb.queryObject.fields).toBe(expected);
       });
     });
@@ -182,6 +200,21 @@ describe('#request-query', () => {
       });
     });
 
+    describe('#groupBy', () => {
+      it('should not throw', () => {
+        (qb as any).groupBy();
+        expect(qb.queryObject.group).toBeUndefined();
+      });
+      it('should throw an error', () => {
+        expect((qb.groupBy as any).bind(qb, [''])).toThrowError(RequestQueryException);
+      });
+      it('should set group, 1', () => {
+        qb.groupBy(['foo', 'bar']);
+        const expected = 'foo,bar';
+        expect(qb.queryObject.group).toBe(expected);
+      });
+    });
+
     describe('#sortBy', () => {
       it('should not throw', () => {
         (qb as any).sortBy();
@@ -272,6 +305,21 @@ describe('#request-query', () => {
       });
     });
 
+    describe('#setRaw', () => {
+      it('should not throw', () => {
+        (qb as any).setRaw();
+        expect(qb.queryObject.raw).toBeUndefined();
+      });
+      it('should throw an error', () => {
+        expect((qb.setRaw as any).bind(qb, 'false')).toThrowError(RequestQueryException);
+      });
+      it('should set raw', () => {
+        const expected = true;
+        qb.setRaw(expected);
+        expect(qb.queryObject.raw).toBe(expected);
+      });
+    });
+
     describe('#resetCache', () => {
       it('should set cache', () => {
         expect(qb.queryObject.cache).toBeUndefined();
@@ -308,10 +356,15 @@ describe('#request-query', () => {
         qb.setParamNames();
         const test = qb.select(['foo', 'bar']).query();
         const test2 = qb.select(['foo', 'bar']).query(false);
+        const test3 = qb
+          .select([{ name: 'foo', alias: 'bar', aggregation: 'count' }])
+          .query(false);
         const expected = 'override=foo%2Cbar';
         const expected2 = 'override=foo,bar';
+        const expected3 = 'override=foo:bar:count';
         expect(test).toBe(expected);
         expect(test2).toBe(expected2);
+        expect(test3).toBe(expected3);
       });
       it('should return valid query string with filters', () => {
         const test = qb

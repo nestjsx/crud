@@ -95,6 +95,22 @@ describe('#crud-typeorm', () => {
     }
 
     @Crud({
+      model: { type: Project },
+      query: {
+        persist: ['description'],
+        join: {
+          userProjects: {
+            persist: ['review'],
+          },
+        },
+      },
+    })
+    @Controller('projects5')
+    class ProjectsController5 {
+      constructor(public service: ProjectsService) {}
+    }
+
+    @Crud({
       model: { type: User },
       query: {
         join: {
@@ -137,6 +153,7 @@ describe('#crud-typeorm', () => {
           ProjectsController2,
           ProjectsController3,
           ProjectsController4,
+          ProjectsController5,
           UsersController,
           UsersController2,
         ],
@@ -472,6 +489,75 @@ describe('#crud-typeorm', () => {
             expect(res.body.userLicenses).toBeDefined();
             done();
           });
+      });
+    });
+
+    describe('#raw', () => {
+      it('should return entity without primary column and persist columns', async () => {
+        const query = qb
+          .select(['name'])
+          .setRaw(true)
+          .query();
+        const res = await request(server)
+          .get('/projects5/1')
+          .query(query);
+        expect(Object.keys(res.body).length).toBe(1);
+      });
+      it('should return entity with aliased column', async () => {
+        const query = qb
+          .select([{ name: 'name', alias: 'project_name' }])
+          .setRaw(true)
+          .query();
+        const res = await request(server)
+          .get('/projects5/1')
+          .query(query);
+        expect(res.body).toHaveProperty('project_name');
+      });
+      it('should return joined entity without primary column and persist columns', async () => {
+        const query = qb
+          .select(['name'])
+          .setJoin({ field: 'userProjects', select: ['projectId'] })
+          .setRaw(true)
+          .query();
+        const res = await request(server)
+          .get('/projects5/1')
+          .query(query);
+        expect(Object.keys(res.body).length).toBe(2);
+      });
+      it('should return entity without primary column and persist columns', async () => {
+        const query = qb
+          .select(['name'])
+          .setRaw(true)
+          .query();
+        const res = await request(server)
+          .get('/projects5')
+          .query(query);
+        expect(Object.keys(res.body[0]).length).toBe(1);
+      });
+      it('should return joined entity without primary column and persist columns', async () => {
+        const query = qb
+          .select(['name'])
+          .setJoin({ field: 'userProjects', select: ['projectId'] })
+          .setRaw(true)
+          .query();
+        const res = await request(server)
+          .get('/projects5')
+          .query(query);
+        expect(Object.keys(res.body[0]).length).toBe(2);
+      });
+    });
+
+    describe('#group', () => {
+      it('should group by field', async () => {
+        const query = qb
+          .select(['companyId', { name: 'id', aggregation: 'count' }])
+          .groupBy(['companyId'])
+          .setRaw(true)
+          .query();
+        const res = await request(server)
+          .get('/users')
+          .query(query);
+        expect(res.body.length).toBe(2);
       });
     });
 

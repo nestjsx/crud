@@ -2,7 +2,7 @@ import 'jest-extended';
 import { RequestQueryException } from '../src/exceptions/request-query.exception';
 import { ParamsOptions, ParsedRequestParams } from '../src/interfaces';
 import { RequestQueryParser } from '../src/request-query.parser';
-import { QueryFilter, QueryJoin, QuerySort } from '../src/types';
+import { FieldDescription, QueryFilter, QueryJoin, QuerySort } from '../src/types';
 
 describe('#request-query', () => {
   describe('RequestQueryParser', () => {
@@ -43,6 +43,36 @@ describe('#request-query', () => {
           const test = qp.parseQuery(query);
           expect(test.fields).toMatchObject(expected);
         });
+        it('should set array, 3', () => {
+          const query = { select: 'foo::count' };
+          const expected = [{ name: 'foo', aggregation: 'count' }];
+          const test = qp.parseQuery(query);
+          expect(test.fields).toMatchObject(expected);
+        });
+        it('should set array, 4', () => {
+          const query = { select: 'foo:bar:' };
+          const expected = [{ name: 'foo', alias: 'bar' }];
+          const test = qp.parseQuery(query);
+          expect(test.fields).toMatchObject(expected);
+        });
+        it('should set array, 5', () => {
+          const query = { select: 'foo,bar:baz:count,boo' };
+          const expected = [
+            'foo',
+            { name: 'bar', alias: 'baz', aggregation: 'count' },
+            'boo',
+          ];
+          const test = qp.parseQuery(query);
+          expect(test.fields).toMatchObject(expected);
+        });
+        it('should throw an error, 1', () => {
+          const query = { select: ':bar:count' };
+          expect(qp.parseQuery.bind(qp, query)).toThrowError(RequestQueryException);
+        });
+        it('should throw an error, 2', () => {
+          const query = { select: 'foo:bar:baz' };
+          expect(qp.parseQuery.bind(qp, query)).toThrowError(RequestQueryException);
+        });
       });
 
       describe('#parse filter', () => {
@@ -68,7 +98,7 @@ describe('#request-query', () => {
         });
         it('should set array, 1', () => {
           const query = { filter: 'foo||eq||bar' };
-          const expected: QueryFilter[] = [
+          const expected: Array<QueryFilter<string | FieldDescription>> = [
             { field: 'foo', operator: 'eq', value: 'bar' },
           ];
           const test = qp.parseQuery(query);
@@ -76,7 +106,7 @@ describe('#request-query', () => {
         });
         it('should set array, 2', () => {
           const query = { filter: ['foo||eq||bar', 'baz||ne||boo'] };
-          const expected: QueryFilter[] = [
+          const expected: Array<QueryFilter<string | FieldDescription>> = [
             { field: 'foo', operator: 'eq', value: 'bar' },
             { field: 'baz', operator: 'ne', value: 'boo' },
           ];
@@ -86,7 +116,7 @@ describe('#request-query', () => {
         });
         it('should set array, 3', () => {
           const query = { filter: ['foo||in||1,2'] };
-          const expected: QueryFilter[] = [
+          const expected: Array<QueryFilter<string | FieldDescription>> = [
             { field: 'foo', operator: 'in', value: [1, 2] },
           ];
           const test = qp.parseQuery(query);
@@ -94,7 +124,7 @@ describe('#request-query', () => {
         });
         it('should set array, 4', () => {
           const query = { filter: ['foo||isnull'] };
-          const expected: QueryFilter[] = [
+          const expected: Array<QueryFilter<string | FieldDescription>> = [
             { field: 'foo', operator: 'isnull', value: '' },
           ];
           const test = qp.parseQuery(query);
@@ -102,7 +132,7 @@ describe('#request-query', () => {
         });
         it('should set array, 5', () => {
           const query = { filter: ['foo||eq||{"foo":true}'] };
-          const expected: QueryFilter[] = [
+          const expected: Array<QueryFilter<string | FieldDescription>> = [
             { field: 'foo', operator: 'eq', value: '{"foo":true}' },
           ];
           const test = qp.parseQuery(query);
@@ -110,20 +140,24 @@ describe('#request-query', () => {
         });
         it('should set array, 6', () => {
           const query = { filter: ['foo||eq||1'] };
-          const expected: QueryFilter[] = [{ field: 'foo', operator: 'eq', value: 1 }];
+          const expected: Array<QueryFilter<string | FieldDescription>> = [
+            { field: 'foo', operator: 'eq', value: 1 },
+          ];
           const test = qp.parseQuery(query);
           expect(test.filter[0]).toMatchObject(expected[0]);
         });
         it('should set date, 7', () => {
           const now = new Date();
           const query = { filter: [`foo||eq||${now.toJSON()}`] };
-          const expected: QueryFilter[] = [{ field: 'foo', operator: 'eq', value: now }];
+          const expected: Array<QueryFilter<string | FieldDescription>> = [
+            { field: 'foo', operator: 'eq', value: now },
+          ];
           const test = qp.parseQuery(query);
           expect(test.filter[0]).toMatchObject(expected[0]);
         });
         it('should set false, 8', () => {
           const query = { filter: [`foo||eq||false`] };
-          const expected: QueryFilter[] = [
+          const expected: Array<QueryFilter<string | FieldDescription>> = [
             { field: 'foo', operator: 'eq', value: false },
           ];
           const test = qp.parseQuery(query);
@@ -131,13 +165,15 @@ describe('#request-query', () => {
         });
         it('should set true, 9', () => {
           const query = { filter: [`foo||eq||true`] };
-          const expected: QueryFilter[] = [{ field: 'foo', operator: 'eq', value: true }];
+          const expected: Array<QueryFilter<string | FieldDescription>> = [
+            { field: 'foo', operator: 'eq', value: true },
+          ];
           const test = qp.parseQuery(query);
           expect(test.filter[0]).toMatchObject(expected[0]);
         });
         it('should set number, 10', () => {
           const query = { filter: [`foo||eq||12345`] };
-          const expected: QueryFilter[] = [
+          const expected: Array<QueryFilter<string | FieldDescription>> = [
             { field: 'foo', operator: 'eq', value: 12345 },
           ];
           const test = qp.parseQuery(query);
@@ -145,7 +181,7 @@ describe('#request-query', () => {
         });
         it('should set string, 11', () => {
           const query = { filter: ['foo||eq||4202140192612927005304000000236630'] };
-          const expected: QueryFilter[] = [
+          const expected: Array<QueryFilter<string | FieldDescription>> = [
             { field: 'foo', operator: 'eq', value: '4202140192612927005304000000236630' },
           ];
           const test = qp.parseQuery(query);
@@ -176,7 +212,7 @@ describe('#request-query', () => {
         });
         it('should set array, 1', () => {
           const query = { or: 'foo||eq||bar' };
-          const expected: QueryFilter[] = [
+          const expected: Array<QueryFilter<string | FieldDescription>> = [
             { field: 'foo', operator: 'eq', value: 'bar' },
           ];
           const test = qp.parseQuery(query);
@@ -184,7 +220,7 @@ describe('#request-query', () => {
         });
         it('should set array, 2', () => {
           const query = { or: ['foo||eq||bar', 'baz||ne||boo'] };
-          const expected: QueryFilter[] = [
+          const expected: Array<QueryFilter<string | FieldDescription>> = [
             { field: 'foo', operator: 'eq', value: 'bar' },
             { field: 'baz', operator: 'ne', value: 'boo' },
           ];
@@ -194,7 +230,7 @@ describe('#request-query', () => {
         });
         it('should set array, 3', () => {
           const query = { or: ['foo||in||1,2'] };
-          const expected: QueryFilter[] = [
+          const expected: Array<QueryFilter<string | FieldDescription>> = [
             { field: 'foo', operator: 'in', value: [1, 2] },
           ];
           const test = qp.parseQuery(query);
@@ -202,7 +238,7 @@ describe('#request-query', () => {
         });
         it('should set array, 4', () => {
           const query = { or: ['foo||isnull'] };
-          const expected: QueryFilter[] = [
+          const expected: Array<QueryFilter<string | FieldDescription>> = [
             { field: 'foo', operator: 'isnull', value: '' },
           ];
           const test = qp.parseQuery(query);
@@ -238,6 +274,33 @@ describe('#request-query', () => {
           const test = qp.parseQuery(query);
           expect(test.join[0]).toMatchObject(expected[0]);
           expect(test.join[1]).toMatchObject(expected[1]);
+        });
+      });
+
+      describe('#parse group', () => {
+        it('should set empty array, 1', () => {
+          const query = { group: '' };
+          const expected = [];
+          const test = qp.parseQuery(query);
+          expect(test.group).toMatchObject(expected);
+        });
+        it('should set empty array, 2', () => {
+          const query = { foo: '' };
+          const expected = [];
+          const test = qp.parseQuery(query);
+          expect(test.group).toMatchObject(expected);
+        });
+        it('should set array, 1', () => {
+          const query = { group: 'foo' };
+          const expected = ['foo'];
+          const test = qp.parseQuery(query);
+          expect(test.group).toMatchObject(expected);
+        });
+        it('should set array, 2', () => {
+          const query = { group: 'foo,bar' };
+          const expected = ['foo', 'bar'];
+          const test = qp.parseQuery(query);
+          expect(test.group).toMatchObject(expected);
         });
       });
 
@@ -367,6 +430,29 @@ describe('#request-query', () => {
       });
     });
 
+    describe('#parse raw', () => {
+      it('should set undefined, 1', () => {
+        const query = { raw: '' };
+        const test = qp.parseQuery(query);
+        expect(test.raw).toBeUndefined();
+      });
+      it('should set undefined, 2', () => {
+        const query = { foo: '' };
+        const test = qp.parseQuery(query);
+        expect(test.raw).toBeUndefined();
+      });
+      it('should throw an error', () => {
+        const query = { raw: 'foo' };
+        expect(qp.parseQuery.bind(qp, query)).toThrowError(RequestQueryException);
+      });
+      it('should set value', () => {
+        const query = { raw: 'true' };
+        const expected = true;
+        const test = qp.parseQuery(query);
+        expect(test.raw).toBe(expected);
+      });
+    });
+
     describe('#parse search', () => {
       it('should set undefined', () => {
         const query = { foo: '' };
@@ -468,12 +554,14 @@ describe('#request-query', () => {
           search: undefined,
           filter: [],
           or: [],
+          group: [],
           join: [],
           sort: [],
           limit: undefined,
           offset: undefined,
           page: undefined,
           cache: undefined,
+          raw: false,
         };
         const test = qp.getParsed();
         expect(test).toMatchObject(expected);
