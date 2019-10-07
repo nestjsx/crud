@@ -143,6 +143,14 @@ describe('#request-query', () => {
           const test = qp.parseQuery(query);
           expect(test.filter[0]).toMatchObject(expected[0]);
         });
+        it('should set string, 11', () => {
+          const query = { filter: ['foo||eq||4202140192612927005304000000236630'] };
+          const expected: QueryFilter[] = [
+            { field: 'foo', operator: 'eq', value: '4202140192612927005304000000236630' },
+          ];
+          const test = qp.parseQuery(query);
+          expect(test.filter[0]).toMatchObject(expected[0]);
+        });
       });
 
       describe('#parse or', () => {
