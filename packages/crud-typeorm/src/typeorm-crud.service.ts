@@ -8,31 +8,36 @@ import {
   QueryOptions,
 } from '@nestjsx/crud';
 import {
+  AggregationFunction,
+  ComparisonOperator,
+  FieldDescription,
   ParsedRequestParams,
+  QueryField,
   QueryFilter,
   QueryJoin,
   QuerySort,
   SCondition,
   SConditionKey,
-  ComparisonOperator,
 } from '@nestjsx/crud-request';
 import {
   hasLength,
   isArrayFull,
-  isObject,
-  isUndefined,
-  objKeys,
   isNil,
   isNull,
+  isObject,
+  isString,
+  isStringFull,
+  isUndefined,
+  objKeys,
 } from '@nestjsx/util';
 import { plainToClass } from 'class-transformer';
 import { ClassType } from 'class-transformer/ClassTransformer';
 import {
   Brackets,
+  DeepPartial,
   ObjectLiteral,
   Repository,
   SelectQueryBuilder,
-  DeepPartial,
 } from 'typeorm';
 import { RelationMetadata } from 'typeorm/metadata/RelationMetadata';
 
@@ -85,7 +90,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
       return this.createPageInfo(data, total, limit, offset);
     }
 
-    return builder.getMany();
+    return parsed.raw ? builder.getRawMany() : builder.getMany();
   }
 
   /**
@@ -207,9 +212,9 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
 
     /* istanbul ignore else */
     if (hasLength(parsed.paramsFilter)) {
-      for (const filter of parsed.paramsFilter) {
+      parsed.paramsFilter.forEach((filter) => {
         paramsFilters[filter.field] = filter.value;
-      }
+      });
     }
 
     return paramsFilters;
@@ -327,7 +332,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
           const cond = parsed.join.find((j) => j && j.field === allowedJoins[i]) || {
             field: allowedJoins[i],
           };
-          this.setJoin(cond, joinOptions, builder);
+          this.setJoin(cond, joinOptions, builder, parsed.raw);
           eagerJoins[allowedJoins[i]] = true;
         }
       }
@@ -336,10 +341,18 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
         for (let i = 0; i < parsed.join.length; i++) {
           /* istanbul ignore else */
           if (!eagerJoins[parsed.join[i].field]) {
-            this.setJoin(parsed.join[i], joinOptions, builder);
+            this.setJoin(parsed.join[i], joinOptions, builder, parsed.raw);
           }
         }
       }
+    }
+
+    if (isArrayFull(parsed.group)) {
+      parsed.group
+        .map((group) =>
+          this.modifyFieldName(group, (name) => this.getNameWithAlias(name)),
+        )
+        .forEach((group) => builder.addGroupBy(group));
     }
 
     /* istanbul ignore else */
@@ -376,17 +389,22 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     options: CrudRequestOptions,
     parsed: ParsedRequestParams,
   ): any[] {
-    const filter = this.queryFilterToSearch(options.query.filter as QueryFilter[]);
+    const filter = this.queryFilterToSearch(options.query.filter as Array<
+      QueryFilter<string>
+    >);
     const paramsFilter = this.queryFilterToSearch(parsed.paramsFilter);
 
     return [...filter, ...paramsFilter];
   }
 
-  private queryFilterToSearch(filter: QueryFilter[]): any {
+  private queryFilterToSearch(filter: Array<QueryFilter<string>>): any {
     return isArrayFull(filter)
-      ? filter.map((item) => ({
-          [item.field]: { [item.operator]: item.value },
-        }))
+      ? filter.map(
+          (item) => ({
+            [item.field as string]: { [item.operator]: item.value },
+          }),
+          'map',
+        )
       : isObject(filter)
       ? [filter]
       : [];
@@ -426,7 +444,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
   private async getOneOrFail(req: CrudRequest): Promise<T> {
     const { parsed, options } = req;
     const builder = await this.createBuilder(parsed, options);
-    const found = await builder.getOne();
+    const found = await (parsed.raw ? builder.getRawOne() : builder.getOne());
 
     if (!found) {
       this.throwNotFoundException(this.alias);
@@ -445,16 +463,19 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     return found;
   }
 
-  private prepareEntityBeforeSave(dto: DeepPartial<T>, paramsFilter: QueryFilter[]): T {
+  private prepareEntityBeforeSave(
+    dto: DeepPartial<T>,
+    paramsFilter: Array<QueryFilter<string>>,
+  ): T {
     /* istanbul ignore if */
     if (!isObject(dto)) {
       return undefined;
     }
 
     if (hasLength(paramsFilter)) {
-      for (const filter of paramsFilter) {
+      paramsFilter.forEach((filter) => {
         dto[filter.field] = filter.value;
-      }
+      });
     }
 
     /* istanbul ignore if */
@@ -509,6 +530,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     cond: QueryJoin,
     joinOptions: JoinOptions,
     builder: SelectQueryBuilder<T>,
+    raw: boolean,
   ) {
     if (this.entityRelationsHash[cond.field] === undefined && cond.field.includes('.')) {
       const curr = this.getRelationMetadata(cond.field);
@@ -543,13 +565,13 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
       const columns =
         !cond.select || !cond.select.length
           ? allowed
-          : cond.select.filter((col) => allowed.some((a) => a === col));
+          : cond.select.filter((col) => allowed.includes(this.normalizeField(col).name));
 
       const select = [
-        ...relation.primaryColumns,
-        ...(options.persist && options.persist.length ? options.persist : []),
+        ...(raw ? [] : relation.primaryColumns),
+        ...(!raw && options.persist && options.persist.length ? options.persist : []),
         ...columns,
-      ].map((col) => `${alias}.${col}`);
+      ].map((col) => this.modifyFieldName(col, (name) => `${alias}.${name}`));
 
       const relationPath = relation.nestedRelation || `${this.alias}.${relation.name}`;
       const relationType = options.required ? 'innerJoin' : 'leftJoin';
@@ -561,12 +583,20 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     return true;
   }
 
-  private setAndWhere(cond: QueryFilter, i: any, builder: SelectQueryBuilder<T>) {
+  private setAndWhere<F extends string | FieldDescription>(
+    cond: QueryFilter<F>,
+    i: any,
+    builder: SelectQueryBuilder<T>,
+  ) {
     const { str, params } = this.mapOperatorsToQuery(cond, `andWhere${i}`);
     builder.andWhere(str, params);
   }
 
-  private setOrWhere(cond: QueryFilter, i: any, builder: SelectQueryBuilder<T>) {
+  private setOrWhere<F extends string | FieldDescription>(
+    cond: QueryFilter<F>,
+    i: any,
+    builder: SelectQueryBuilder<T>,
+  ) {
     const { str, params } = this.mapOperatorsToQuery(cond, `orWhere${i}`);
     builder.orWhere(str, params);
   }
@@ -784,14 +814,16 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
 
     const columns =
       query.fields && query.fields.length
-        ? query.fields.filter((field) => allowed.some((col) => field === col))
+        ? query.fields.filter((field) =>
+            allowed.includes(this.normalizeField(field).name),
+          )
         : allowed;
 
     const select = [
-      ...(options.persist && options.persist.length ? options.persist : []),
+      ...(!query.raw && options.persist && options.persist.length ? options.persist : []),
       ...columns,
-      ...this.entityPrimaryColumns,
-    ].map((col) => `${this.alias}.${col}`);
+      ...(query.raw ? [] : this.entityPrimaryColumns),
+    ].map((col) => this.modifyFieldName(col, (name) => `${this.alias}.${name}`));
 
     return select;
   }
@@ -832,14 +864,44 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
       : {};
   }
 
-  private getFieldWithAlias(field: string) {
-    const cols = field.split('.');
+  private fieldDescriptionFromString(data: string): FieldDescription {
+    const [fn, name, alias] = data
+      .match(/^(?:(count|min|max|sum|avg)\()?(.+?)(?:\)? as (.+))?$/i)
+      .slice(1);
+    return { name, alias, aggregation: fn as AggregationFunction };
+  }
+
+  private fieldDescriptionToString({ name, alias, aggregation }: FieldDescription) {
+    let field = name;
+    if (isStringFull(aggregation)) {
+      field = `${aggregation}(${field})`;
+    }
+    if (isStringFull(alias)) {
+      field = `${field} AS ${alias}`;
+    }
+    return field;
+  }
+
+  private normalizeField(field: QueryField): FieldDescription {
+    return isString(field)
+      ? this.fieldDescriptionFromString(field as string)
+      : (field as FieldDescription);
+  }
+
+  private modifyFieldName(field: QueryField, getName: (oldName: string) => string) {
+    const description = this.normalizeField(field);
+    description.name = getName(description.name);
+    return this.fieldDescriptionToString(description);
+  }
+
+  private getNameWithAlias(name: string) {
+    const cols = name.split('.');
     // relation is alias
     switch (cols.length) {
       case 1:
-        return `${this.alias}.${field}`;
+        return `${this.alias}.${name}`;
       case 2:
-        return field;
+        return name;
       default:
         return cols.slice(cols.length - 2, cols.length).join('.');
     }
@@ -849,17 +911,18 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     const params: ObjectLiteral = {};
 
     for (let i = 0; i < sort.length; i++) {
-      params[this.getFieldWithAlias(sort[i].field)] = sort[i].order;
+      params[this.modifyFieldName(sort[i].field, (name) => this.getNameWithAlias(name))] =
+        sort[i].order;
     }
 
     return params;
   }
 
-  private mapOperatorsToQuery(
-    cond: QueryFilter,
+  private mapOperatorsToQuery<F extends string | FieldDescription>(
+    cond: QueryFilter<F>,
     param: any,
   ): { str: string; params: ObjectLiteral } {
-    const field = this.getFieldWithAlias(cond.field);
+    const field = this.modifyFieldName(cond.field, (name) => this.getNameWithAlias(name));
     let str: string;
     let params: ObjectLiteral;
 
