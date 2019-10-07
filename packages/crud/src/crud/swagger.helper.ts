@@ -1,11 +1,12 @@
 import { HttpStatus } from '@nestjs/common';
-import { objKeys, isString } from '@nestjsx/util';
 import { RequestQueryBuilder } from '@nestjsx/crud-request';
+import { isString, objKeys } from '@nestjsx/util';
 
-import { safeRequire } from '../util';
-import { R } from './reflection.helper';
 import { ParamsOptions } from '../interfaces';
 import { BaseRouteName } from '../types';
+import { safeRequire } from '../util';
+
+import { R } from './reflection.helper';
 
 export const swaggerPkg = safeRequire('@nestjs/swagger/dist/constants');
 
@@ -95,10 +96,12 @@ export class Swagger {
       or,
       join,
       sort,
+      group,
       limit,
       offset,
       page,
       cache,
+      raw,
     } = Swagger.getQueryParamsNames();
 
     const fieldsMeta = {
@@ -137,6 +140,18 @@ export class Swagger {
       },
       collectionFormat: 'multi',
     };
+    const joinMeta = {
+      name: join,
+      // tslint:disable-next-line:max-line-length
+      description: `<h4>Receive joined relational objects in GET result (with all or selected fields).</h4><i>Syntax:</i><ul><li><strong>?${join}=relation</strong></li><li><strong>?${join}=relation${d}field1${coma}field2${coma}...</strong></li><li><strong>?${join}=relation1${d}field11${coma}field12${coma}...&${join}=relation1.nested${d}field21${coma}field22${coma}...&${join}=...</strong></li></ul><br/><i>Examples:</i></i><ul><li><strong>?${join}=profile</strong></li><li><strong>?${join}=profile${d}firstName${coma}email</strong></li><li><strong>?${join}=profile${d}firstName${coma}email&${join}=notifications${d}content&${join}=tasks</strong></li><li><strong>?${join}=relation1&${join}=relation1.nested&${join}=relation1.nested.deepnested</strong></li></ul><strong><i>Notice:</i></strong> <code>id</code> field always persists in relational objects. To use nested relations, the parent level MUST be set before the child level like example above.`,
+      required: false,
+      in: 'query',
+      type: 'array',
+      items: {
+        type: 'string',
+      },
+      collectionFormat: 'multi',
+    };
     const sortMeta = {
       name: sort,
       // tslint:disable-next-line:max-line-length
@@ -149,17 +164,17 @@ export class Swagger {
       },
       collectionFormat: 'multi',
     };
-    const joinMeta = {
-      name: join,
+    const groupMeta = {
+      name: group,
       // tslint:disable-next-line:max-line-length
-      description: `<h4>Receive joined relational objects in GET result (with all or selected fields).</h4><i>Syntax:</i><ul><li><strong>?${join}=relation</strong></li><li><strong>?${join}=relation${d}field1${coma}field2${coma}...</strong></li><li><strong>?${join}=relation1${d}field11${coma}field12${coma}...&${join}=relation1.nested${d}field21${coma}field22${coma}...&${join}=...</strong></li></ul><br/><i>Examples:</i></i><ul><li><strong>?${join}=profile</strong></li><li><strong>?${join}=profile${d}firstName${coma}email</strong></li><li><strong>?${join}=profile${d}firstName${coma}email&${join}=notifications${d}content&${join}=tasks</strong></li><li><strong>?${join}=relation1&${join}=relation1.nested&${join}=relation1.nested.deepnested</strong></li></ul><strong><i>Notice:</i></strong> <code>id</code> field always persists in relational objects. To use nested relations, the parent level MUST be set before the child level like example above.`,
+      description: `<h4>Adds group by field (by multiple fields) to query result.</h4><i>Syntax:</i> <strong>?${group}=field1${coma}field2...</strong><br/><i>Examples:</i></i><ul><li><strong>?${group}=field1</strong></li><li><strong>?${group}=field1${coma}field2</strong></li></ul>`,
       required: false,
       in: 'query',
       type: 'array',
       items: {
         type: 'string',
       },
-      collectionFormat: 'multi',
+      collectionFormat: 'csv',
     };
     const limitMeta = {
       name: limit,
@@ -185,6 +200,14 @@ export class Swagger {
       in: 'query',
       type: 'integer',
     };
+    const rawMeta = {
+      name: raw,
+      // tslint:disable-next-line:max-line-length
+      description: `<h4>Return raw result without adding primary and persisted columns. Usefully for <code>group</code> query.</h4><i>Syntax:</i> <strong>${raw}=boolean</strong><br/><i>Example:</i> <strong>?${raw}=true</strong>`,
+      required: false,
+      in: 'query',
+      type: 'boolean',
+    };
     const cacheMeta = {
       name: cache,
       description: `<h4>Reset cache (if was enabled) and receive entities from the DB.</h4><i>Usage:</i> <strong>?${cache}=0</strong>`,
@@ -201,15 +224,17 @@ export class Swagger {
           fieldsMeta,
           filterMeta,
           orMeta,
-          sortMeta,
           joinMeta,
+          sortMeta,
+          groupMeta,
           limitMeta,
           offsetMeta,
           pageMeta,
+          rawMeta,
           cacheMeta,
         ];
       case 'getOneBase':
-        return [fieldsMeta, joinMeta, cacheMeta];
+        return [fieldsMeta, joinMeta, rawMeta, cacheMeta];
       default:
         return [];
     }
@@ -230,10 +255,12 @@ export class Swagger {
       or: name('or'),
       join: name('join'),
       sort: name('sort'),
+      group: name('group'),
       limit: name('limit'),
       offset: name('offset'),
       page: name('page'),
       cache: name('cache'),
+      raw: name('raw'),
     };
   }
 }
