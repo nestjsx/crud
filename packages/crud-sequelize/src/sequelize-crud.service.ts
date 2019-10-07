@@ -7,7 +7,14 @@ import {
   QueryOptions,
 } from '@nestjsx/crud';
 import { ParsedRequestParams, QueryFilter } from '@nestjsx/crud-request';
-import { hasLength, isArrayFull, isObject, isUndefined, objKeys } from '@nestjsx/util';
+import {
+  hasLength,
+  isArrayFull,
+  isNil,
+  isObject,
+  isUndefined,
+  objKeys,
+} from '@nestjsx/util';
 import * as _ from 'lodash';
 import { Op } from 'sequelize';
 import { Model } from 'sequelize-typescript';
@@ -99,9 +106,6 @@ export class SequelizeCrudService<T extends Model<T>> extends CrudService<T> {
 
     if (this.decidePagination(parsed, options)) {
       const { rows: data, count: total } = await this.model.findAndCountAll(query);
-      // const limit = builder.expressionMap.take;
-      // const offset = builder.expressionMap.skip;
-
       return this.createPageInfo(
         data as T[],
         total,
@@ -167,7 +171,6 @@ export class SequelizeCrudService<T extends Model<T>> extends CrudService<T> {
     const { parsed, options } = req;
     const query = this.createBuilder(parsed, options);
     const found = await this.model.findOne(query);
-
     if (!found) {
       this.throwNotFoundException(this.model.name);
     }
@@ -240,17 +243,6 @@ export class SequelizeCrudService<T extends Model<T>> extends CrudService<T> {
     // get select fields
     query.attributes = this.getSelect(parsed, options.query);
 
-    // select fields
-
-    // set mandatory where condition from CrudOptions.query.filter
-    if (isArrayFull(options.query.filter)) {
-      for (let i = 0; i < options.query.filter.length; i++) {
-        const { field, obj } = this.setAndWhere(options.query.filter[i]);
-        query.where[field] = obj;
-      }
-    }
-
-    // set join
     parsed.join.every((j) => this.validateJoin(j.field.split('.'), '', this.model));
 
     query.include = this.createJoinObject(
@@ -263,59 +255,68 @@ export class SequelizeCrudService<T extends Model<T>> extends CrudService<T> {
       parsed.join,
     );
 
-    const filters = [...parsed.paramsFilter, ...parsed.filter];
-    const hasFilter = isArrayFull(filters);
-    const hasOr = isArrayFull(parsed.or);
-    const whereFilter = {
-      and: [],
-      or: [],
-    };
-    if (hasFilter && hasOr) {
-      whereFilter.and = filters.map((filter) => {
-        const { field, obj } = this.setAndWhere(filter);
-        return { [field]: obj };
-      });
-      whereFilter.or = parsed.or.map((filter) => {
-        const { field, obj } = this.setAndWhere(filter);
-        return { [field]: obj };
-      });
-      query.where[Op.or] = [
-        whereFilter.and.reduce((acc, item) => {
-          Object.keys(item).forEach((k) => {
-            if (acc[k]) {
-              acc[k] = { ...acc[k], ...item[k] };
-            } else {
-              acc[k] = item[k];
-            }
-          });
-          return acc;
-        }, {}),
-        whereFilter.or.reduce((acc, item) => {
-          Object.keys(item).forEach((k) => {
-            if (acc[k]) {
-              acc[k] = { ...acc[k], ...item[k] };
-            } else {
-              acc[k] = item[k];
-            }
-          });
-          return acc;
-        }, {}),
-      ];
-    } else if (hasFilter) {
-      // tslint:disable-next-line:prefer-for-of
-      whereFilter.and = filters.map((filter) => {
-        const { field, obj } = this.setAndWhere(filter);
-        return { [field]: obj };
-      });
-      query.where[Op.and] = whereFilter.and;
-    } else if (hasOr) {
-      whereFilter.or = parsed.or.map((filter) => {
-        const { field, obj } = this.setAndWhere(filter);
-        return { [field]: obj };
-      });
-      query.where[Op.or] = whereFilter.or;
+    if (isNil(parsed.search)) {
+      query.where = this.getDefaultSearchCondition(options, parsed);
+      const filters = [...parsed.filter];
+      const hasFilter = isArrayFull(filters);
+      const hasOr = isArrayFull(parsed.or);
+      const whereFilter = {
+        and: [],
+        or: [],
+      };
+      if (hasFilter && hasOr) {
+        whereFilter.and = filters.map((filter) => {
+          const { field, obj } = this.setAndWhere(filter);
+          return { [field]: obj };
+        });
+        whereFilter.or = parsed.or.map((filter) => {
+          const { field, obj } = this.setAndWhere(filter);
+          return { [field]: obj };
+        });
+        query.where[Op.or] = [
+          whereFilter.and.reduce((acc, item) => {
+            Object.keys(item).forEach((k) => {
+              // tslint:disable-next-line:prefer-conditional-expression
+              if (acc[k]) {
+                acc[k] = { ...acc[k], ...item[k] };
+              } else {
+                acc[k] = item[k];
+              }
+            });
+            return acc;
+          }, {}),
+          whereFilter.or.reduce((acc, item) => {
+            Object.keys(item).forEach((k) => {
+              // tslint:disable-next-line:prefer-conditional-expression
+              if (acc[k]) {
+                acc[k] = { ...acc[k], ...item[k] };
+              } else {
+                acc[k] = item[k];
+              }
+            });
+            return acc;
+          }, {}),
+        ];
+      } else if (hasFilter) {
+        // tslint:disable-next-line:prefer-for-of
+        whereFilter.and = filters.map((filter) => {
+          const { field, obj } = this.setAndWhere(filter);
+          return { [field]: obj };
+        });
+        query.where[Op.and] = whereFilter.and;
+      } else if (hasOr) {
+        whereFilter.or = parsed.or.map((filter) => {
+          const { field, obj } = this.setAndWhere(filter);
+          return { [field]: obj };
+        });
+        query.where[Op.or] = whereFilter.or;
+      }
+    } else {
+      const defaultSearch = this.getDefaultSearchCondition(options, parsed);
+      query.where = Object.keys(defaultSearch).length
+        ? { ...defaultSearch, ...this.mapSearchObjectNullOperators(parsed.search) }
+        : this.mapSearchObjectNullOperators(parsed.search);
     }
-
     /* istanbul ignore else */
     if (many) {
       // set sort (order by)
@@ -514,6 +515,7 @@ export class SequelizeCrudService<T extends Model<T>> extends CrudService<T> {
         };
         break;
 
+      /* istanbul ignore next */
       case 'ne':
         obj = {
           [Op.ne]: cond.value,
@@ -645,5 +647,40 @@ export class SequelizeCrudService<T extends Model<T>> extends CrudService<T> {
         : options.limit;
     }
     return options.maxLimit ? options.maxLimit : null;
+  }
+
+  private getDefaultSearchCondition(
+    options: CrudRequestOptions,
+    parsed: ParsedRequestParams,
+  ): any[] {
+    const filter = this.queryFilterToSearch(options.query.filter as QueryFilter[]);
+    const paramsFilter = this.queryFilterToSearch(parsed.paramsFilter);
+
+    return { ...filter, ...paramsFilter };
+  }
+
+  private queryFilterToSearch(filter: QueryFilter[]): any {
+    const query = {};
+    if (isArrayFull(filter)) {
+      filter.forEach((item) => {
+        query[item.field] = { [Op[item.operator]]: item.value };
+      });
+      return query;
+    } else if (isObject(filter)) {
+      return filter;
+    } else {
+      return {};
+    }
+  }
+
+  private mapSearchObjectNullOperators(search) {
+    let searchString = JSON.stringify(search);
+    searchString = this.replaceAll(searchString, '"$isnull":true', '"$is":null');
+    searchString = this.replaceAll(searchString, '"$notnull":true', '"$ne":null');
+    return JSON.parse(searchString);
+  }
+
+  private replaceAll(target, search, replacement) {
+    return target.split(search).join(replacement);
   }
 }
