@@ -1,12 +1,32 @@
-export type QueryFields = string[];
+export enum AggrFunction {
+  COUNT = 'count',
+  MAX = 'max',
+  MIN = 'min',
+  SUM = 'sum',
+  AVG = 'avg',
+}
 
-export type QueryFilter = {
-  field: string;
+export type AggregationFunction = 'count' | 'max' | 'min' | 'sum' | 'avg';
+
+export type FieldDescription = {
+  name: string;
+  alias?: string;
+  aggregation?: AggregationFunction;
+};
+
+export type FieldDescriptionArr = [string, string, string];
+
+export type QueryField = string | FieldDescription;
+
+export type QueryFields = QueryField[];
+
+export type QueryFilter<T extends string | FieldDescription> = {
+  field: T;
   operator: ComparisonOperator;
   value?: any;
 };
 
-export type QueryFilterArr = [string, ComparisonOperator, any?];
+export type QueryFilterArr = [QueryField, ComparisonOperator, any?];
 
 export type QueryJoin = {
   field: string;
@@ -14,6 +34,8 @@ export type QueryJoin = {
 };
 
 export type QueryJoinArr = [string, QueryFields?];
+
+export type QueryGroup = QueryFields;
 
 export type QuerySort = {
   field: string;

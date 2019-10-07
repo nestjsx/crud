@@ -1,25 +1,29 @@
 import {
   hasValue,
-  isObject,
-  isString,
   isArrayFull,
   isNil,
+  isObject,
+  isString,
   isUndefined,
 } from '@nestjsx/util';
 import { stringify } from 'qs';
 
-import { RequestQueryBuilderOptions, CreateQueryParams } from './interfaces';
+import { CreateQueryParams, RequestQueryBuilderOptions } from './interfaces';
 import {
+  validateBoolean,
   validateCondition,
   validateFields,
+  validateGroup,
   validateJoin,
   validateNumeric,
   validateSort,
 } from './request-query.validator';
 import {
+  FieldDescription,
   QueryFields,
   QueryFilter,
   QueryFilterArr,
+  QueryGroup,
   QueryJoin,
   QueryJoinArr,
   QuerySort,
@@ -36,6 +40,7 @@ export class RequestQueryBuilder {
   private static _options: RequestQueryBuilderOptions = {
     delim: '||',
     delimStr: ',',
+    delimParam: ':',
     paramNamesMap: {
       fields: ['fields', 'select'],
       search: 's',
@@ -47,6 +52,8 @@ export class RequestQueryBuilder {
       offset: 'offset',
       page: 'page',
       cache: 'cache',
+      group: 'group',
+      raw: 'raw',
     },
   };
   private paramNames: {
@@ -98,7 +105,11 @@ export class RequestQueryBuilder {
   select(fields: QueryFields): this {
     if (isArrayFull(fields)) {
       validateFields(fields);
-      this.queryObject[this.paramNames.fields] = fields.join(this.options.delimStr);
+      this.queryObject[this.paramNames.fields] = fields
+        .map((f) =>
+          isObject(f) ? this.fieldDescriptionToString(f as FieldDescription) : f,
+        )
+        .join(this.options.delimStr);
     }
     return this;
   }
@@ -110,12 +121,16 @@ export class RequestQueryBuilder {
     return this;
   }
 
-  setFilter(f: QueryFilter | QueryFilterArr | Array<QueryFilter | QueryFilterArr>): this {
+  setFilter<T extends string | FieldDescription>(
+    f: QueryFilter<T> | QueryFilterArr | Array<QueryFilter<T> | QueryFilterArr>,
+  ): this {
     this.setCondition(f, 'filter');
     return this;
   }
 
-  setOr(f: QueryFilter | QueryFilterArr | Array<QueryFilter | QueryFilterArr>): this {
+  setOr<T extends string | FieldDescription>(
+    f: QueryFilter<T> | QueryFilterArr | Array<QueryFilter<T> | QueryFilterArr>,
+  ): this {
     this.setCondition(f, 'or');
     return this;
   }
@@ -129,6 +144,14 @@ export class RequestQueryBuilder {
           ? (j as Array<QueryJoin | QueryJoinArr>).map((o) => this.addJoin(o))
           : [this.addJoin(j as QueryJoin | QueryJoinArr)]),
       ];
+    }
+    return this;
+  }
+
+  groupBy(columns: QueryGroup): this {
+    if (isArrayFull(columns)) {
+      validateGroup(columns);
+      this.queryObject[this.paramNames.group] = columns.join(this.options.delimStr);
     }
     return this;
   }
@@ -166,8 +189,13 @@ export class RequestQueryBuilder {
     return this;
   }
 
-  cond(
-    f: QueryFilter | QueryFilterArr,
+  setRaw(val: boolean) {
+    this.setBoolean(val, 'raw');
+    return this;
+  }
+
+  cond<T extends string | FieldDescription>(
+    f: QueryFilter<T> | QueryFilterArr,
     cond: 'filter' | 'or' | 'search' = 'search',
   ): string {
     const filter = Array.isArray(f) ? { field: f[0], operator: f[1], value: f[2] } : f;
@@ -180,6 +208,11 @@ export class RequestQueryBuilder {
       filter.operator +
       (hasValue(filter.value) ? d + filter.value : '')
     );
+  }
+
+  private fieldDescriptionToString(field: FieldDescription) {
+    const keys: Array<keyof FieldDescription> = ['name', 'alias', 'aggregation'];
+    return keys.map((key) => field[key] || '').join(this.options.delimParam);
   }
 
   private addJoin(j: QueryJoin | QueryJoinArr): string {
@@ -208,7 +241,9 @@ export class RequestQueryBuilder {
     this.setLimit(params.limit);
     this.setOffset(params.offset);
     this.setPage(params.page);
+    this.groupBy(params.group);
     this.sortBy(params.sort);
+    this.setRaw(params.raw);
     if (params.resetCache) {
       this.resetCache();
     }
@@ -226,8 +261,8 @@ export class RequestQueryBuilder {
     return param;
   }
 
-  private setCondition(
-    f: QueryFilter | QueryFilterArr | Array<QueryFilter | QueryFilterArr>,
+  private setCondition<T extends string | FieldDescription>(
+    f: QueryFilter<T> | QueryFilterArr | Array<QueryFilter<T> | QueryFilterArr>,
     cond: 'filter' | 'or',
   ): void {
     if (!isNil(f)) {
@@ -235,8 +270,8 @@ export class RequestQueryBuilder {
       this.queryObject[param] = [
         ...this.queryObject[param],
         ...(Array.isArray(f) && !isString(f[0])
-          ? (f as Array<QueryFilter | QueryFilterArr>).map((o) => this.cond(o, cond))
-          : [this.cond(f as QueryFilter | QueryFilterArr, cond)]),
+          ? (f as Array<QueryFilter<T> | QueryFilterArr>).map((o) => this.cond(o, cond))
+          : [this.cond(f as QueryFilter<T> | QueryFilterArr, cond)]),
       ];
     }
   }
@@ -245,6 +280,13 @@ export class RequestQueryBuilder {
     if (!isNil(n)) {
       validateNumeric(n, cond);
       this.queryObject[this.paramNames[cond]] = n;
+    }
+  }
+
+  private setBoolean(val: boolean, field: 'raw'): void {
+    if (!isNil(val)) {
+      validateBoolean(val, field);
+      this.queryObject[this.paramNames[field]] = val;
     }
   }
 }

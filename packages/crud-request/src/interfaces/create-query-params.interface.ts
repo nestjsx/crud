@@ -1,7 +1,9 @@
 import {
+  QueryField,
   QueryFields,
   QueryFilter,
   QueryFilterArr,
+  QueryGroup,
   QueryJoin,
   QueryJoinArr,
   QuerySort,
@@ -12,12 +14,20 @@ import {
 export interface CreateQueryParams {
   fields?: QueryFields;
   search?: SCondition;
-  filter?: QueryFilter | QueryFilterArr | Array<QueryFilter | QueryFilterArr>;
-  or?: QueryFilter | QueryFilterArr | Array<QueryFilter | QueryFilterArr>;
+  filter?:
+    | QueryFilter<QueryField>
+    | QueryFilterArr
+    | Array<QueryFilter<QueryField> | QueryFilterArr>;
+  or?:
+    | QueryFilter<QueryField>
+    | QueryFilterArr
+    | Array<QueryFilter<QueryField> | QueryFilterArr>;
   join?: QueryJoin | QueryJoinArr | Array<QueryJoin | QueryJoinArr>;
   sort?: QuerySort | QuerySortArr | Array<QuerySort | QuerySortArr>;
   limit?: number;
   offset?: number;
   page?: number;
   resetCache?: boolean;
+  group?: QueryGroup;
+  raw?: boolean;
 }

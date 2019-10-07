@@ -1,14 +1,14 @@
 import {
   hasLength,
   hasValue,
-  isString,
   isArrayFull,
   isDate,
   isDateString,
+  isNil,
   isObject,
+  isString,
   isStringFull,
   objKeys,
-  isNil,
 } from '@nestjsx/util';
 
 import { RequestQueryException } from './exceptions';
@@ -19,7 +19,10 @@ import {
 } from './interfaces';
 import { RequestQueryBuilder } from './request-query.builder';
 import {
+  validateAggregationFunction,
+  validateBoolean,
   validateCondition,
+  validateField,
   validateJoin,
   validateNumeric,
   validateParamOption,
@@ -28,8 +31,12 @@ import {
 } from './request-query.validator';
 import {
   ComparisonOperator,
+  FieldDescription,
+  FieldDescriptionArr,
+  QueryField,
   QueryFields,
   QueryFilter,
+  QueryGroup,
   QueryJoin,
   QuerySort,
   SCondition,
@@ -38,17 +45,19 @@ import {
 // tslint:disable:variable-name ban-types
 export class RequestQueryParser implements ParsedRequestParams {
   public fields: QueryFields = [];
-  public paramsFilter: QueryFilter[] = [];
+  public paramsFilter: Array<QueryFilter<string>> = [];
   public search: SCondition;
   public searchJson: SCondition;
-  public filter: QueryFilter[] = [];
-  public or: QueryFilter[] = [];
+  public filter: Array<QueryFilter<QueryField>> = [];
+  public or: Array<QueryFilter<QueryField>> = [];
   public join: QueryJoin[] = [];
+  public group: QueryGroup = [];
   public sort: QuerySort[] = [];
   public limit: number;
   public offset: number;
   public page: number;
   public cache: number;
+  public raw: boolean = false;
 
   private _params: any;
   private _query: any;
@@ -71,11 +80,13 @@ export class RequestQueryParser implements ParsedRequestParams {
       filter: this.filter,
       or: this.or,
       join: this.join,
+      group: this.group,
       sort: this.sort,
       limit: this.limit,
       offset: this.offset,
       page: this.page,
       cache: this.cache,
+      raw: this.raw,
     };
   }
 
@@ -86,7 +97,7 @@ export class RequestQueryParser implements ParsedRequestParams {
       if (hasLength(paramNames)) {
         this._query = query;
         this._paramNames = paramNames;
-        let searchData = this._query[this.getParamNames('search')[0]];
+        const searchData = this._query[this.getParamNames('search')[0]];
 
         this.search = this.parseSearchQueryParam(searchData) as any;
         if (isNil(this.search)) {
@@ -99,6 +110,7 @@ export class RequestQueryParser implements ParsedRequestParams {
         this.fields =
           this.parseQueryParam('fields', this.fieldsParser.bind(this))[0] || [];
         this.join = this.parseQueryParam('join', this.joinParser.bind(this));
+        this.group = this.parseQueryParam('group', this.groupParser.bind(this))[0] || [];
         this.sort = this.parseQueryParam('sort', this.sortParser.bind(this));
         this.limit = this.parseQueryParam(
           'limit',
@@ -116,6 +128,7 @@ export class RequestQueryParser implements ParsedRequestParams {
           'cache',
           this.numericParser.bind(this, 'cache'),
         )[0];
+        this.raw = this.parseQueryParam('raw', this.booleanParser.bind(this, 'raw'))[0];
       }
     }
 
@@ -206,8 +219,30 @@ export class RequestQueryParser implements ParsedRequestParams {
     }
   }
 
+  private stringToQueryFieldDescription([
+    name,
+    alias,
+    aggregation,
+  ]: FieldDescriptionArr): FieldDescription {
+    validateField(name, 'field');
+    return {
+      name,
+      alias: isStringFull(alias) ? alias : undefined,
+      aggregation: isStringFull(aggregation)
+        ? validateAggregationFunction(aggregation)
+        : undefined,
+    };
+  }
+
   private fieldsParser(data: string): QueryFields {
-    return data.split(this._options.delimStr);
+    return data.split(this._options.delimStr).map((field) => {
+      const split = field.split(this._options.delimParam);
+      if (split.length === 3) {
+        return this.stringToQueryFieldDescription(split as FieldDescriptionArr);
+      }
+      validateField(field, 'field');
+      return field;
+    });
   }
 
   private parseSearchQueryParam(d: any): SCondition {
@@ -228,7 +263,10 @@ export class RequestQueryParser implements ParsedRequestParams {
     }
   }
 
-  private conditionParser(cond: 'filter' | 'or' | 'search', data: string): QueryFilter {
+  private conditionParser(
+    cond: 'filter' | 'or' | 'search',
+    data: string,
+  ): QueryFilter<string> {
     const isArrayValue = ['in', 'notin', 'between'];
     const isEmptyValue = ['isnull', 'notnull'];
     const param = data.split(this._options.delim);
@@ -246,7 +284,7 @@ export class RequestQueryParser implements ParsedRequestParams {
       throw new RequestQueryException(`Invalid ${cond} value`);
     }
 
-    const condition: QueryFilter = { field, operator, value };
+    const condition: QueryFilter<string> = { field, operator, value };
     validateCondition(condition, cond);
 
     return condition;
@@ -261,6 +299,10 @@ export class RequestQueryParser implements ParsedRequestParams {
     validateJoin(join);
 
     return join;
+  }
+
+  private groupParser(data: string): QueryGroup {
+    return data.split(this._options.delimStr);
   }
 
   private sortParser(data: string): QuerySort {
@@ -284,7 +326,13 @@ export class RequestQueryParser implements ParsedRequestParams {
     return val;
   }
 
-  private paramParser(name: string): QueryFilter {
+  private booleanParser(field: 'raw', data: string): boolean {
+    const val = this.parseValue(data);
+    validateBoolean(val, field);
+    return val;
+  }
+
+  private paramParser(name: string): QueryFilter<string> {
     validateParamOption(this._paramsOptions, name);
     const option = this._paramsOptions[name];
     let value = this._params[name];

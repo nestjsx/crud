@@ -1,19 +1,26 @@
 import {
-  isUndefined,
+  isArrayFull,
   isArrayStrings,
-  isStringFull,
-  isObject,
+  isBoolean,
   isEqual,
-  isNumber,
   isNil,
+  isNumber,
+  isObject,
+  isString,
+  isStringFull,
+  isUndefined,
 } from '@nestjsx/util';
 
 import { RequestQueryException } from './exceptions';
-import { ParamsOptions, ParamOption } from './interfaces';
+import { ParamsOptions } from './interfaces';
 import {
+  AggregationFunction,
+  ComparisonOperator,
+  FieldDescription,
+  QueryField,
   QueryFields,
   QueryFilter,
-  ComparisonOperator,
+  QueryGroup,
   QueryJoin,
   QuerySort,
 } from './types';
@@ -35,22 +42,69 @@ export const comparisonOperatorsList = [
   'notnull',
   'between',
 ];
+export const sqlFunctionsList = ['count', 'max', 'min', 'sum', 'avg'];
 export const sortOrdersList = ['ASC', 'DESC'];
 
 const comparisonOperatorsListStr = comparisonOperatorsList.join();
+const sqlFunctionsListStr = sqlFunctionsList.join();
 const sortOrdersListStr = sortOrdersList.join();
 
-export function validateFields(fields: QueryFields): void {
-  if (!isArrayStrings(fields)) {
-    throw new RequestQueryException('Invalid fields. Array of strings expected');
+export function validateAggregationFunction(fn: string): AggregationFunction {
+  if (!sqlFunctionsList.includes(fn)) {
+    throw new RequestQueryException(`Invalid function. ${sqlFunctionsListStr} expected`);
+  }
+  return fn as AggregationFunction;
+}
+
+export function validateField(field: string, name: 'field' | 'alias') {
+  if (!isStringFull(field)) {
+    throw new RequestQueryException(`Invalid ${name}. Not empty string expected`);
   }
 }
 
-export function validateCondition(
-  val: QueryFilter,
+export function validateFieldDescription({
+  name,
+  alias,
+  aggregation,
+}: FieldDescription): void {
+  validateField(name, 'field');
+  /* istanbul ignore else */
+  if (!isUndefined(alias)) {
+    validateField(alias, 'alias');
+  }
+  /* istanbul ignore else */
+  if (!isUndefined(aggregation)) {
+    validateAggregationFunction(aggregation);
+  }
+}
+
+export function validateQueryField(field: QueryField) {
+  switch (true) {
+    case isString(field): {
+      validateField(field as string, 'field');
+      break;
+    }
+    case isObject(field): {
+      validateFieldDescription(field as FieldDescription);
+      break;
+    }
+    default:
+      throw new RequestQueryException(`Invalid field. String or object expected`);
+  }
+}
+
+export function validateFields(fields: QueryFields): void {
+  /* istanbul ignore else */
+  if (isArrayFull(fields)) {
+    fields.forEach(validateQueryField);
+  }
+}
+
+export function validateCondition<T extends string | FieldDescription>(
+  val: QueryFilter<T>,
   cond: 'filter' | 'or' | 'search',
 ): void {
-  if (!isObject(val) || !isStringFull(val.field)) {
+  if (!isObject(val) || validateQueryField(val.field)) {
     throw new RequestQueryException(
       `Invalid field type in ${cond} condition. String expected`,
     );
@@ -75,6 +129,12 @@ export function validateJoin(join: QueryJoin): void {
   }
 }
 
+export function validateGroup(group: QueryGroup): void {
+  if (!isArrayStrings(group)) {
+    throw new RequestQueryException('Invalid group field. Array of strings expected');
+  }
+}
+
 export function validateSort(sort: QuerySort): void {
   if (!isObject(sort) || !isStringFull(sort.field)) {
     throw new RequestQueryException('Invalid sort field. String expected');
@@ -93,6 +153,12 @@ export function validateNumeric(
 ): void {
   if (!isNumber(val)) {
     throw new RequestQueryException(`Invalid ${num}. Number expected`);
+  }
+}
+
+export function validateBoolean(val: any, field: 'raw' | string) {
+  if (!isBoolean(val)) {
+    throw new RequestQueryException(`Invalid ${field}. Boolean expected`);
   }
 }
 
