@@ -16,6 +16,7 @@ import { Crud } from '../../crud/src/decorators/crud.decorator';
 import { CompaniesService } from './__fixture__/companies.service';
 import { ProjectsService } from './__fixture__/projects.service';
 import { UsersService } from './__fixture__/users.service';
+import { CrudConfigService } from '../../crud/src/module';
 
 // tslint:disable:max-classes-per-file
 describe('#crud-typeorm', () => {
@@ -23,6 +24,8 @@ describe('#crud-typeorm', () => {
     let app: INestApplication;
     let server: any;
     let qb: RequestQueryBuilder;
+
+    CrudConfigService.load({ query: { alwaysPaginate: false } });
 
     @Crud({
       model: { type: Company },

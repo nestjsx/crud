@@ -6,7 +6,9 @@ import { CrudGlobalConfig } from '../interfaces';
 
 export class CrudConfigService {
   static config: CrudGlobalConfig = {
-    query: {},
+    query: {
+      alwaysPaginate: true,
+    },
     routes: {
       getManyBase: { interceptors: [], decorators: [] },
       getOneBase: { interceptors: [], decorators: [] },

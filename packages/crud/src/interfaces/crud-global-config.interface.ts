@@ -11,5 +11,6 @@ export interface CrudGlobalConfig {
     limit?: number;
     maxLimit?: number;
     cache?: number | false;
+    alwaysPaginate?: boolean;
   };
 }
