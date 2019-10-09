@@ -543,7 +543,18 @@ describe('#crud-typeorm', () => {
         const res = await request(server)
           .get('/projects5')
           .query(query);
-        expect(Object.keys(res.body[0]).length).toBe(2);
+        expect(Object.keys(res.body[0])).toHaveLength(2);
+      });
+      it('should not add fields from joined entity when select is undefined', async () => {
+        const query = qb
+          .select(['name'])
+          .setJoin({ field: 'userProjects' })
+          .setRaw(true)
+          .query();
+        const res = await request(server)
+          .get('/projects5')
+          .query(query);
+        expect(Object.keys(res.body[0])).toHaveLength(1);
       });
     });
 

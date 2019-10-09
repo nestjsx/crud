@@ -563,7 +563,9 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
       const alias = options.alias ? options.alias : relation.name;
 
       const columns =
-        !cond.select || !cond.select.length
+        raw && !cond.select
+          ? []
+          : !cond.select || !cond.select.length
           ? allowed
           : cond.select.filter((col) => allowed.includes(this.normalizeField(col).name));
 
