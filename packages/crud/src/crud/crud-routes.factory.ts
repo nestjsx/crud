@@ -16,13 +16,16 @@ import { R } from './reflection.helper';
 import { Swagger } from './swagger.helper';
 import { Validation } from './validation.helper';
 import { CrudRequestInterceptor } from '../interceptors';
-import { BaseRoute, CrudOptions, CrudRequest, ParamsOptions } from '../interfaces';
+import { BaseRoute, CrudOptions, CrudRequest, MergedCrudOptions } from '../interfaces';
 import { BaseRouteName } from '../types';
 import { CrudActions, CrudValidationGroups } from '../enums';
 import { CrudConfigService } from '../module';
 
 export class CrudRoutesFactory {
-  constructor(private target: any, private options: CrudOptions) {
+  protected options: MergedCrudOptions;
+
+  constructor(private target: any, options: CrudOptions) {
+    this.options = options;
     this.create();
   }
 
@@ -63,6 +66,12 @@ export class CrudRoutesFactory {
   }
 
   private mergeOptions() {
+    // merge auth config
+    const authOptions = R.getCrudAuthOptions(this.target);
+    this.options.auth = isObjectFull(authOptions) ? authOptions : {};
+    this.options.auth.property =
+      this.options.auth.property || CrudConfigService.config.auth.property;
+
     // merge query config
     const query = isObjectFull(this.options.query) ? this.options.query : {};
     this.options.query = { ...CrudConfigService.config.query, ...query };
@@ -99,13 +108,15 @@ export class CrudRoutesFactory {
         method: RequestMethod.GET,
         enable: false,
         override: false,
+        withParams: false,
       },
       {
         name: 'getOneBase',
-        path: '',
+        path: '/',
         method: RequestMethod.GET,
         enable: false,
         override: false,
+        withParams: true,
       },
       {
         name: 'createOneBase',
@@ -113,6 +124,7 @@ export class CrudRoutesFactory {
         method: RequestMethod.POST,
         enable: false,
         override: false,
+        withParams: false,
       },
       {
         name: 'createManyBase',
@@ -120,27 +132,31 @@ export class CrudRoutesFactory {
         method: RequestMethod.POST,
         enable: false,
         override: false,
+        withParams: false,
       },
       {
         name: 'updateOneBase',
-        path: '',
+        path: '/',
         method: RequestMethod.PATCH,
         enable: false,
         override: false,
+        withParams: true,
       },
       {
         name: 'replaceOneBase',
-        path: '',
+        path: '/',
         method: RequestMethod.PUT,
         enable: false,
         override: false,
+        withParams: true,
       },
       {
         name: 'deleteOneBase',
-        path: '',
+        path: '/',
         method: RequestMethod.DELETE,
         enable: false,
         override: false,
+        withParams: true,
       },
     ];
   }
@@ -214,7 +230,7 @@ export class CrudRoutesFactory {
         this.setBaseRouteMeta(route.name);
       }
 
-      if (!hasLength(route.path)) {
+      if (route.withParams && !this.options.params[primaryParam].disabled) {
         route.path = `/:${primaryParam}`;
       }
     });

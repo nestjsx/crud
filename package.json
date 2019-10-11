@@ -11,6 +11,7 @@
     "bootstrap": "npx lerna bootstrap",
     "s": "npx nps",
     "s:list": "yarn s --scripts",
+    "rebuild": "yarn clean && yarn build",
     "build": "yarn s build",
     "clean": "yarn s clean",
     "pretest": "npm run db:prepare:typeorm",

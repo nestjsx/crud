@@ -458,6 +458,45 @@ describe('#request-query', () => {
         ];
         expect(test.paramsFilter).toMatchObject(expected);
       });
+      it('should set paramsFilter with disabled validation', () => {
+        const params = {
+          foo: 'cb1751fd',
+          bar: '123',
+        };
+        const options: ParamsOptions = {
+          foo: { disabled: true },
+          bar: { field: 'bar', type: 'number' },
+        };
+        const test = qp.parseParams(params, options);
+        const expected = [{ field: 'bar', operator: 'eq', value: 123 }];
+        expect(test.paramsFilter).toMatchObject(expected);
+      });
+    });
+
+    describe('#setAuthFilter', () => {
+      it('it should set authFilter, 1', () => {
+        qp.setAuthFilter();
+        expect(qp.authFilter).toMatchObject({});
+      });
+      it('it should set authFilter, 2', () => {
+        const test = { foo: 'bar' };
+        qp.setAuthFilter(test);
+        const parsed = qp.getParsed();
+        expect(parsed.authFilter).toMatchObject(test);
+      });
+    });
+
+    describe('#setAuthPersist', () => {
+      it('it should set authPersist, 1', () => {
+        qp.setAuthPersist();
+        expect(qp.authPersist).toMatchObject({});
+      });
+      it('it should set authPersist, 2', () => {
+        const test = { foo: 'bar' };
+        qp.setAuthPersist(test);
+        const parsed = qp.getParsed();
+        expect(parsed.authPersist).toMatchObject(test);
+      });
     });
 
     describe('#getParsed', () => {
@@ -466,6 +505,8 @@ describe('#request-query', () => {
           fields: [],
           paramsFilter: [],
           search: undefined,
+          authFilter: undefined,
+          authPersist: undefined,
           filter: [],
           or: [],
           join: [],

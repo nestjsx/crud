@@ -2,10 +2,14 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { CrudConfigService } from '@nestjsx/crud';
+import { USER_REQUEST_KEY } from './constants';
 
 // Important: load config before (!!!) you import AppModule
 // https://github.com/nestjsx/crud/wiki/Controllers#global-options
 CrudConfigService.load({
+  auth: {
+    property: USER_REQUEST_KEY,
+  },
   routes: {
     exclude: ['createManyBase'],
   },

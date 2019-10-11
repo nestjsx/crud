@@ -9,6 +9,7 @@ import {
   isStringFull,
   objKeys,
   isNil,
+  ObjectLiteral,
 } from '@nestjsx/util';
 
 import { RequestQueryException } from './exceptions';
@@ -39,6 +40,8 @@ import {
 export class RequestQueryParser implements ParsedRequestParams {
   public fields: QueryFields = [];
   public paramsFilter: QueryFilter[] = [];
+  public authFilter: ObjectLiteral = undefined;
+  public authPersist: ObjectLiteral = undefined;
   public search: SCondition;
   public searchJson: SCondition;
   public filter: QueryFilter[] = [];
@@ -67,6 +70,8 @@ export class RequestQueryParser implements ParsedRequestParams {
     return {
       fields: this.fields,
       paramsFilter: this.paramsFilter,
+      authFilter: this.authFilter,
+      authPersist: this.authPersist,
       search: this.search,
       filter: this.filter,
       or: this.or,
@@ -129,11 +134,21 @@ export class RequestQueryParser implements ParsedRequestParams {
       if (hasLength(paramNames)) {
         this._params = params;
         this._paramsOptions = options;
-        this.paramsFilter = paramNames.map((name) => this.paramParser(name));
+        this.paramsFilter = paramNames
+          .map((name) => this.paramParser(name))
+          .filter((filter) => filter);
       }
     }
 
     return this;
+  }
+
+  setAuthFilter(filter: ObjectLiteral = {}) {
+    this.authFilter = filter;
+  }
+
+  setAuthPersist(persist: ObjectLiteral = {}) {
+    this.authPersist = persist;
   }
 
   private getParamNames(
@@ -287,6 +302,11 @@ export class RequestQueryParser implements ParsedRequestParams {
   private paramParser(name: string): QueryFilter {
     validateParamOption(this._paramsOptions, name);
     const option = this._paramsOptions[name];
+
+    if (option.disabled) {
+      return undefined;
+    }
+
     let value = this._params[name];
 
     switch (option.type) {
