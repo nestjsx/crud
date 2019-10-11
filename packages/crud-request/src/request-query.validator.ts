@@ -101,6 +101,9 @@ export function validateParamOption(options: ParamsOptions, name: string) {
     throw new RequestQueryException(`Invalid param ${name}. Invalid crud options`);
   }
   const option = options[name];
+  if (option && option.disabled) {
+    return;
+  }
   if (!isObject(option) || isNil(option.field) || isNil(option.type)) {
     throw new RequestQueryException(`Invalid param option in Crud`);
   }
