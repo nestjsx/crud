@@ -45,6 +45,11 @@ describe('#crud-typeorm', () => {
 
     @Crud({
       model: { type: Project },
+      routes: {
+        updateOneBase: {
+          returnShallow: true,
+        },
+      },
       query: {
         join: {
           company: {
