@@ -1,3 +1,4 @@
+import { ObjectLiteral } from '@nestjsx/util';
 import {
   QueryField,
   QueryFields,
@@ -11,6 +12,8 @@ import {
 export interface ParsedRequestParams {
   fields: QueryFields;
   paramsFilter: Array<QueryFilter<string>>;
+  authFilter: ObjectLiteral;
+  authPersist: ObjectLiteral;
   search: SCondition;
   filter: Array<QueryFilter<QueryField>>;
   or: Array<QueryFilter<QueryField>>;

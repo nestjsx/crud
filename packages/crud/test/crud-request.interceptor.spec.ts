@@ -10,7 +10,7 @@ import { NestApplication } from '@nestjs/core';
 import { Test } from '@nestjs/testing';
 import { RequestQueryBuilder } from '@nestjsx/crud-request';
 import * as supertest from 'supertest';
-import { Crud, ParsedRequest } from '../src/decorators';
+import { Crud, ParsedRequest, CrudAuth, Override } from '../src/decorators';
 import { CrudRequestInterceptor } from '../src/interceptors';
 import { CrudRequest } from '../src/interfaces';
 import { TestModel } from './__fixture__/test.model';
@@ -69,13 +69,52 @@ describe('#crud', () => {
     }
   }
 
+  @Crud({
+    model: { type: TestModel },
+  })
+  @CrudAuth({
+    property: 'user',
+    filter: (user) => ({ foo: user, buz: 1 }),
+    persist: () => ({ bar: false }),
+  })
+  @Controller('test3')
+  class Test3Controller {
+    constructor(public service: TestService<TestModel>) {}
+
+    @Override('getManyBase')
+    get(@ParsedRequest() req: CrudRequest) {
+      return req;
+    }
+
+    @Override('createOneBase')
+    post(@ParsedRequest() req: CrudRequest) {
+      return req;
+    }
+  }
+
+  @Crud({
+    model: { type: TestModel },
+  })
+  @CrudAuth({
+    filter: (req) => ({ foo: req.method }),
+  })
+  @Controller('test4')
+  class Test4Controller {
+    constructor(public service: TestService<TestModel>) {}
+
+    @Override('getManyBase')
+    get(@ParsedRequest() req: CrudRequest) {
+      return req;
+    }
+  }
+
   let $: supertest.SuperTest<supertest.Test>;
   let app: NestApplication;
 
   beforeAll(async () => {
     const module = await Test.createTestingModule({
       providers: [TestService],
-      controllers: [TestController, Test2Controller],
+      controllers: [TestController, Test2Controller, Test3Controller, Test4Controller],
     }).compile();
     app = module.createNestApplication();
     await app.init();
@@ -158,6 +197,29 @@ describe('#crud', () => {
       expect(res.body.filter).toHaveLength(1);
       expect(res.body.filter[0].field).toBe('id');
       expect(res.body.filter[0].value).toBe(0);
+    });
+
+    it('should handle authorized request, 1', async () => {
+      const res = await $.get('/test3').expect(200);
+      const authFilter = { buz: 1 };
+      const { parsed } = res.body;
+      expect(parsed.authFilter).toMatchObject(authFilter);
+    });
+
+    it('should handle authorized request, 2', async () => {
+      const res = await $.post('/test3')
+        .send({})
+        .expect(201);
+      const authPersist = { bar: false };
+      const { parsed } = res.body;
+      expect(parsed.authPersist).toMatchObject(authPersist);
+    });
+
+    it('should handle authorized request, 3', async () => {
+      const res = await $.get('/test4').expect(200);
+      const authFilter = { foo: 'GET' };
+      const { parsed } = res.body;
+      expect(parsed.authFilter).toMatchObject(authFilter);
     });
   });
 });
