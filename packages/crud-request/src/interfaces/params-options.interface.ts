@@ -5,7 +5,8 @@ export interface ParamsOptions {
 }
 
 export interface ParamOption {
-  field: string;
-  type: ParamOptionType;
+  field?: string;
+  type?: ParamOptionType;
   primary?: boolean;
+  disabled?: boolean;
 }

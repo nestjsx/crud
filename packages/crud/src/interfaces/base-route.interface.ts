@@ -8,4 +8,5 @@ export interface BaseRoute {
   method: RequestMethod;
   enable: boolean;
   override: boolean;
+  withParams: boolean;
 }

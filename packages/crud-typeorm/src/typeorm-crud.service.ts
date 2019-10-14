@@ -112,7 +112,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
    * @param dto
    */
   public async createOne(req: CrudRequest, dto: DeepPartial<T>): Promise<T> {
-    const entity = this.prepareEntityBeforeSave(dto, req.parsed.paramsFilter);
+    const entity = this.prepareEntityBeforeSave(dto, req.parsed);
 
     /* istanbul ignore if */
     if (!entity) {
@@ -137,7 +137,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     }
 
     const bulk = dto.bulk
-      .map((one) => this.prepareEntityBeforeSave(one, req.parsed.paramsFilter))
+      .map((one) => this.prepareEntityBeforeSave(one, req.parsed))
       .filter((d) => !isUndefined(d));
 
     /* istanbul ignore if */
@@ -155,12 +155,19 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
    */
   public async updateOne(req: CrudRequest, dto: DeepPartial<T>): Promise<T> {
     const { allowParamsOverride, returnShallow } = req.options.routes.updateOneBase;
-    const paramsFilters = this.getParamsFilters(req.parsed);
-    const found = await this.getOneShallowOrFail(paramsFilters);
+    const paramsFilters = this.getParamFilters(req.parsed);
+    const authFilter = req.parsed.authFilter || {};
+    const authPersist = req.parsed.authPersist || {};
+    const toFind = { ...paramsFilters, ...authFilter };
+
+    const found = returnShallow
+      ? await this.getOneShallowOrFail(toFind)
+      : await this.getOneOrFail(req);
 
     const toSave = !allowParamsOverride
-      ? { ...found, ...dto, ...paramsFilters }
-      : { ...found, ...dto };
+      ? { ...found, ...dto, ...paramsFilters, ...authPersist }
+      : { ...found, ...dto, ...authPersist };
+
     const updated = await this.repo.save(plainToClass(this.entityType, toSave));
 
     if (returnShallow) {
@@ -180,11 +187,12 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
    */
   public async replaceOne(req: CrudRequest, dto: DeepPartial<T>): Promise<T> {
     const { allowParamsOverride, returnShallow } = req.options.routes.replaceOneBase;
-    const paramsFilters = this.getParamsFilters(req.parsed);
+    const paramsFilters = this.getParamFilters(req.parsed);
+    const authPersist = req.parsed.authPersist || {};
 
     const toSave = !allowParamsOverride
-      ? { ...dto, ...paramsFilters }
-      : { ...paramsFilters, ...dto };
+      ? { ...dto, ...paramsFilters, ...authPersist }
+      : { ...paramsFilters, ...dto, ...authPersist };
 
     const replaced = await this.repo.save(plainToClass(this.entityType, toSave));
 
@@ -204,25 +212,28 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
    */
   public async deleteOne(req: CrudRequest): Promise<void | T> {
     const { returnDeleted } = req.options.routes.deleteOneBase;
-    const paramsFilters = this.getParamsFilters(req.parsed);
-    const found = await this.getOneShallowOrFail(paramsFilters);
+    const paramsFilters = this.getParamFilters(req.parsed);
+    const authFilter = req.parsed.authFilter || {};
+    const toFind = { ...paramsFilters, ...authFilter };
+
+    const found = await this.getOneShallowOrFail(toFind);
     const deleted = await this.repo.remove(found);
 
     /* istanbul ignore next */
-    return returnDeleted ? { ...deleted, ...paramsFilters } : undefined;
+    return returnDeleted ? { ...deleted, ...paramsFilters, ...authFilter } : undefined;
   }
 
-  public getParamsFilters(parsed: CrudRequest['parsed']): ObjectLiteral {
-    const paramsFilters = {};
+  public getParamFilters(parsed: CrudRequest['parsed']): ObjectLiteral {
+    let filters = {};
 
     /* istanbul ignore else */
     if (hasLength(parsed.paramsFilter)) {
       for (const filter of parsed.paramsFilter) {
-        paramsFilters[filter.field] = filter.value;
+        filters[filter.field] = filter.value;
       }
     }
 
-    return paramsFilters;
+    return filters;
   }
 
   public decidePagination(
@@ -248,19 +259,17 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
   ): Promise<SelectQueryBuilder<T>> {
     // create query builder
     const builder = this.repo.createQueryBuilder(this.alias);
-
     // get select fields
     const select = this.getSelect(parsed, options.query);
-
     // select fields
     builder.select(select);
+    // default search condition
+    const defaultSearch = this.getDefaultSearchCondition(options, parsed);
 
     // legacy filter and or params
     // will be deprecated in the next major release
     if (isNil(parsed.search)) {
-      const defaultSearch = this.getDefaultSearchCondition(options, parsed);
       this.setSearchCondition(builder, { $and: defaultSearch });
-
       const filters = parsed.filter;
       const hasFilter = isArrayFull(filters);
       const hasOr = isArrayFull(parsed.or);
@@ -316,8 +325,6 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
         }
       }
     } else {
-      // new search condition mechanism
-      const defaultSearch = this.getDefaultSearchCondition(options, parsed);
       const search: SCondition = defaultSearch.length
         ? { $and: [...defaultSearch, parsed.search] }
         : /* istanbul ignore next */ parsed.search;
@@ -386,13 +393,14 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     options: CrudRequestOptions,
     parsed: ParsedRequestParams,
   ): any[] {
-    const filter = this.queryFilterToSearch(options.query.filter as QueryFilter[]);
+    const filter = this.queryFilterToSearch(options.query.filter);
     const paramsFilter = this.queryFilterToSearch(parsed.paramsFilter);
+    const authFilter = this.queryFilterToSearch(parsed.authFilter);
 
-    return [...filter, ...paramsFilter];
+    return [...filter, ...paramsFilter, ...authFilter];
   }
 
-  private queryFilterToSearch(filter: QueryFilter[]): any {
+  private queryFilterToSearch(filter: any): any {
     return isArrayFull(filter)
       ? filter.map((item) => ({
           [item.field]: { [item.operator]: item.value },
@@ -455,24 +463,28 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     return found;
   }
 
-  private prepareEntityBeforeSave(dto: DeepPartial<T>, paramsFilter: QueryFilter[]): T {
+  private prepareEntityBeforeSave(dto: DeepPartial<T>, parsed: CrudRequest['parsed']): T {
     /* istanbul ignore if */
     if (!isObject(dto)) {
       return undefined;
     }
 
-    if (hasLength(paramsFilter)) {
-      for (const filter of paramsFilter) {
+    if (hasLength(parsed.paramsFilter)) {
+      for (const filter of parsed.paramsFilter) {
         dto[filter.field] = filter.value;
       }
     }
+
+    const authPersist = isObject(parsed.authPersist) ? parsed.authPersist : {};
 
     /* istanbul ignore if */
     if (!hasLength(objKeys(dto))) {
       return undefined;
     }
 
-    return dto instanceof this.entityType ? dto : plainToClass(this.entityType, dto);
+    return dto instanceof this.entityType
+      ? Object.assign(dto, authPersist)
+      : plainToClass(this.entityType, { ...dto, ...authPersist });
   }
 
   private getAllowedColumns(columns: string[], options: QueryOptions): string[] {
