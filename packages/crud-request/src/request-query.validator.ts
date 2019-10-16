@@ -23,6 +23,7 @@ import {
   QueryGroup,
   QueryJoin,
   QuerySort,
+  FieldAlias,
 } from './types';
 
 export const comparisonOperatorsList = [
@@ -135,9 +136,13 @@ export function validateGroup(group: QueryGroup): void {
   }
 }
 
-export function validateSort(sort: QuerySort): void {
-  if (!isObject(sort) || !isStringFull(sort.field)) {
-    throw new RequestQueryException('Invalid sort field. String expected');
+export function validateSort<T extends string | FieldAlias>(sort: QuerySort<T>): void {
+  if (
+    !isObject(sort) ||
+    (!isStringFull(sort.field) &&
+      !(isObject(sort.field) && isStringFull((sort.field as FieldAlias).alias)))
+  ) {
+    throw new RequestQueryException('Invalid sort field. String or alias expected');
   }
   if (
     !isEqual(sort.order, sortOrdersList[0]) &&

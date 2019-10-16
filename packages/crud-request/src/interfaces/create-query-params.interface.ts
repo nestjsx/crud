@@ -1,4 +1,5 @@
 import {
+  FieldAlias,
   QueryField,
   QueryFields,
   QueryFilter,
@@ -23,7 +24,10 @@ export interface CreateQueryParams {
     | QueryFilterArr
     | Array<QueryFilter<QueryField> | QueryFilterArr>;
   join?: QueryJoin | QueryJoinArr | Array<QueryJoin | QueryJoinArr>;
-  sort?: QuerySort | QuerySortArr | Array<QuerySort | QuerySortArr>;
+  sort?:
+    | QuerySort<string | FieldAlias>
+    | QuerySortArr<string | FieldAlias>
+    | Array<QuerySort<string | FieldAlias> | QuerySortArr<string | FieldAlias>>;
   limit?: number;
   offset?: number;
   page?: number;

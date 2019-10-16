@@ -32,6 +32,7 @@ import {
 } from './request-query.validator';
 import {
   ComparisonOperator,
+  FieldAlias,
   FieldDescription,
   FieldDescriptionArr,
   QueryField,
@@ -55,7 +56,7 @@ export class RequestQueryParser implements ParsedRequestParams {
   public or: Array<QueryFilter<QueryField>> = [];
   public join: QueryJoin[] = [];
   public group: QueryGroup = [];
-  public sort: QuerySort[] = [];
+  public sort: Array<QuerySort<string | FieldAlias>> = [];
   public limit: number;
   public offset: number;
   public page: number;
@@ -320,10 +321,21 @@ export class RequestQueryParser implements ParsedRequestParams {
     return data.split(this._options.delimStr);
   }
 
-  private sortParser(data: string): QuerySort {
+  private stringToQuerySortField(field: string): string | FieldAlias {
+    const { aliasChar } = this._options;
+    if (field.startsWith(aliasChar)) {
+      const alias = field.slice(aliasChar.length);
+      return { alias };
+    } else {
+      return field;
+    }
+  }
+
+  private sortParser(data: string): QuerySort<string | FieldAlias> {
     const param = data.split(this._options.delimStr);
-    const sort: QuerySort = {
-      field: param[0],
+
+    const sort = {
+      field: this.stringToQuerySortField(param[0]),
       order: param[1] as any,
     };
     validateSort(sort);

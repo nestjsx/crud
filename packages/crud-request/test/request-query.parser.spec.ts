@@ -2,7 +2,13 @@ import 'jest-extended';
 import { RequestQueryException } from '../src/exceptions/request-query.exception';
 import { ParamsOptions, ParsedRequestParams } from '../src/interfaces';
 import { RequestQueryParser } from '../src/request-query.parser';
-import { FieldDescription, QueryFilter, QueryJoin, QuerySort } from '../src/types';
+import {
+  FieldDescription,
+  QueryFilter,
+  QueryJoin,
+  QuerySort,
+  FieldAlias,
+} from '../src/types';
 
 describe('#request-query', () => {
   describe('RequestQueryParser', () => {
@@ -326,10 +332,10 @@ describe('#request-query', () => {
           expect(qp.parseQuery.bind(qp, query)).toThrowError(RequestQueryException);
         });
         it('should set array', () => {
-          const query = { sort: ['foo,ASC', 'bar,DESC'] };
-          const expected: QuerySort[] = [
+          const query = { sort: ['foo,ASC', '@bar,DESC'] };
+          const expected: Array<QuerySort<string | FieldAlias>> = [
             { field: 'foo', order: 'ASC' },
-            { field: 'bar', order: 'DESC' },
+            { field: { alias: 'bar' }, order: 'DESC' },
           ];
           const test = qp.parseQuery(query);
           expect(test.sort[0]).toMatchObject(expected[0]);

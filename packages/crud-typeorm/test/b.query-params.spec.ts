@@ -587,6 +587,20 @@ describe('#crud-typeorm', () => {
         expect(res.body[1].id).toBeLessThan(res.body[0].id);
       });
 
+      it('should sort by alias', async () => {
+        const alias = 'my_alias';
+        const query = qb
+          .select([{ name: 'id', alias }])
+          .sortBy({ field: { alias }, order: 'DESC' })
+          .setRaw(true)
+          .query();
+        const res = await request(server)
+          .get('/users')
+          .query(query)
+          .expect(200);
+        expect(res.body[1][alias]).toBeLessThan(res.body[0][alias]);
+      });
+
       it('should sort by nested field, 1', async () => {
         const query = qb
           .setFilter({ field: 'company.id', operator: 'notnull' })

@@ -8,11 +8,14 @@ export enum AggrFunction {
 
 export type AggregationFunction = 'count' | 'max' | 'min' | 'sum' | 'avg';
 
+export type FieldAlias = {
+  alias: string;
+};
+
 export type FieldDescription = {
   name: string;
-  alias?: string;
   aggregation?: AggregationFunction;
-};
+} & Partial<FieldAlias>;
 
 export type FieldDescriptionArr = [string, string, string];
 
@@ -37,12 +40,12 @@ export type QueryJoinArr = [string, QueryFields?];
 
 export type QueryGroup = QueryFields;
 
-export type QuerySort = {
-  field: string;
+export type QuerySort<T extends string | FieldAlias> = {
+  field: T;
   order: QuerySortOperator;
 };
 
-export type QuerySortArr = [string, QuerySortOperator];
+export type QuerySortArr<T extends string | FieldAlias> = [T, QuerySortOperator];
 
 export type ComparisonOperator =
   | 'eq'

@@ -10,6 +10,7 @@ import {
 import {
   AggregationFunction,
   ComparisonOperator,
+  FieldAlias,
   FieldDescription,
   ParsedRequestParams,
   QueryField,
@@ -917,12 +918,15 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     }
   }
 
-  private mapSort(sort: QuerySort[]) {
+  private mapSort<F extends string | FieldAlias>(sort: Array<QuerySort<F>>) {
     const params: ObjectLiteral = {};
 
     for (let i = 0; i < sort.length; i++) {
-      params[this.modifyFieldName(sort[i].field, (name) => this.getNameWithAlias(name))] =
-        sort[i].order;
+      const { field, order } = sort[i];
+      const param = isString(field)
+        ? this.modifyFieldName(field as string, (name) => this.getNameWithAlias(name))
+        : (field as FieldAlias).alias;
+      params[param] = order;
     }
 
     return params;

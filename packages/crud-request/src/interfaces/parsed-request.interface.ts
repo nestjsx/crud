@@ -1,5 +1,6 @@
 import { ObjectLiteral } from '@nestjsx/util';
 import {
+  FieldAlias,
   QueryField,
   QueryFields,
   QueryFilter,
@@ -19,7 +20,7 @@ export interface ParsedRequestParams {
   or: Array<QueryFilter<QueryField>>;
   join: QueryJoin[];
   group: QueryGroup;
-  sort: QuerySort[];
+  sort: Array<QuerySort<string | FieldAlias>>;
   limit: number;
   offset: number;
   page: number;

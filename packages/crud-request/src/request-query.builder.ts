@@ -19,6 +19,7 @@ import {
   validateSort,
 } from './request-query.validator';
 import {
+  FieldAlias,
   FieldDescription,
   QueryFields,
   QueryFilter,
@@ -41,6 +42,7 @@ export class RequestQueryBuilder {
     delim: '||',
     delimStr: ',',
     delimParam: ':',
+    aliasChar: '@',
     paramNamesMap: {
       fields: ['fields', 'select'],
       search: 's',
@@ -156,14 +158,16 @@ export class RequestQueryBuilder {
     return this;
   }
 
-  sortBy(s: QuerySort | QuerySortArr | Array<QuerySort | QuerySortArr>): this {
+  sortBy<T extends string | FieldAlias>(
+    s: QuerySort<T> | QuerySortArr<T> | Array<QuerySort<T> | QuerySortArr<T>>,
+  ): this {
     if (!isNil(s)) {
       const param = this.checkQueryObjectParam('sort', []);
       this.queryObject[param] = [
         ...this.queryObject[param],
         ...(Array.isArray(s) && !isString(s[0])
-          ? (s as Array<QuerySort | QuerySortArr>).map((o) => this.addSortBy(o))
-          : [this.addSortBy(s as QuerySort | QuerySortArr)]),
+          ? (s as Array<QuerySort<T> | QuerySortArr<T>>).map((o) => this.addSortBy(o))
+          : [this.addSortBy(s as QuerySort<T> | QuerySortArr<T>)]),
       ];
     }
     return this;
@@ -215,6 +219,20 @@ export class RequestQueryBuilder {
     return keys.map((key) => field[key] || '').join(this.options.delimParam);
   }
 
+  private querySortToString<T extends string | FieldAlias>(
+    sort: QuerySort<T>,
+  ): QuerySort<string> {
+    if (isString(sort.field)) {
+      return sort as QuerySort<string>;
+    } else {
+      const { field, order } = sort as QuerySort<FieldAlias>;
+      return {
+        field: `${this.options.aliasChar}${field.alias}`,
+        order,
+      };
+    }
+  }
+
   private addJoin(j: QueryJoin | QueryJoinArr): string {
     const join = Array.isArray(j) ? { field: j[0], select: j[1] } : j;
     validateJoin(join);
@@ -224,12 +242,15 @@ export class RequestQueryBuilder {
     return join.field + (isArrayFull(join.select) ? d + join.select.join(ds) : '');
   }
 
-  private addSortBy(s: QuerySort | QuerySortArr): string {
+  private addSortBy<T extends string | FieldAlias>(
+    s: QuerySort<T> | QuerySortArr<T>,
+  ): string {
     const sort = Array.isArray(s) ? { field: s[0], order: s[1] } : s;
     validateSort(sort);
+    const stringSort = this.querySortToString(sort);
     const ds = this.options.delimStr;
 
-    return sort.field + ds + sort.order;
+    return `${stringSort.field}${ds}${stringSort.order}`;
   }
 
   private createFromParams(params: CreateQueryParams): this {
