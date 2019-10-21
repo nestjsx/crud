@@ -1,8 +1,8 @@
 import { ValidationPipe } from '@nestjs/common';
-import { isFalse } from '@nestjsx/util';
+import { isFalse, isNil } from '@nestjsx/util';
 
 import { CrudValidationGroups } from '../enums';
-import { CreateManyDto, CrudOptions } from '../interfaces';
+import { CreateManyDto, CrudOptions, MergedCrudOptions } from '../interfaces';
 import { safeRequire } from '../util';
 
 const validator = safeRequire('class-validator');
@@ -28,28 +28,32 @@ class BulkDto<T> implements CreateManyDto<T> {
 export class Validation {
   static getValidationPipe(
     options: CrudOptions,
-    group: CrudValidationGroups,
+    group?: CrudValidationGroups,
   ): ValidationPipe {
     return validator && !isFalse(options.validation)
-      ? new ValidationPipe({ ...(options.validation || {}), groups: [group] })
+      ? new ValidationPipe({
+          ...(options.validation || {}),
+          groups: group ? [group] : undefined,
+        })
       : /* istanbul ignore next */ undefined;
   }
 
-  static createBulkDto<T = any>(options: CrudOptions): any {
+  static createBulkDto<T = any>(options: MergedCrudOptions): any {
     /* istanbul ignore else */
     if (validator && transformer && !isFalse(options.validation)) {
       const { IsArray, ArrayNotEmpty, ValidateNested } = validator;
       const { Type } = transformer;
-      const groups = [CrudValidationGroups.CREATE];
-
-      const Model = options.model.type;
+      const hasDto = !isNil(options.dto.create);
+      const groups = !hasDto ? [CrudValidationGroups.CREATE] : undefined;
+      const always = hasDto ? true : undefined;
+      const Model = hasDto ? options.dto.create : options.model.type;
 
       // tslint:disable-next-line:max-classes-per-file
       class BulkDtoImpl implements CreateManyDto<T> {
         @ApiModelProperty({ type: Model, isArray: true })
-        @IsArray({ groups })
-        @ArrayNotEmpty({ groups })
-        @ValidateNested({ each: true, groups })
+        @IsArray({ groups, always })
+        @ArrayNotEmpty({ groups, always })
+        @ValidateNested({ each: true, groups, always })
         @Type(() => Model)
         bulk: T[];
       }
