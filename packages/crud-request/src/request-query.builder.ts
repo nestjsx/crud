@@ -123,16 +123,12 @@ export class RequestQueryBuilder {
     return this;
   }
 
-  setFilter<T extends string | FieldDescription>(
-    f: QueryFilter<T> | QueryFilterArr | Array<QueryFilter<T> | QueryFilterArr>,
-  ): this {
+  setFilter(f: QueryFilter | QueryFilterArr | Array<QueryFilter | QueryFilterArr>): this {
     this.setCondition(f, 'filter');
     return this;
   }
 
-  setOr<T extends string | FieldDescription>(
-    f: QueryFilter<T> | QueryFilterArr | Array<QueryFilter<T> | QueryFilterArr>,
-  ): this {
+  setOr(f: QueryFilter | QueryFilterArr | Array<QueryFilter | QueryFilterArr>): this {
     this.setCondition(f, 'or');
     return this;
   }
@@ -196,8 +192,8 @@ export class RequestQueryBuilder {
     return this;
   }
 
-  cond<T extends string | FieldDescription>(
-    f: QueryFilter<T> | QueryFilterArr,
+  cond(
+    f: QueryFilter | QueryFilterArr,
     cond: 'filter' | 'or' | 'search' = 'search',
   ): string {
     const filter = Array.isArray(f) ? { field: f[0], operator: f[1], value: f[2] } : f;
@@ -276,8 +272,8 @@ export class RequestQueryBuilder {
     return param;
   }
 
-  private setCondition<T extends string | FieldDescription>(
-    f: QueryFilter<T> | QueryFilterArr | Array<QueryFilter<T> | QueryFilterArr>,
+  private setCondition(
+    f: QueryFilter | QueryFilterArr | Array<QueryFilter | QueryFilterArr>,
     cond: 'filter' | 'or',
   ): void {
     if (!isNil(f)) {
@@ -285,8 +281,8 @@ export class RequestQueryBuilder {
       this.queryObject[param] = [
         ...this.queryObject[param],
         ...(Array.isArray(f) && !isString(f[0])
-          ? (f as Array<QueryFilter<T> | QueryFilterArr>).map((o) => this.cond(o, cond))
-          : [this.cond(f as QueryFilter<T> | QueryFilterArr, cond)]),
+          ? (f as Array<QueryFilter | QueryFilterArr>).map((o) => this.cond(o, cond))
+          : [this.cond(f as QueryFilter | QueryFilterArr, cond)]),
       ];
     }
   }
