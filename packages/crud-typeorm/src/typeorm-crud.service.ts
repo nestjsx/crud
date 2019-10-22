@@ -594,20 +594,12 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     return true;
   }
 
-  private setAndWhere<F extends string | FieldDescription>(
-    cond: QueryFilter<F>,
-    i: any,
-    builder: SelectQueryBuilder<T>,
-  ) {
+  private setAndWhere(cond: QueryFilter, i: any, builder: SelectQueryBuilder<T>) {
     const { str, params } = this.mapOperatorsToQuery(cond, `andWhere${i}`);
     builder.andWhere(str, params);
   }
 
-  private setOrWhere<F extends string | FieldDescription>(
-    cond: QueryFilter<F>,
-    i: any,
-    builder: SelectQueryBuilder<T>,
-  ) {
+  private setOrWhere(cond: QueryFilter, i: any, builder: SelectQueryBuilder<T>) {
     const { str, params } = this.mapOperatorsToQuery(cond, `orWhere${i}`);
     builder.orWhere(str, params);
   }
@@ -918,7 +910,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     }
   }
 
-  private mapSort<F extends string | FieldAlias>(sort: Array<QuerySort<F>>) {
+  private mapSort(sort: QuerySort[]) {
     const params: ObjectLiteral = {};
 
     for (let i = 0; i < sort.length; i++) {
@@ -932,8 +924,8 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     return params;
   }
 
-  private mapOperatorsToQuery<F extends string | FieldDescription>(
-    cond: QueryFilter<F>,
+  private mapOperatorsToQuery(
+    cond: QueryFilter,
     param: any,
   ): { str: string; params: ObjectLiteral } {
     const field = this.modifyFieldName(cond.field, (name) => this.getNameWithAlias(name));

@@ -23,13 +23,17 @@ export type QueryField = string | FieldDescription;
 
 export type QueryFields = QueryField[];
 
-export type QueryFilter<T extends string | FieldDescription> = {
+export type QueryFilter<T extends QueryField = QueryField> = {
   field: T;
   operator: ComparisonOperator;
   value?: any;
 };
 
-export type QueryFilterArr = [QueryField, ComparisonOperator, any?];
+export type QueryFilterArr<T extends QueryField = QueryField> = [
+  T,
+  ComparisonOperator,
+  any?,
+];
 
 export type QueryJoin = {
   field: string;
@@ -40,12 +44,14 @@ export type QueryJoinArr = [string, QueryFields?];
 
 export type QueryGroup = QueryFields;
 
-export type QuerySort<T extends string | FieldAlias> = {
+export type SortField = string | FieldAlias;
+
+export type QuerySort<T extends SortField = SortField> = {
   field: T;
   order: QuerySortOperator;
 };
 
-export type QuerySortArr<T extends string | FieldAlias> = [T, QuerySortOperator];
+export type QuerySortArr<T extends SortField = SortField> = [T, QuerySortOperator];
 
 export type ComparisonOperator =
   | 'eq'

@@ -51,11 +51,11 @@ export class RequestQueryParser implements ParsedRequestParams {
   public authFilter: ObjectLiteral = undefined;
   public authPersist: ObjectLiteral = undefined;
   public search: SCondition;
-  public filter: Array<QueryFilter<QueryField>> = [];
-  public or: Array<QueryFilter<QueryField>> = [];
+  public filter: QueryFilter[] = [];
+  public or: QueryFilter[] = [];
   public join: QueryJoin[] = [];
   public group: QueryGroup = [];
-  public sort: Array<QuerySort<string | FieldAlias>> = [];
+  public sort: QuerySort[] = [];
   public limit: number;
   public offset: number;
   public page: number;
@@ -330,7 +330,7 @@ export class RequestQueryParser implements ParsedRequestParams {
     }
   }
 
-  private sortParser(data: string): QuerySort<string | FieldAlias> {
+  private sortParser(data: string): QuerySort {
     const param = data.split(this._options.delimStr);
 
     const sort = {

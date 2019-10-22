@@ -240,10 +240,7 @@ describe('#request-query', () => {
         expect(qb.queryObject.sort).toIncludeSameMembers(expected);
       });
       it('should set sort, 2', () => {
-        qb.sortBy<string>([
-          { field: 'foo', order: 'ASC' },
-          { field: 'bar', order: 'DESC' },
-        ]);
+        qb.sortBy([{ field: 'foo', order: 'ASC' }, { field: 'bar', order: 'DESC' }]);
         const expected = ['foo,ASC', 'bar,DESC'];
         expect(qb.queryObject.sort).toIncludeSameMembers(expected);
       });
@@ -258,7 +255,7 @@ describe('#request-query', () => {
         expect(qb.queryObject.sort).toIncludeSameMembers(expected);
       });
       it('should set sort, 5', () => {
-        qb.sortBy<string>([{ field: 'bar', order: 'DESC' }, ['foo', 'ASC']]);
+        qb.sortBy([{ field: 'bar', order: 'DESC' }, ['foo', 'ASC']]);
         const expected = ['bar,DESC', 'foo,ASC'];
         expect(qb.queryObject.sort).toIncludeSameMembers(expected);
       });
@@ -268,10 +265,7 @@ describe('#request-query', () => {
         expect(qb.queryObject.sort).toIncludeSameMembers(expected);
       });
       it('should set sort, 7', () => {
-        qb.sortBy<string | FieldAlias>([
-          { field: 'foo', order: 'ASC' },
-          [{ alias: 'bar' }, 'DESC'],
-        ]);
+        qb.sortBy([{ field: 'foo', order: 'ASC' }, [{ alias: 'bar' }, 'DESC']]);
         const expected = ['foo,ASC', '@bar,DESC'];
         expect(qb.queryObject.sort).toIncludeSameMembers(expected);
       });

@@ -16,11 +16,11 @@ export interface ParsedRequestParams {
   authFilter: ObjectLiteral;
   authPersist: ObjectLiteral;
   search: SCondition;
-  filter: Array<QueryFilter<QueryField>>;
-  or: Array<QueryFilter<QueryField>>;
+  filter: QueryFilter[];
+  or: QueryFilter[];
   join: QueryJoin[];
   group: QueryGroup;
-  sort: Array<QuerySort<string | FieldAlias>>;
+  sort: QuerySort[];
   limit: number;
   offset: number;
   page: number;

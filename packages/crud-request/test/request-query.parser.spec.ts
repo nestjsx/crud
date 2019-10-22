@@ -104,7 +104,7 @@ describe('#request-query', () => {
         });
         it('should set array, 1', () => {
           const query = { filter: 'foo||eq||bar' };
-          const expected: Array<QueryFilter<string | FieldDescription>> = [
+          const expected: QueryFilter[] = [
             { field: 'foo', operator: 'eq', value: 'bar' },
           ];
           const test = qp.parseQuery(query);
@@ -112,7 +112,7 @@ describe('#request-query', () => {
         });
         it('should set array, 2', () => {
           const query = { filter: ['foo||eq||bar', 'baz||ne||boo'] };
-          const expected: Array<QueryFilter<string | FieldDescription>> = [
+          const expected: QueryFilter[] = [
             { field: 'foo', operator: 'eq', value: 'bar' },
             { field: 'baz', operator: 'ne', value: 'boo' },
           ];
@@ -122,7 +122,7 @@ describe('#request-query', () => {
         });
         it('should set array, 3', () => {
           const query = { filter: ['foo||in||1,2'] };
-          const expected: Array<QueryFilter<string | FieldDescription>> = [
+          const expected: QueryFilter[] = [
             { field: 'foo', operator: 'in', value: [1, 2] },
           ];
           const test = qp.parseQuery(query);
@@ -130,7 +130,7 @@ describe('#request-query', () => {
         });
         it('should set array, 4', () => {
           const query = { filter: ['foo||isnull'] };
-          const expected: Array<QueryFilter<string | FieldDescription>> = [
+          const expected: QueryFilter[] = [
             { field: 'foo', operator: 'isnull', value: '' },
           ];
           const test = qp.parseQuery(query);
@@ -138,7 +138,7 @@ describe('#request-query', () => {
         });
         it('should set array, 5', () => {
           const query = { filter: ['foo||eq||{"foo":true}'] };
-          const expected: Array<QueryFilter<string | FieldDescription>> = [
+          const expected: QueryFilter[] = [
             { field: 'foo', operator: 'eq', value: '{"foo":true}' },
           ];
           const test = qp.parseQuery(query);
@@ -146,24 +146,20 @@ describe('#request-query', () => {
         });
         it('should set array, 6', () => {
           const query = { filter: ['foo||eq||1'] };
-          const expected: Array<QueryFilter<string | FieldDescription>> = [
-            { field: 'foo', operator: 'eq', value: 1 },
-          ];
+          const expected: QueryFilter[] = [{ field: 'foo', operator: 'eq', value: 1 }];
           const test = qp.parseQuery(query);
           expect(test.filter[0]).toMatchObject(expected[0]);
         });
         it('should set date, 7', () => {
           const now = new Date();
           const query = { filter: [`foo||eq||${now.toJSON()}`] };
-          const expected: Array<QueryFilter<string | FieldDescription>> = [
-            { field: 'foo', operator: 'eq', value: now },
-          ];
+          const expected: QueryFilter[] = [{ field: 'foo', operator: 'eq', value: now }];
           const test = qp.parseQuery(query);
           expect(test.filter[0]).toMatchObject(expected[0]);
         });
         it('should set false, 8', () => {
           const query = { filter: [`foo||eq||false`] };
-          const expected: Array<QueryFilter<string | FieldDescription>> = [
+          const expected: QueryFilter[] = [
             { field: 'foo', operator: 'eq', value: false },
           ];
           const test = qp.parseQuery(query);
@@ -171,15 +167,13 @@ describe('#request-query', () => {
         });
         it('should set true, 9', () => {
           const query = { filter: [`foo||eq||true`] };
-          const expected: Array<QueryFilter<string | FieldDescription>> = [
-            { field: 'foo', operator: 'eq', value: true },
-          ];
+          const expected: QueryFilter[] = [{ field: 'foo', operator: 'eq', value: true }];
           const test = qp.parseQuery(query);
           expect(test.filter[0]).toMatchObject(expected[0]);
         });
         it('should set number, 10', () => {
           const query = { filter: [`foo||eq||12345`] };
-          const expected: Array<QueryFilter<string | FieldDescription>> = [
+          const expected: QueryFilter[] = [
             { field: 'foo', operator: 'eq', value: 12345 },
           ];
           const test = qp.parseQuery(query);
@@ -187,7 +181,7 @@ describe('#request-query', () => {
         });
         it('should set string, 11', () => {
           const query = { filter: ['foo||eq||4202140192612927005304000000236630'] };
-          const expected: Array<QueryFilter<string | FieldDescription>> = [
+          const expected: QueryFilter[] = [
             { field: 'foo', operator: 'eq', value: '4202140192612927005304000000236630' },
           ];
           const test = qp.parseQuery(query);
@@ -218,7 +212,7 @@ describe('#request-query', () => {
         });
         it('should set array, 1', () => {
           const query = { or: 'foo||eq||bar' };
-          const expected: Array<QueryFilter<string | FieldDescription>> = [
+          const expected: QueryFilter[] = [
             { field: 'foo', operator: 'eq', value: 'bar' },
           ];
           const test = qp.parseQuery(query);
@@ -226,7 +220,7 @@ describe('#request-query', () => {
         });
         it('should set array, 2', () => {
           const query = { or: ['foo||eq||bar', 'baz||ne||boo'] };
-          const expected: Array<QueryFilter<string | FieldDescription>> = [
+          const expected: QueryFilter[] = [
             { field: 'foo', operator: 'eq', value: 'bar' },
             { field: 'baz', operator: 'ne', value: 'boo' },
           ];
@@ -236,7 +230,7 @@ describe('#request-query', () => {
         });
         it('should set array, 3', () => {
           const query = { or: ['foo||in||1,2'] };
-          const expected: Array<QueryFilter<string | FieldDescription>> = [
+          const expected: QueryFilter[] = [
             { field: 'foo', operator: 'in', value: [1, 2] },
           ];
           const test = qp.parseQuery(query);
@@ -244,7 +238,7 @@ describe('#request-query', () => {
         });
         it('should set array, 4', () => {
           const query = { or: ['foo||isnull'] };
-          const expected: Array<QueryFilter<string | FieldDescription>> = [
+          const expected: QueryFilter[] = [
             { field: 'foo', operator: 'isnull', value: '' },
           ];
           const test = qp.parseQuery(query);
@@ -333,7 +327,7 @@ describe('#request-query', () => {
         });
         it('should set array', () => {
           const query = { sort: ['foo,ASC', '@bar,DESC'] };
-          const expected: Array<QuerySort<string | FieldAlias>> = [
+          const expected: QuerySort[] = [
             { field: 'foo', order: 'ASC' },
             { field: { alias: 'bar' }, order: 'DESC' },
           ];

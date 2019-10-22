@@ -1,6 +1,4 @@
 import {
-  FieldAlias,
-  FieldDescription,
   QueryFields,
   QueryFilter,
   QuerySort,
@@ -11,9 +9,9 @@ export interface QueryOptions {
   allow?: QueryFields;
   exclude?: QueryFields;
   persist?: QueryFields;
-  filter?: Array<QueryFilter<string | FieldDescription>> | SCondition;
+  filter?: QueryFilter[] | SCondition;
   join?: JoinOptions;
-  sort?: Array<QuerySort<string | FieldAlias>>;
+  sort?: QuerySort[];
   limit?: number;
   maxLimit?: number;
   cache?: number | false;

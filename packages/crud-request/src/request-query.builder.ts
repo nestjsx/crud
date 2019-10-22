@@ -158,16 +158,14 @@ export class RequestQueryBuilder {
     return this;
   }
 
-  sortBy<T extends string | FieldAlias>(
-    s: QuerySort<T> | QuerySortArr<T> | Array<QuerySort<T> | QuerySortArr<T>>,
-  ): this {
+  sortBy(s: QuerySort | QuerySortArr | Array<QuerySort | QuerySortArr>): this {
     if (!isNil(s)) {
       const param = this.checkQueryObjectParam('sort', []);
       this.queryObject[param] = [
         ...this.queryObject[param],
         ...(Array.isArray(s) && !isString(s[0])
-          ? (s as Array<QuerySort<T> | QuerySortArr<T>>).map((o) => this.addSortBy(o))
-          : [this.addSortBy(s as QuerySort<T> | QuerySortArr<T>)]),
+          ? (s as Array<QuerySort | QuerySortArr>).map((o) => this.addSortBy(o))
+          : [this.addSortBy(s as QuerySort | QuerySortArr)]),
       ];
     }
     return this;
@@ -219,9 +217,7 @@ export class RequestQueryBuilder {
     return keys.map((key) => field[key] || '').join(this.options.delimParam);
   }
 
-  private querySortToString<T extends string | FieldAlias>(
-    sort: QuerySort<T>,
-  ): QuerySort<string> {
+  private querySortToString(sort: QuerySort): QuerySort<string> {
     if (isString(sort.field)) {
       return sort as QuerySort<string>;
     } else {
@@ -242,9 +238,7 @@ export class RequestQueryBuilder {
     return join.field + (isArrayFull(join.select) ? d + join.select.join(ds) : '');
   }
 
-  private addSortBy<T extends string | FieldAlias>(
-    s: QuerySort<T> | QuerySortArr<T>,
-  ): string {
+  private addSortBy(s: QuerySort | QuerySortArr): string {
     const sort = Array.isArray(s) ? { field: s[0], order: s[1] } : s;
     validateSort(sort);
     const stringSort = this.querySortToString(sort);

@@ -16,6 +16,7 @@ import { ParamsOptions } from './interfaces';
 import {
   AggregationFunction,
   ComparisonOperator,
+  FieldAlias,
   FieldDescription,
   QueryField,
   QueryFields,
@@ -23,7 +24,6 @@ import {
   QueryGroup,
   QueryJoin,
   QuerySort,
-  FieldAlias,
 } from './types';
 
 export const comparisonOperatorsList = [
@@ -101,8 +101,8 @@ export function validateFields(fields: QueryFields): void {
   }
 }
 
-export function validateCondition<T extends string | FieldDescription>(
-  val: QueryFilter<T>,
+export function validateCondition(
+  val: QueryFilter,
   cond: 'filter' | 'or' | 'search',
 ): void {
   if (!isObject(val) || validateQueryField(val.field)) {
@@ -136,7 +136,7 @@ export function validateGroup(group: QueryGroup): void {
   }
 }
 
-export function validateSort<T extends string | FieldAlias>(sort: QuerySort<T>): void {
+export function validateSort(sort: QuerySort): void {
   if (
     !isObject(sort) ||
     (!isStringFull(sort.field) &&

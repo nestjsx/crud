@@ -15,19 +15,10 @@ import {
 export interface CreateQueryParams {
   fields?: QueryFields;
   search?: SCondition;
-  filter?:
-    | QueryFilter<QueryField>
-    | QueryFilterArr
-    | Array<QueryFilter<QueryField> | QueryFilterArr>;
-  or?:
-    | QueryFilter<QueryField>
-    | QueryFilterArr
-    | Array<QueryFilter<QueryField> | QueryFilterArr>;
+  filter?: QueryFilter | QueryFilterArr | Array<QueryFilter | QueryFilterArr>;
+  or?: QueryFilter | QueryFilterArr | Array<QueryFilter | QueryFilterArr>;
   join?: QueryJoin | QueryJoinArr | Array<QueryJoin | QueryJoinArr>;
-  sort?:
-    | QuerySort<string | FieldAlias>
-    | QuerySortArr<string | FieldAlias>
-    | Array<QuerySort<string | FieldAlias> | QuerySortArr<string | FieldAlias>>;
+  sort?: QuerySort | QuerySortArr | Array<QuerySort | QuerySortArr>;
   limit?: number;
   offset?: number;
   page?: number;
