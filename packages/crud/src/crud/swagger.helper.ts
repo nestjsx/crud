@@ -59,7 +59,7 @@ export class Swagger {
     return swaggerPkg ? R.get(swaggerPkg.DECORATORS.API_RESPONSE, func) || {} : {};
   }
 
-  static createReponseOkMeta(status: HttpStatus, isArray: boolean, dto: any): any {
+  static createResponseOkMeta(status: HttpStatus, isArray: boolean, dto: any): any {
     return swaggerPkg
       ? {
           [status]: {

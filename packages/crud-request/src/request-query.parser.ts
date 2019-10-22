@@ -51,7 +51,6 @@ export class RequestQueryParser implements ParsedRequestParams {
   public authFilter: ObjectLiteral = undefined;
   public authPersist: ObjectLiteral = undefined;
   public search: SCondition;
-  public searchJson: SCondition;
   public filter: Array<QueryFilter<QueryField>> = [];
   public or: Array<QueryFilter<QueryField>> = [];
   public join: QueryJoin[] = [];

@@ -97,6 +97,11 @@ export class CrudRoutesFactory {
       };
     }
 
+    // set dto
+    if (!isObjectFull(this.options.dto)) {
+      this.options.dto = {};
+    }
+
     R.setCrudOptions(this.options, this.target);
   }
 
@@ -348,18 +353,20 @@ export class CrudRoutesFactory {
 
   private setRouteArgs(name: BaseRouteName) {
     let rest = {};
-    const toValidate: BaseRouteName[] = [
+    const routes: BaseRouteName[] = [
       'createManyBase',
       'createOneBase',
       'updateOneBase',
       'replaceOneBase',
     ];
 
-    if (isIn(name, toValidate)) {
-      const group =
-        isEqual(name, 'updateOneBase') || isEqual(name, 'replaceOneBase')
-          ? CrudValidationGroups.UPDATE
-          : CrudValidationGroups.CREATE;
+    if (isIn(name, routes)) {
+      const action = this.routeNameAction(name);
+      const hasDto = !isNil(this.options.dto[action]);
+      const { UPDATE, CREATE } = CrudValidationGroups;
+      const groupEnum = isIn(name, ['updateOneBase', 'replaceOneBase']) ? UPDATE : CREATE;
+      const group = !hasDto ? groupEnum : undefined;
+
       rest = R.setBodyArg(1, [Validation.getValidationPipe(this.options, group)]);
     }
 
@@ -370,12 +377,10 @@ export class CrudRoutesFactory {
     if (isEqual(name, 'createManyBase')) {
       const bulkDto = Validation.createBulkDto(this.options);
       R.setRouteArgsTypes([Object, bulkDto], this.targetProto, name);
-    } else if (
-      isEqual(name, 'createOneBase') ||
-      isEqual(name, 'updateOneBase') ||
-      isEqual(name, 'replaceOneBase')
-    ) {
-      R.setRouteArgsTypes([Object, this.modelType], this.targetProto, name);
+    } else if (isIn(name, ['createOneBase', 'updateOneBase', 'replaceOneBase'])) {
+      const action = this.routeNameAction(name);
+      const dto = this.options.dto[action] || this.modelType;
+      R.setRouteArgsTypes([Object, dto], this.targetProto, name);
     } else {
       R.setRouteArgsTypes([Object], this.targetProto, name);
     }
@@ -441,7 +446,11 @@ export class CrudRoutesFactory {
         : HttpStatus.OK;
     const isArray = isEqual(name, 'createManyBase') || isEqual(name, 'getManyBase');
     const metadata = Swagger.getResponseOk(this.targetProto[name]);
-    const responseOkMeta = Swagger.createReponseOkMeta(status, isArray, this.modelType);
+    const responseOkMeta = Swagger.createResponseOkMeta(status, isArray, this.modelType);
     Swagger.setResponseOk({ ...metadata, ...responseOkMeta }, this.targetProto[name]);
+  }
+
+  private routeNameAction(name: BaseRouteName): string {
+    return name.split('OneBase')[0];
   }
 }
