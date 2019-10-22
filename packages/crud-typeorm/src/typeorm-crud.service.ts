@@ -869,7 +869,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
 
   private fieldDescriptionFromString(data: string): FieldDescription {
     const [fn, name, alias] = data
-      .match(/^(?:(count|min|max|sum|avg)\()?(.+?)(?:\)? as (.+))?$/i)
+      .match(/^(?:(count|min|max|sum|avg)\()?(.+?)(?:\)? as "(.+)")?$/i)
       .slice(1);
     return { name, alias, aggregation: fn as AggregationFunction };
   }
@@ -880,7 +880,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
       field = `${aggregation}(${field})`;
     }
     if (isStringFull(alias)) {
-      field = `${field} AS ${alias}`;
+      field = `${field} AS "${alias}"`;
     }
     return field;
   }
@@ -917,7 +917,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
       const { field, order } = sort[i];
       const param = isString(field)
         ? this.modifyFieldName(field as string, (name) => this.getNameWithAlias(name))
-        : (field as FieldAlias).alias;
+        : `"${(field as FieldAlias).alias}"`;
       params[param] = order;
     }
 

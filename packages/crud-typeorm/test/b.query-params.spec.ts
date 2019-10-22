@@ -588,7 +588,7 @@ describe('#crud-typeorm', () => {
       });
 
       it('should sort by alias', async () => {
-        const alias = 'my_alias';
+        const alias = 'myAlias';
         const query = qb
           .select([{ name: 'id', alias }])
           .sortBy({ field: { alias }, order: 'DESC' })
