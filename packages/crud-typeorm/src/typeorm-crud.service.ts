@@ -432,7 +432,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     );
   }
 
-  private async getOneOrFail(req: CrudRequest): Promise<T> {
+  protected async getOneOrFail(req: CrudRequest): Promise<T> {
     const { parsed, options } = req;
     const builder = await this.createBuilder(parsed, options);
     const found = await builder.getOne();
@@ -444,7 +444,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     return found;
   }
 
-  private async getOneShallowOrFail(where: ObjectLiteral): Promise<T> {
+  protected async getOneShallowOrFail(where: ObjectLiteral): Promise<T> {
     const found = await this.findOne({ where });
 
     if (!found) {
@@ -454,7 +454,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     return found;
   }
 
-  private prepareEntityBeforeSave(dto: DeepPartial<T>, parsed: CrudRequest['parsed']): T {
+  protected prepareEntityBeforeSave(dto: DeepPartial<T>, parsed: CrudRequest['parsed']): T {
     /* istanbul ignore if */
     if (!isObject(dto)) {
       return undefined;
