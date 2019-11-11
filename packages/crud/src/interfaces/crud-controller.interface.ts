@@ -6,7 +6,7 @@ export interface CrudController<T> {
   getManyBase?(req: CrudRequest): Promise<GetManyDefaultResponse<T> | T[]>;
   getOneBase?(req: CrudRequest): Promise<T>;
   createOneBase?(req: CrudRequest, dto: T): Promise<T>;
-  createManyBase?(req: CrudRequest, dto: CreateManyDto<T>): Promise<T>;
+  createManyBase?(req: CrudRequest, dto: CreateManyDto<T>): Promise<T[]>;
   updateOneBase?(req: CrudRequest, dto: T): Promise<T>;
   replaceOneBase?(req: CrudRequest, dto: T): Promise<T>;
   deleteOneBase?(req: CrudRequest): Promise<void | T>;
