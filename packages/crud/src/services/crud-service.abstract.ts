@@ -1,9 +1,14 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { ParsedRequestParams } from '@nestjsx/crud-request';
 
-import { CreateManyDto, CrudRequest, GetManyDefaultResponse } from '../interfaces';
+import {
+  CreateManyDto,
+  CrudRequest,
+  CrudRequestOptions,
+  GetManyDefaultResponse,
+} from '../interfaces';
 
 export abstract class CrudService<T> {
-
   abstract getMany(req: CrudRequest): Promise<GetManyDefaultResponse<T> | T[]>;
 
   abstract getOne(req: CrudRequest): Promise<T>;
@@ -18,11 +23,11 @@ export abstract class CrudService<T> {
 
   abstract deleteOne(req: CrudRequest): Promise<void | T>;
 
-  throwBadRequestException(msg?: any): BadRequestException {
+  throwBadRequestException(msg?: any): never {
     throw new BadRequestException(msg);
   }
 
-  throwNotFoundException(name: string): NotFoundException {
+  throwNotFoundException(name: string): never {
     throw new NotFoundException(`${name} not found`);
   }
 
@@ -49,7 +54,17 @@ export abstract class CrudService<T> {
         limit && total
           ? Math.ceil(total / limit)
           : /* istanbul ignore next line */
-          undefined,
+            undefined,
     };
   }
+
+  /**
+   * Determine if need paging
+   * @param parsed
+   * @param options
+   */
+  abstract decidePagination(
+    parsed: ParsedRequestParams,
+    options: CrudRequestOptions,
+  ): boolean;
 }

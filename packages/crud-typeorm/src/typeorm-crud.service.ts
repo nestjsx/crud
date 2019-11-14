@@ -8,31 +8,31 @@ import {
   QueryOptions,
 } from '@nestjsx/crud';
 import {
+  ComparisonOperator,
   ParsedRequestParams,
   QueryFilter,
   QueryJoin,
   QuerySort,
   SCondition,
   SConditionKey,
-  ComparisonOperator,
 } from '@nestjsx/crud-request';
 import {
   hasLength,
   isArrayFull,
+  isNil,
+  isNull,
   isObject,
   isUndefined,
   objKeys,
-  isNil,
-  isNull,
 } from '@nestjsx/util';
 import { plainToClass } from 'class-transformer';
 import { ClassType } from 'class-transformer/ClassTransformer';
 import {
   Brackets,
+  DeepPartial,
   ObjectLiteral,
   Repository,
   SelectQueryBuilder,
-  DeepPartial,
 } from 'typeorm';
 import { RelationMetadata } from 'typeorm/metadata/RelationMetadata';
 
@@ -61,11 +61,11 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     return this.repo.count.bind(this.repo);
   }
 
-  private get entityType(): ClassType<T> {
+  protected get entityType(): ClassType<T> {
     return this.repo.target as ClassType<T>;
   }
 
-  private get alias(): string {
+  protected get alias(): string {
     return this.repo.metadata.targetName;
   }
 
@@ -78,15 +78,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
 
     const builder = await this.createBuilder(parsed, options);
 
-    if (this.decidePagination(parsed, options)) {
-      const [data, total] = await builder.getManyAndCount();
-      const limit = builder.expressionMap.take;
-      const offset = builder.expressionMap.skip;
-
-      return this.createPageInfo(data, total, limit, offset);
-    }
-
-    return builder.getMany();
+    return this.doGetMany(builder, parsed, options);
   }
 
   /**
@@ -215,7 +207,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
   }
 
   public getParamFilters(parsed: CrudRequest['parsed']): ObjectLiteral {
-    let filters = {};
+    const filters = {};
 
     /* istanbul ignore else */
     if (hasLength(parsed.paramsFilter)) {
@@ -380,6 +372,81 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     return builder;
   }
 
+  protected async getOneOrFail(req: CrudRequest): Promise<T> {
+    const { parsed, options } = req;
+    const builder = await this.createBuilder(parsed, options);
+    const found = await builder.getOne();
+
+    if (!found) {
+      this.throwNotFoundException(this.alias);
+    }
+
+    return found;
+  }
+
+  protected async getOneShallowOrFail(where: ObjectLiteral): Promise<T> {
+    const found = await this.findOne({ where });
+
+    if (!found) {
+      this.throwNotFoundException(this.alias);
+    }
+
+    return found;
+  }
+
+  protected prepareEntityBeforeSave(
+    dto: DeepPartial<T>,
+    parsed: CrudRequest['parsed'],
+  ): T {
+    /* istanbul ignore if */
+    if (!isObject(dto)) {
+      return undefined;
+    }
+
+    if (hasLength(parsed.paramsFilter)) {
+      for (const filter of parsed.paramsFilter) {
+        dto[filter.field] = filter.value;
+      }
+    }
+
+    const authPersist = isObject(parsed.authPersist) ? parsed.authPersist : {};
+
+    /* istanbul ignore if */
+    if (!hasLength(objKeys(dto))) {
+      return undefined;
+    }
+
+    return dto instanceof this.entityType
+      ? { ...dto, ...authPersist }
+      : plainToClass(this.entityType, { ...dto, ...authPersist });
+  }
+
+  /**
+   * depends on paging call `SelectQueryBuilder#getMany` or `SelectQueryBuilder#getManyAndCount`
+   * helpful for overriding `TypeOrmCrudService#getMany`
+   * @see getMany
+   * @see SelectQueryBuilder#getMany
+   * @see SelectQueryBuilder#getManyAndCount
+   * @param builder
+   * @param query
+   * @param options
+   */
+  protected async doGetMany(
+    builder: SelectQueryBuilder<T>,
+    query: ParsedRequestParams,
+    options: CrudRequestOptions,
+  ): Promise<GetManyDefaultResponse<T> | T[]> {
+    if (this.decidePagination(query, options)) {
+      const [data, total] = await builder.getManyAndCount();
+      const limit = builder.expressionMap.take;
+      const offset = builder.expressionMap.skip;
+
+      return this.createPageInfo(data, total, limit, offset);
+    }
+
+    return builder.getMany();
+  }
+
   private getDefaultSearchCondition(
     options: CrudRequestOptions,
     parsed: ParsedRequestParams,
@@ -430,52 +497,6 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
       }),
       {},
     );
-  }
-
-  protected async getOneOrFail(req: CrudRequest): Promise<T> {
-    const { parsed, options } = req;
-    const builder = await this.createBuilder(parsed, options);
-    const found = await builder.getOne();
-
-    if (!found) {
-      this.throwNotFoundException(this.alias);
-    }
-
-    return found;
-  }
-
-  protected async getOneShallowOrFail(where: ObjectLiteral): Promise<T> {
-    const found = await this.findOne({ where });
-
-    if (!found) {
-      this.throwNotFoundException(this.alias);
-    }
-
-    return found;
-  }
-
-  protected prepareEntityBeforeSave(dto: DeepPartial<T>, parsed: CrudRequest['parsed']): T {
-    /* istanbul ignore if */
-    if (!isObject(dto)) {
-      return undefined;
-    }
-
-    if (hasLength(parsed.paramsFilter)) {
-      for (const filter of parsed.paramsFilter) {
-        dto[filter.field] = filter.value;
-      }
-    }
-
-    const authPersist = isObject(parsed.authPersist) ? parsed.authPersist : {};
-
-    /* istanbul ignore if */
-    if (!hasLength(objKeys(dto))) {
-      return undefined;
-    }
-
-    return dto instanceof this.entityType
-      ? Object.assign(dto, authPersist)
-      : plainToClass(this.entityType, { ...dto, ...authPersist });
   }
 
   private getAllowedColumns(columns: string[], options: QueryOptions): string[] {
