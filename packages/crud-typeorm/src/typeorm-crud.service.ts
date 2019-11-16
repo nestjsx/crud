@@ -33,6 +33,7 @@ import {
   Repository,
   SelectQueryBuilder,
   DeepPartial,
+  WhereExpression,
 } from 'typeorm';
 import { RelationMetadata } from 'typeorm/metadata/RelationMetadata';
 
@@ -266,54 +267,66 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
       const hasOr = isArrayFull(parsed.or);
 
       if (hasFilter && hasOr) {
-        if (filters.length === 1 && parsed.or.length === 1) {
-          // WHERE :filter OR :or
-          this.setOrWhere(filters[0], `filter0`, builder);
-          this.setOrWhere(parsed.or[0], `or0`, builder);
-        } else if (filters.length === 1) {
-          this.setAndWhere(filters[0], `filter0`, builder);
-          builder.orWhere(
-            new Brackets((qb) => {
-              for (let i = 0; i < parsed.or.length; i++) {
-                this.setAndWhere(parsed.or[i], `or${i}`, qb as any);
-              }
-            }),
-          );
-        } else if (parsed.or.length === 1) {
-          this.setAndWhere(parsed.or[0], `or0`, builder);
-          builder.orWhere(
-            new Brackets((qb) => {
-              for (let i = 0; i < filters.length; i++) {
-                this.setAndWhere(filters[i], `filter${i}`, qb as any);
-              }
-            }),
-          );
-        } else {
-          builder.andWhere(
-            new Brackets((qb) => {
-              for (let i = 0; i < filters.length; i++) {
-                this.setAndWhere(filters[i], `filter${i}`, qb as any);
-              }
-            }),
-          );
-          builder.orWhere(
-            new Brackets((qb) => {
-              for (let i = 0; i < parsed.or.length; i++) {
-                this.setAndWhere(parsed.or[i], `or${i}`, qb as any);
-              }
-            }),
-          );
-        }
+        builder.andWhere(
+          new Brackets(qb => {
+            if (filters.length === 1 && parsed.or.length === 1) {
+              // WHERE :filter OR :or
+              this.setOrWhere(filters[0], `filter0`, qb);
+              this.setOrWhere(parsed.or[0], `or0`, qb);
+            } else if (filters.length === 1) {
+              this.setAndWhere(filters[0], `filter0`, qb);
+              qb.orWhere(
+                new Brackets(qb2 => {
+                  for (let i = 0; i < parsed.or.length; i++) {
+                    this.setAndWhere(parsed.or[i], `or${i}`, qb2 as any);
+                  }
+                }),
+              );
+            } else if (parsed.or.length === 1) {
+              this.setAndWhere(parsed.or[0], `or0`, qb);
+              qb.orWhere(
+                new Brackets(qb2 => {
+                  for (let i = 0; i < filters.length; i++) {
+                    this.setAndWhere(filters[i], `filter${i}`, qb2 as any);
+                  }
+                }),
+              );
+            } else {
+              qb.andWhere(
+                new Brackets(qb2 => {
+                  for (let i = 0; i < filters.length; i++) {
+                    this.setAndWhere(filters[i], `filter${i}`, qb2 as any);
+                  }
+                }),
+              );
+              qb.orWhere(
+                new Brackets(qb2 => {
+                  for (let i = 0; i < parsed.or.length; i++) {
+                    this.setAndWhere(parsed.or[i], `or${i}`, qb2 as any);
+                  }
+                }),
+              );
+            }
+          }),
+        );
       } else if (hasOr) {
-        // WHERE :or OR :or OR ...
-        for (let i = 0; i < parsed.or.length; i++) {
-          this.setOrWhere(parsed.or[i], `or${i}`, builder);
-        }
+        builder.andWhere(
+          new Brackets(qb => {
+            // WHERE :or OR :or OR ...
+            for (let i = 0; i < parsed.or.length; i++) {
+              this.setOrWhere(parsed.or[i], `or${i}`, qb);
+            }
+          }),
+        );
       } else if (hasFilter) {
-        // WHERE :filter AND :filter AND ...
-        for (let i = 0; i < filters.length; i++) {
-          this.setAndWhere(filters[i], `filter${i}`, builder);
-        }
+        builder.andWhere(
+          new Brackets(qb => {
+            // WHERE :filter AND :filter AND ...
+            for (let i = 0; i < filters.length; i++) {
+              this.setAndWhere(filters[i], `filter${i}`, qb);
+            }
+          }),
+        );
       }
     } else {
       const search: SCondition = defaultSearch.length
@@ -574,12 +587,12 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     return true;
   }
 
-  private setAndWhere(cond: QueryFilter, i: any, builder: SelectQueryBuilder<T>) {
+  private setAndWhere(cond: QueryFilter, i: any, builder: SelectQueryBuilder<T> | WhereExpression) {
     const { str, params } = this.mapOperatorsToQuery(cond, `andWhere${i}`);
     builder.andWhere(str, params);
   }
 
-  private setOrWhere(cond: QueryFilter, i: any, builder: SelectQueryBuilder<T>) {
+  private setOrWhere(cond: QueryFilter, i: any, builder: SelectQueryBuilder<T> | WhereExpression) {
     const { str, params } = this.mapOperatorsToQuery(cond, `orWhere${i}`);
     builder.orWhere(str, params);
   }
