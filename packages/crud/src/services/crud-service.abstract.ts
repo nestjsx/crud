@@ -1,4 +1,8 @@
-import { BadRequestException, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { ParsedRequestParams } from '@nestjsx/crud-request';
 import { objKeys } from '@nestjsx/util';
 
@@ -31,6 +35,13 @@ export abstract class CrudService<T> {
 
   throwNotFoundException(name: string): NotFoundException {
     throw new NotFoundException(`${name} not found`);
+  }
+
+  throwInternalServerException(
+    name: string,
+    operation: string,
+  ): InternalServerErrorException {
+    throw new NotFoundException(`Error performing ${operation} on ${name}.`);
   }
 
   /**

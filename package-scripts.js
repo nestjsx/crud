@@ -1,7 +1,7 @@
 const utils = require('nps-utils');
 
 const getSeries = (args) => utils.series.nps(...args);
-const names = ['util', 'crud-request', 'crud', 'crud-typeorm'];
+const names = ['util', 'crud-request', 'crud', 'crud-typeorm', 'crud-mongoose'];
 
 const getBuildCmd = (pkg) => {
   const str = 'npx lerna run build';

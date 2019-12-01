@@ -19,6 +19,7 @@
     "pretest:coveralls": "yarn pretest",
     "test:coveralls": "yarn s test.coveralls",
     "start:typeorm": "npx nodemon -w ./integration/crud-typeorm -e ts node_modules/.bin/ts-node integration/crud-typeorm/main.ts",
+    "start:mongoose": "npx nodemon -w ./integration/crud-mongoose -e ts node_modules/.bin/ts-node integration/crud-mongoose/main.ts",
     "db:sync:typeorm": "cd ./integration/crud-typeorm && npx ts-node -r tsconfig-paths/register ../../node_modules/typeorm/cli.js schema:sync -f=orm",
     "db:drop:typeorm": "cd ./integration/crud-typeorm && npx ts-node -r tsconfig-paths/register ../../node_modules/typeorm/cli.js schema:drop -f=orm",
     "db:seeds:typeorm": "cd ./integration/crud-typeorm && npx ts-node -r tsconfig-paths/register ../../node_modules/typeorm/cli.js migration:run -f=orm",
@@ -55,6 +56,7 @@
   "dependencies": {
     "@nestjs/common": "6.10.10",
     "@nestjs/core": "6.10.10",
+    "@nestjs/mongoose": "^6.1.2",
     "@nestjs/platform-express": "6.10.10",
     "@nestjs/swagger": "4.0.9",
     "@nestjs/testing": "6.10.10",
@@ -73,6 +75,7 @@
     "jest": "24.9.0",
     "jest-extended": "0.11.2",
     "lerna": "3.16.4",
+    "mongoose": "^5.7.13",
     "nodemon": "1.19.2",
     "npm-check": "5.9.0",
     "nps": "5.9.8",
@@ -97,7 +100,9 @@
     "typescript": "3.6.3",
     "validate-commit-msg": "2.14.0"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "@types/mongoose": "^5.5.32"
+  },
   "author": {
     "name": "Michael Yali",
     "email": "mihon4ik@gmail.com"
