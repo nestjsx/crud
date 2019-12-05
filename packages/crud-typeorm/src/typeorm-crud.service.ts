@@ -38,10 +38,10 @@ import {
 import { RelationMetadata } from 'typeorm/metadata/RelationMetadata';
 
 export class TypeOrmCrudService<T> extends CrudService<T> {
-  private entityColumns: string[];
-  private entityPrimaryColumns: string[];
-  private entityColumnsHash: ObjectLiteral = {};
-  private entityRelationsHash: ObjectLiteral = {};
+  protected entityColumns: string[];
+  protected entityPrimaryColumns: string[];
+  protected entityColumnsHash: ObjectLiteral = {};
+  protected entityRelationsHash: ObjectLiteral = {};
 
   constructor(protected repo: Repository<T>) {
     super();
@@ -62,11 +62,11 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     return this.repo.count.bind(this.repo);
   }
 
-  private get entityType(): ClassType<T> {
+  protected get entityType(): ClassType<T> {
     return this.repo.target as ClassType<T>;
   }
 
-  private get alias(): string {
+  protected get alias(): string {
     return this.repo.metadata.targetName;
   }
 
@@ -393,7 +393,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     return builder;
   }
 
-  private getDefaultSearchCondition(
+  protected getDefaultSearchCondition(
     options: CrudRequestOptions,
     parsed: ParsedRequestParams,
   ): any[] {
@@ -404,7 +404,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     return [...filter, ...paramsFilter, ...authFilter];
   }
 
-  private queryFilterToSearch(filter: any): any {
+  protected queryFilterToSearch(filter: any): any {
     return isArrayFull(filter)
       ? filter.map((item) => ({
           [item.field]: { [item.operator]: item.value },
@@ -414,7 +414,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
       : [];
   }
 
-  private onInitMapEntityColumns() {
+  protected onInitMapEntityColumns() {
     this.entityColumns = this.repo.metadata.columns.map((prop) => {
       // In case column is an embedded, use the propertyPath to get complete path
       if (prop.embeddedMetadata) {
@@ -429,7 +429,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
       .map((prop) => prop.propertyName);
   }
 
-  private onInitMapRelations() {
+  protected onInitMapRelations() {
     this.entityRelationsHash = this.repo.metadata.relations.reduce(
       (hash, curr) => ({
         ...hash,
@@ -467,7 +467,10 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     return found;
   }
 
-  protected prepareEntityBeforeSave(dto: DeepPartial<T>, parsed: CrudRequest['parsed']): T {
+  protected prepareEntityBeforeSave(
+    dto: DeepPartial<T>,
+    parsed: CrudRequest['parsed'],
+  ): T {
     /* istanbul ignore if */
     if (!isObject(dto)) {
       return undefined;
@@ -491,7 +494,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
       : plainToClass(this.entityType, { ...dto, ...authPersist });
   }
 
-  private getAllowedColumns(columns: string[], options: QueryOptions): string[] {
+  protected getAllowedColumns(columns: string[], options: QueryOptions): string[] {
     return (!options.exclude || !options.exclude.length) &&
       (!options.allow || /* istanbul ignore next */ !options.allow.length)
       ? columns
@@ -506,7 +509,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
         );
   }
 
-  private getRelationMetadata(field: string) {
+  protected getRelationMetadata(field: string) {
     try {
       const fields = field.split('.');
       const target = fields[fields.length - 1];
@@ -531,7 +534,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     }
   }
 
-  private setJoin(
+  protected setJoin(
     cond: QueryJoin,
     joinOptions: JoinOptions,
     builder: SelectQueryBuilder<T>,
@@ -587,17 +590,17 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     return true;
   }
 
-  private setAndWhere(cond: QueryFilter, i: any, builder: SelectQueryBuilder<T> | WhereExpression) {
+  protected setAndWhere(cond: QueryFilter, i: any, builder: SelectQueryBuilder<T> | WhereExpression) {
     const { str, params } = this.mapOperatorsToQuery(cond, `andWhere${i}`);
     builder.andWhere(str, params);
   }
 
-  private setOrWhere(cond: QueryFilter, i: any, builder: SelectQueryBuilder<T> | WhereExpression) {
+  protected setOrWhere(cond: QueryFilter, i: any, builder: SelectQueryBuilder<T> | WhereExpression) {
     const { str, params } = this.mapOperatorsToQuery(cond, `orWhere${i}`);
     builder.orWhere(str, params);
   }
 
-  private setSearchCondition(
+  protected setSearchCondition(
     builder: SelectQueryBuilder<T>,
     search: SCondition,
     condition: SConditionKey = '$and',
@@ -715,7 +718,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     }
   }
 
-  private builderAddBrackets(
+  protected builderAddBrackets(
     builder: SelectQueryBuilder<T>,
     condition: SConditionKey,
     brackets: Brackets,
@@ -727,7 +730,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     }
   }
 
-  private builderSetWhere(
+  protected builderSetWhere(
     builder: SelectQueryBuilder<T>,
     condition: SConditionKey,
     field: string,
@@ -745,7 +748,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     fn.apply(this, args);
   }
 
-  private setSearchFieldObjectCondition(
+  protected setSearchFieldObjectCondition(
     builder: SelectQueryBuilder<T>,
     condition: SConditionKey,
     field: string,
@@ -805,7 +808,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     }
   }
 
-  private getSelect(query: ParsedRequestParams, options: QueryOptions): string[] {
+  protected getSelect(query: ParsedRequestParams, options: QueryOptions): string[] {
     const allowed = this.getAllowedColumns(this.entityColumns, options);
 
     const columns =
@@ -822,7 +825,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     return select;
   }
 
-  private getSkip(query: ParsedRequestParams, take: number): number | null {
+  protected getSkip(query: ParsedRequestParams, take: number): number | null {
     return query.page && take
       ? take * (query.page - 1)
       : query.offset
@@ -830,7 +833,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
       : null;
   }
 
-  private getTake(query: ParsedRequestParams, options: QueryOptions): number | null {
+  protected getTake(query: ParsedRequestParams, options: QueryOptions): number | null {
     if (query.limit) {
       return options.maxLimit
         ? query.limit <= options.maxLimit
@@ -850,7 +853,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     return options.maxLimit ? options.maxLimit : null;
   }
 
-  private getSort(query: ParsedRequestParams, options: QueryOptions) {
+  protected getSort(query: ParsedRequestParams, options: QueryOptions) {
     return query.sort && query.sort.length
       ? this.mapSort(query.sort)
       : options.sort && options.sort.length
@@ -858,7 +861,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
       : {};
   }
 
-  private getFieldWithAlias(field: string) {
+  protected getFieldWithAlias(field: string) {
     const cols = field.split('.');
     // relation is alias
     switch (cols.length) {
@@ -871,7 +874,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     }
   }
 
-  private mapSort(sort: QuerySort[]) {
+  protected mapSort(sort: QuerySort[]) {
     const params: ObjectLiteral = {};
 
     for (let i = 0; i < sort.length; i++) {
@@ -881,7 +884,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     return params;
   }
 
-  private mapOperatorsToQuery(
+  protected mapOperatorsToQuery(
     cond: QueryFilter,
     param: any,
   ): { str: string; params: ObjectLiteral } {
