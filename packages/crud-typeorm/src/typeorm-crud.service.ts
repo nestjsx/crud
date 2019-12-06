@@ -76,18 +76,8 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
    */
   public async getMany(req: CrudRequest): Promise<GetManyDefaultResponse<T> | T[]> {
     const { parsed, options } = req;
-
     const builder = await this.createBuilder(parsed, options);
-
-    if (this.decidePagination(parsed, options)) {
-      const [data, total] = await builder.getManyAndCount();
-      const limit = builder.expressionMap.take;
-      const offset = builder.expressionMap.skip;
-
-      return this.createPageInfo(data, total, limit, offset);
-    }
-
-    return builder.getMany();
+    return this.doGetMany(builder, parsed, options);
   }
 
   /**
@@ -268,7 +258,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
 
       if (hasFilter && hasOr) {
         builder.andWhere(
-          new Brackets(qb => {
+          new Brackets((qb) => {
             if (filters.length === 1 && parsed.or.length === 1) {
               // WHERE :filter OR :or
               this.setOrWhere(filters[0], `filter0`, qb);
@@ -276,7 +266,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
             } else if (filters.length === 1) {
               this.setAndWhere(filters[0], `filter0`, qb);
               qb.orWhere(
-                new Brackets(qb2 => {
+                new Brackets((qb2) => {
                   for (let i = 0; i < parsed.or.length; i++) {
                     this.setAndWhere(parsed.or[i], `or${i}`, qb2 as any);
                   }
@@ -285,7 +275,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
             } else if (parsed.or.length === 1) {
               this.setAndWhere(parsed.or[0], `or0`, qb);
               qb.orWhere(
-                new Brackets(qb2 => {
+                new Brackets((qb2) => {
                   for (let i = 0; i < filters.length; i++) {
                     this.setAndWhere(filters[i], `filter${i}`, qb2 as any);
                   }
@@ -293,14 +283,14 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
               );
             } else {
               qb.andWhere(
-                new Brackets(qb2 => {
+                new Brackets((qb2) => {
                   for (let i = 0; i < filters.length; i++) {
                     this.setAndWhere(filters[i], `filter${i}`, qb2 as any);
                   }
                 }),
               );
               qb.orWhere(
-                new Brackets(qb2 => {
+                new Brackets((qb2) => {
                   for (let i = 0; i < parsed.or.length; i++) {
                     this.setAndWhere(parsed.or[i], `or${i}`, qb2 as any);
                   }
@@ -311,7 +301,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
         );
       } else if (hasOr) {
         builder.andWhere(
-          new Brackets(qb => {
+          new Brackets((qb) => {
             // WHERE :or OR :or OR ...
             for (let i = 0; i < parsed.or.length; i++) {
               this.setOrWhere(parsed.or[i], `or${i}`, qb);
@@ -320,7 +310,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
         );
       } else if (hasFilter) {
         builder.andWhere(
-          new Brackets(qb => {
+          new Brackets((qb) => {
             // WHERE :filter AND :filter AND ...
             for (let i = 0; i < filters.length; i++) {
               this.setAndWhere(filters[i], `filter${i}`, qb);
@@ -391,6 +381,32 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     }
 
     return builder;
+  }
+
+  /**
+   * depends on paging call `SelectQueryBuilder#getMany` or `SelectQueryBuilder#getManyAndCount`
+   * helpful for overriding `TypeOrmCrudService#getMany`
+   * @see getMany
+   * @see SelectQueryBuilder#getMany
+   * @see SelectQueryBuilder#getManyAndCount
+   * @param builder
+   * @param query
+   * @param options
+   */
+  protected async doGetMany(
+    builder: SelectQueryBuilder<T>,
+    query: ParsedRequestParams,
+    options: CrudRequestOptions,
+  ): Promise<GetManyDefaultResponse<T> | T[]> {
+    if (this.decidePagination(query, options)) {
+      const [data, total] = await builder.getManyAndCount();
+      const limit = builder.expressionMap.take;
+      const offset = builder.expressionMap.skip;
+
+      return this.createPageInfo(data, total, limit, offset);
+    }
+
+    return builder.getMany();
   }
 
   protected getDefaultSearchCondition(
@@ -590,12 +606,20 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     return true;
   }
 
-  protected setAndWhere(cond: QueryFilter, i: any, builder: SelectQueryBuilder<T> | WhereExpression) {
+  protected setAndWhere(
+    cond: QueryFilter,
+    i: any,
+    builder: SelectQueryBuilder<T> | WhereExpression,
+  ) {
     const { str, params } = this.mapOperatorsToQuery(cond, `andWhere${i}`);
     builder.andWhere(str, params);
   }
 
-  protected setOrWhere(cond: QueryFilter, i: any, builder: SelectQueryBuilder<T> | WhereExpression) {
+  protected setOrWhere(
+    cond: QueryFilter,
+    i: any,
+    builder: SelectQueryBuilder<T> | WhereExpression,
+  ) {
     const { str, params } = this.mapOperatorsToQuery(cond, `orWhere${i}`);
     builder.orWhere(str, params);
   }
