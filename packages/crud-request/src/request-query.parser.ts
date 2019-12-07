@@ -333,6 +333,6 @@ export class RequestQueryParser implements ParsedRequestParams {
         break;
     }
 
-    return { field: option.field, operator: 'eq', value };
+    return { field: option.field, operator: '$eq', value };
   }
 }

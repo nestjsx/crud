@@ -451,10 +451,14 @@ describe('#request-query', () => {
         };
         const test = qp.parseParams(params, options);
         const expected = [
-          { field: 'foo', operator: 'eq', value: 'cb1751fd-7fcf-4eb5-b38e-86428b1fd88d' },
-          { field: 'bb', operator: 'eq', value: 1 },
-          { field: 'buz', operator: 'eq', value: 'string' },
-          { field: 'bigInt', operator: 'eq', value: '9007199254740999' },
+          {
+            field: 'foo',
+            operator: '$eq',
+            value: 'cb1751fd-7fcf-4eb5-b38e-86428b1fd88d',
+          },
+          { field: 'bb', operator: '$eq', value: 1 },
+          { field: 'buz', operator: '$eq', value: 'string' },
+          { field: 'bigInt', operator: '$eq', value: '9007199254740999' },
         ];
         expect(test.paramsFilter).toMatchObject(expected);
       });
@@ -468,7 +472,7 @@ describe('#request-query', () => {
           bar: { field: 'bar', type: 'number' },
         };
         const test = qp.parseParams(params, options);
-        const expected = [{ field: 'bar', operator: 'eq', value: 123 }];
+        const expected = [{ field: 'bar', operator: '$eq', value: 123 }];
         expect(test.paramsFilter).toMatchObject(expected);
       });
     });

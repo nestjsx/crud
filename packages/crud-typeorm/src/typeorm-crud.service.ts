@@ -35,11 +35,12 @@ import {
   SelectQueryBuilder,
   DeepPartial,
   WhereExpression,
+  ConnectionOptions,
 } from 'typeorm';
 import { RelationMetadata } from 'typeorm/metadata/RelationMetadata';
-import { Param } from '@nestjs/common';
 
 export class TypeOrmCrudService<T> extends CrudService<T> {
+  protected dbName: ConnectionOptions['type'];
   protected entityColumns: string[];
   protected entityPrimaryColumns: string[];
   protected entityColumnsHash: ObjectLiteral = {};
@@ -48,6 +49,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
   constructor(protected repo: Repository<T>) {
     super();
 
+    this.dbName = this.repo.metadata.connection.options.type;
     this.onInitMapEntityColumns();
     this.onInitMapRelations();
   }
@@ -804,6 +806,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     param: any,
   ): { str: string; params: ObjectLiteral } {
     const field = this.getFieldWithAlias(cond.field);
+    const likeOperator = this.dbName === 'postgres' ? 'ILIKE' : 'LIKE';
     let str: string;
     let params: ObjectLiteral;
 
@@ -857,18 +860,12 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
         break;
 
       case '$in':
-        /* istanbul ignore if */
-        if (!Array.isArray(cond.value) || !cond.value.length) {
-          this.throwBadRequestException(`Invalid column '${cond.field}' value`);
-        }
+        this.checkFilterIsArray(cond);
         str = `${field} IN (:...${param})`;
         break;
 
       case '$notin':
-        /* istanbul ignore if */
-        if (!Array.isArray(cond.value) || !cond.value.length) {
-          this.throwBadRequestException(`Invalid column '${cond.field}' value`);
-        }
+        this.checkFilterIsArray(cond);
         str = `${field} NOT IN (:...${param})`;
         break;
 
@@ -883,11 +880,56 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
         break;
 
       case '$between':
-        /* istanbul ignore if */
-        if (!Array.isArray(cond.value) || !cond.value.length || cond.value.length !== 2) {
-          this.throwBadRequestException(`Invalid column '${cond.field}' value`);
-        }
+        this.checkFilterIsArray(cond, cond.value.length !== 2);
         str = `${field} BETWEEN :${param}0 AND :${param}1`;
+        params = {
+          [`${param}0`]: cond.value[0],
+          [`${param}1`]: cond.value[1],
+        };
+        break;
+
+      // case insensitive
+      case '$eqL':
+        str = `LOWER(${field}) = :${param}`;
+        break;
+
+      case '$neL':
+        str = `LOWER(${field}) != :${param}`;
+        break;
+
+      case '$startsL':
+        str = `${field} ${likeOperator} :${param}`;
+        params = { [param]: `${cond.value}%` };
+        break;
+
+      case '$endsL':
+        str = `${field} ${likeOperator} :${param}`;
+        params = { [param]: `%${cond.value}` };
+        break;
+
+      case '$contL':
+        str = `${field} ${likeOperator} :${param}`;
+        params = { [param]: `%${cond.value}%` };
+        break;
+
+      case '$exclL':
+        str = `${field} NOT ${likeOperator} :${param}`;
+        params = { [param]: `%${cond.value}%` };
+        break;
+
+      case '$inL':
+        this.checkFilterIsArray(cond);
+        str = `LOWER(${field}) IN (:...${param})`;
+        break;
+
+      case '$notinL':
+        this.checkFilterIsArray(cond);
+        str = `LOWER(${field}) NOT IN (:...${param})`;
+        break;
+
+      case '$betweenL':
+        this.checkFilterIsArray(cond, cond.value.length !== 2);
+        str = `LOWER(${field}) BETWEEN :${param}0 AND :${param}1`;
         params = {
           [`${param}0`]: cond.value[0],
           [`${param}1`]: cond.value[1],
@@ -905,6 +947,16 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     }
 
     return { str, params };
+  }
+
+  private checkFilterIsArray(cond: QueryFilter, withLength?: boolean) {
+    if (
+      !Array.isArray(cond.value) ||
+      !cond.value.length ||
+      (!isNil(withLength) ? withLength : false)
+    ) {
+      this.throwBadRequestException(`Invalid column '${cond.field}' value`);
+    }
   }
 
   private getPrimaryParam(params: any): string {
