@@ -238,6 +238,34 @@ export class MongooseCrudService<T extends Document> extends CrudService<T> {
     // select fields
     builder.select(select);
 
+    // set joins
+    const joinOptions = options.query.join || {};
+    const allowedJoins = objKeys(joinOptions);
+
+    if (hasLength(allowedJoins)) {
+      const eagerJoins: { [key: string]: boolean } = {};
+
+      for (let i = 0; i < allowedJoins.length; i++) {
+        /* istanbul ignore else */
+        if (joinOptions[allowedJoins[i]].eager) {
+          const cond = parsed.join.find((j) => j && j.field === allowedJoins[i]) || {
+            field: allowedJoins[i],
+          };
+          builder.populate(cond.field, cond.select.join(' '));
+          eagerJoins[allowedJoins[i]] = true;
+        }
+      }
+
+      if (isArrayFull(parsed.join)) {
+        for (let i = 0; i < parsed.join.length; i++) {
+          /* istanbul ignore else */
+          if (!eagerJoins[parsed.join[i].field]) {
+            builder.populate(parsed.join[i].field, parsed.join[i].select.join(' '));
+          }
+        }
+      }
+    }
+
     /* istanbul ignore else */
     if (many) {
       // set sort (order by)

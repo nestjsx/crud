@@ -4,13 +4,18 @@ import { BaseEntity } from '../base-entity';
 
 const { CREATE, UPDATE } = CrudValidationGroups;
 
-export class User extends BaseEntity {
+export class Post extends BaseEntity {
+
+  @IsString({ groups: [CREATE] })
+  @IsOptional({ groups: [CREATE] })
+  id?: string;
 
   @IsString({ groups: [CREATE, UPDATE] })
   @IsOptional({ groups: [CREATE, UPDATE] })
-  name?: string;
+  title?: string;
 
-  @IsString({ groups: [CREATE, UPDATE] })
-  @IsOptional({ groups: [CREATE, UPDATE] })
-  email?: string;
+
+  @IsString({ groups: [CREATE] })
+  @IsOptional({ groups: [CREATE] })
+  userId?: string;
 }

@@ -2,7 +2,7 @@ import { Controller, INestApplication } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Test } from '@nestjs/testing';
 
-import { Crud } from '@nestjsx/crud';
+import { Crud, CrudValidationGroups } from '@nestjsx/crud';
 import { RequestQueryBuilder } from '@nestjsx/crud-request';
 import { Model } from 'mongoose';
 import * as request from 'supertest';

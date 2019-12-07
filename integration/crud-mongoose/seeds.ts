@@ -9,3 +9,12 @@ export const seedUsers = [
   { name: 'john2', _id: '5de34417cd5e475f96a46590' },
   { name: 'jim2', _id: '5de34417cd5e475f96a46591' }
 ];
+
+export const seedPosts = [
+  {
+    id: '1',
+    title: 'Title 1',
+    userId: '5de34417cd5e475f96a46583',
+    _id: '5de34417cd5e475f96a46583'
+  },
+];
