@@ -115,7 +115,7 @@ export type SFieldOperator = {
 export type SField = SPrimitivesVal | SFieldOperator;
 
 export type SFields = {
-  [key: string]: SField | Array<SFields | SConditionAND>;
+  [key: string]: SField | Array<SFields | SConditionAND> | undefined;
   $or?: Array<SFields | SConditionAND>;
   $and?: never;
 };
