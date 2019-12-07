@@ -473,19 +473,6 @@ describe('#request-query', () => {
       });
     });
 
-    describe('#setAuthFilter', () => {
-      it('it should set authFilter, 1', () => {
-        qp.setAuthFilter();
-        expect(qp.authFilter).toMatchObject({});
-      });
-      it('it should set authFilter, 2', () => {
-        const test = { foo: 'bar' };
-        qp.setAuthFilter(test);
-        const parsed = qp.getParsed();
-        expect(parsed.authFilter).toMatchObject(test);
-      });
-    });
-
     describe('#setAuthPersist', () => {
       it('it should set authPersist, 1', () => {
         qp.setAuthPersist();
@@ -505,7 +492,6 @@ describe('#request-query', () => {
           fields: [],
           paramsFilter: [],
           search: undefined,
-          authFilter: undefined,
           authPersist: undefined,
           filter: [],
           or: [],

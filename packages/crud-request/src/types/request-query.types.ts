@@ -1,3 +1,5 @@
+import { ObjectLiteral } from '@nestjsx/util';
+
 export type QueryFields = string[];
 
 export type QueryFilter = {

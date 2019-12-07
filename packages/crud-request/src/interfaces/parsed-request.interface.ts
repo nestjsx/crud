@@ -4,7 +4,6 @@ import { QueryFields, QueryFilter, QueryJoin, QuerySort, SCondition } from '../t
 export interface ParsedRequestParams {
   fields: QueryFields;
   paramsFilter: QueryFilter[];
-  authFilter: ObjectLiteral;
   authPersist: ObjectLiteral;
   search: SCondition;
   filter: QueryFilter[];

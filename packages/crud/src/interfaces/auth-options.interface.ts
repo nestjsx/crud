@@ -7,5 +7,6 @@ export interface AuthGlobalOptions {
 export interface AuthOptions {
   property?: string;
   filter?: (req: any) => ObjectLiteral;
+  or?: (req: any) => ObjectLiteral;
   persist?: (req: any) => ObjectLiteral;
 }

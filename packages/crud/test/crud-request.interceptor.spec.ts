@@ -199,12 +199,12 @@ describe('#crud', () => {
       expect(res.body.filter[0].value).toBe(0);
     });
 
-    it('should handle authorized request, 1', async () => {
-      const res = await $.get('/test3').expect(200);
-      const authFilter = { buz: 1 };
-      const { parsed } = res.body;
-      expect(parsed.authFilter).toMatchObject(authFilter);
-    });
+    // it('should handle authorized request, 1', async () => {
+    //   const res = await $.get('/test3').expect(200);
+    //   const authFilter = { buz: 1 };
+    //   const { parsed } = res.body;
+    //   expect(parsed.authFilter).toMatchObject(authFilter);
+    // });
 
     it('should handle authorized request, 2', async () => {
       const res = await $.post('/test3')
@@ -215,11 +215,11 @@ describe('#crud', () => {
       expect(parsed.authPersist).toMatchObject(authPersist);
     });
 
-    it('should handle authorized request, 3', async () => {
-      const res = await $.get('/test4').expect(200);
-      const authFilter = { foo: 'GET' };
-      const { parsed } = res.body;
-      expect(parsed.authFilter).toMatchObject(authFilter);
-    });
+    // it('should handle authorized request, 3', async () => {
+    //   const res = await $.get('/test4').expect(200);
+    //   const authFilter = { foo: 'GET' };
+    //   const { parsed } = res.body;
+    //   expect(parsed.authFilter).toMatchObject(authFilter);
+    // });
   });
 });
