@@ -17,3 +17,10 @@ userSchema.virtual('posts', {
   foreignField: 'userId',
   justOne: false,
 });
+
+userSchema.virtual('comments', {
+  ref: 'Comment',
+  localField: '_id',
+  foreignField: 'userId',
+  justOne: false,
+});

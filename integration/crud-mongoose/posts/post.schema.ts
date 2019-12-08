@@ -7,4 +7,14 @@ export const postSchema: Schema = new Schema<Post>({
   userId: String,
 }, {
   timestamps: true,
+  toJSON: {
+    virtuals: true,
+  },
+});
+
+postSchema.virtual('comments', {
+  ref: 'Comment',
+  localField: '_id',
+  foreignField: 'postId',
+  justOne: false,
 });

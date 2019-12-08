@@ -2,14 +2,16 @@ import { Controller, INestApplication } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Test } from '@nestjs/testing';
 
-import { Crud, CrudValidationGroups } from '@nestjsx/crud';
+import { Crud } from '@nestjsx/crud';
 import { RequestQueryBuilder } from '@nestjsx/crud-request';
 import { Model } from 'mongoose';
 import * as request from 'supertest';
+import { commentSchema } from '../../../integration/crud-mongoose/comments';
 import {
   MONGO_CONFIG,
   MONGO_URI,
 } from '../../../integration/crud-mongoose/mongoose.config';
+import { postSchema } from '../../../integration/crud-mongoose/posts';
 import { seedUsers } from '../../../integration/crud-mongoose/seeds';
 import { User } from '../../../integration/crud-mongoose/users';
 import { UserDocument } from '../../../integration/crud-mongoose/users/user.document';
@@ -49,7 +51,11 @@ describe('#crud-mongoose', () => {
       const fixture = await Test.createTestingModule({
         imports: [
           MongooseModule.forRoot(MONGO_URI, MONGO_CONFIG),
-          MongooseModule.forFeature([{ name: 'User', schema: userSchema }]),
+          MongooseModule.forFeature([
+            { name: 'User', schema: userSchema },
+            { name: 'Comment', schema: commentSchema },
+            { name: 'Post', schema: postSchema },
+          ]),
         ],
         controllers: [UsersController],
         providers: [UsersService],
@@ -92,6 +98,52 @@ describe('#crud-mongoose', () => {
       it('should return one entity', async () => {
         const data = await service.findById('5de34417cd5e475f96a46583');
         expect(data.name).toBe('jay');
+      });
+    });
+
+    describe('buildFieldSelect', () => {
+      it('should overwrite includes with excludes', () => {
+        const includes = ['id', 'name', 'title'];
+        const excludes = ['name'];
+        expect(service.buildFieldSelect(includes, excludes)).toEqual('id title -name');
+      });
+
+      it('should return all allowed', () => {
+        const includes = ['id', 'name', 'title'];
+        const excludes = [];
+        expect(service.buildFieldSelect(includes, excludes)).toEqual('id name title');
+      });
+
+      it('should return all allowed if excludes is nil', () => {
+        const includes = ['id', 'name', 'title'];
+        const excludes = undefined;
+        expect(service.buildFieldSelect(includes, excludes)).toEqual('id name title');
+      });
+    });
+
+    describe('buildNestedVirtualPopulate', () => {
+      it('should build single level populate', () => {
+        expect(service.buildNestedVirtualPopulate('posts', 'title')).toEqual({
+          path: 'posts',
+          select: 'title',
+        });
+      });
+
+      it('should build multi level populate', () => {
+        expect(service.buildNestedVirtualPopulate('posts.comments', 'title')).toEqual({
+          path: 'posts',
+          populate: {
+            path: 'comments',
+            select: 'title',
+          },
+        });
+      });
+
+      it('should stop at non existent virtual', () => {
+        expect(service.buildNestedVirtualPopulate('posts.wrong', 'title')).toEqual({
+          path: 'posts',
+          select: 'title',
+        });
       });
     });
 
