@@ -4,14 +4,28 @@ import {
   CrudRequestOptions,
   CrudService,
   GetManyDefaultResponse,
+  JoinOptions,
   QueryOptions,
 } from '@nestjsx/crud';
-import { ParsedRequestParams, QuerySort } from '@nestjsx/crud-request';
-import { hasLength, isArrayFull, isObject, isUndefined, objKeys } from '@nestjsx/util';
+import {
+  ParsedRequestParams,
+  QueryFields,
+  QueryJoin,
+  QuerySort,
+} from '@nestjsx/crud-request';
+import {
+  hasLength,
+  isArrayFull,
+  isNil,
+  isObject,
+  isUndefined,
+  objKeys,
+} from '@nestjsx/util';
 /**
  * mongoose imports
  */
-import { Document, DocumentQuery, Model, Types } from 'mongoose';
+import * as mongoose from 'mongoose';
+import { Document, DocumentQuery, Model, Schema, Types } from 'mongoose';
 import { DeepPartial, ObjectLiteral } from 'typeorm';
 
 export class MongooseCrudService<T extends Document> extends CrudService<T> {
@@ -251,6 +265,7 @@ export class MongooseCrudService<T extends Document> extends CrudService<T> {
           const cond = parsed.join.find((j) => j && j.field === allowedJoins[i]) || {
             field: allowedJoins[i],
           };
+          this.setJoin(cond, joinOptions, builder);
           builder.populate(cond.field, cond.select.join(' '));
           eagerJoins[allowedJoins[i]] = true;
         }
@@ -260,7 +275,7 @@ export class MongooseCrudService<T extends Document> extends CrudService<T> {
         for (let i = 0; i < parsed.join.length; i++) {
           /* istanbul ignore else */
           if (!eagerJoins[parsed.join[i].field]) {
-            builder.populate(parsed.join[i].field, parsed.join[i].select.join(' '));
+            this.setJoin(parsed.join[i], joinOptions, builder);
           }
         }
       }
@@ -290,6 +305,62 @@ export class MongooseCrudService<T extends Document> extends CrudService<T> {
     }
 
     return { builder };
+  }
+
+  buildFieldSelect(include: QueryFields, excludes: QueryFields): string {
+    return (include || [])
+      .filter((field) => !(excludes || []).includes(field))
+      .concat(...(excludes || []).map((e) => `-${e}`))
+      .join(' ');
+  }
+
+  buildNestedVirtualPopulate<K>(field: string, select: string): any {
+    const fields = field.split('.');
+    const populates = [];
+
+    let lastSchema: Schema = this.repo.schema;
+
+    for (let i = 0; i < fields.length; ++i) {
+      const virtual: any = lastSchema.virtualpath(fields[i]);
+
+      if (virtual) {
+        lastSchema = mongoose.model(virtual.options.ref).schema;
+        populates.push({
+          path: fields[i],
+        });
+      } else {
+        break;
+      }
+    }
+
+    return populates
+      .reverse()
+      .reduce(
+        (populate, cur, index: number) => ({
+          ...cur,
+          ...(index === 0 ? { select } : { populate }),
+        }),
+        {},
+      );
+  }
+
+  protected setJoin<K>(
+    cond: QueryJoin,
+    joinOptions: JoinOptions,
+    builder: DocumentQuery<K, T>,
+  ) {
+    const joinOption = joinOptions[cond.field];
+    let excludes = isNil(joinOption) ? [] : joinOption.exclude;
+
+    if (isNil(excludes)) {
+      excludes = [];
+    }
+
+    const select = this.buildFieldSelect(cond.select, excludes);
+
+    const populate = this.buildNestedVirtualPopulate(cond.field, select);
+
+    return builder.populate(populate);
   }
 
   protected async getOneOrFail(req: CrudRequest): Promise<T> {

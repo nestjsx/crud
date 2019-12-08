@@ -18,3 +18,11 @@ export const seedPosts = [
     _id: '5de34417cd5e475f96a46583'
   },
 ];
+
+export const seedComments = [
+  {
+    _id: '5de34417cd5e475f96a46584',
+    postId: '5de34417cd5e475f96a46583',
+    userId: '5de34417cd5e475f96a46583',
+  },
+];

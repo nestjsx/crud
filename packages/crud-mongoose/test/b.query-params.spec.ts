@@ -6,6 +6,11 @@ import 'jest-extended';
 import { Model } from 'mongoose';
 import * as request from 'supertest';
 import {
+  CommentDocument,
+  commentSchema,
+  CommentsService,
+} from '../../../integration/crud-mongoose/comments';
+import {
   MONGO_CONFIG,
   MONGO_URI,
 } from '../../../integration/crud-mongoose/mongoose.config';
@@ -14,7 +19,11 @@ import {
   postSchema,
   PostsService,
 } from '../../../integration/crud-mongoose/posts';
-import { seedPosts, seedUsers } from '../../../integration/crud-mongoose/seeds';
+import {
+  seedComments,
+  seedPosts,
+  seedUsers,
+} from '../../../integration/crud-mongoose/seeds';
 import { User } from '../../../integration/crud-mongoose/users';
 import { UserDocument } from '../../../integration/crud-mongoose/users/user.document';
 import { userSchema } from '../../../integration/crud-mongoose/users/user.schema';
@@ -30,8 +39,10 @@ describe('#crud-typeorm', () => {
 
     let userService: UsersService;
     let postsService: PostsService;
+    let commentsService: CommentsService;
     let userModel: Model<UserDocument>;
     let postsModel: Model<PostDocument>;
+    let commentsModel: Model<CommentDocument>;
 
     @Crud({
       model: { type: User },
@@ -49,6 +60,8 @@ describe('#crud-typeorm', () => {
           posts: {
             allow: ['id'],
           },
+          comments: {},
+          'posts.comments': {},
         },
       },
     })
@@ -64,15 +77,17 @@ describe('#crud-typeorm', () => {
           MongooseModule.forFeature([
             { name: 'User', schema: userSchema },
             { name: 'Post', schema: postSchema },
+            { name: 'Comment', schema: commentSchema },
           ]),
         ],
         controllers: [UsersController],
-        providers: [UsersService, PostsService],
+        providers: [UsersService, PostsService, CommentsService],
       }).compile();
 
       app = fixture.createNestApplication();
       userService = app.get<UsersService>(UsersService);
       postsService = app.get<PostsService>(PostsService);
+      commentsService = app.get<CommentsService>(CommentsService);
 
       await app.init();
       server = app.getHttpServer();
@@ -86,6 +101,9 @@ describe('#crud-typeorm', () => {
       postsModel = postsService.repo;
       await postsModel.deleteMany({});
       await postsModel.create(seedPosts);
+      commentsModel = commentsService.repo;
+      await commentsModel.deleteMany({});
+      await commentsModel.create(seedComments);
     });
 
     afterAll(async () => {
@@ -248,6 +266,33 @@ describe('#crud-typeorm', () => {
                 title: post.title,
               },
             ]);
+            done();
+          });
+      });
+
+      it('should return joined entity, 2', (done) => {
+        const query = qb.setJoin({ field: 'comments', select: ['title'] }).query();
+
+        return request(server)
+          .get('/users/5de34417cd5e475f96a46583')
+          .query(query)
+          .end((_, res) => {
+            expect(res.status).toBe(200);
+            expect(res.body.comments.length).toBe(1);
+            done();
+          });
+      });
+
+      it('should return joined nested entity, 1', (done) => {
+        const query = qb.setJoin({ field: 'posts.comments', select: ['title'] }).query();
+
+        return request(server)
+          .get('/users/5de34417cd5e475f96a46583')
+          .query(query)
+          .end((_, res) => {
+            expect(res.status).toBe(200);
+            expect(res.body.posts.length).toBe(1);
+            expect(res.body.posts[0].comments.length).toBe(1);
             done();
           });
       });
