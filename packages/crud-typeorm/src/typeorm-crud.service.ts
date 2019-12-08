@@ -25,6 +25,7 @@ import {
   isNil,
   isNull,
 } from '@nestjsx/util';
+import { oO } from '@zmotivat0r/o0';
 import { plainToClass } from 'class-transformer';
 import { ClassType } from 'class-transformer/ClassTransformer';
 import {
@@ -34,10 +35,12 @@ import {
   SelectQueryBuilder,
   DeepPartial,
   WhereExpression,
+  ConnectionOptions,
 } from 'typeorm';
 import { RelationMetadata } from 'typeorm/metadata/RelationMetadata';
 
 export class TypeOrmCrudService<T> extends CrudService<T> {
+  protected dbName: ConnectionOptions['type'];
   protected entityColumns: string[];
   protected entityPrimaryColumns: string[];
   protected entityColumnsHash: ObjectLiteral = {};
@@ -46,6 +49,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
   constructor(protected repo: Repository<T>) {
     super();
 
+    this.dbName = this.repo.metadata.connection.options.type;
     this.onInitMapEntityColumns();
     this.onInitMapRelations();
   }
@@ -138,18 +142,10 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
   public async updateOne(req: CrudRequest, dto: DeepPartial<T>): Promise<T> {
     const { allowParamsOverride, returnShallow } = req.options.routes.updateOneBase;
     const paramsFilters = this.getParamFilters(req.parsed);
-    const authFilter = req.parsed.authFilter || {};
-    const authPersist = req.parsed.authPersist || {};
-    const toFind = { ...paramsFilters, ...authFilter };
-
-    const found = returnShallow
-      ? await this.getOneShallowOrFail(toFind)
-      : await this.getOneOrFail(req);
-
+    const found = await this.getOneOrFail(req, returnShallow);
     const toSave = !allowParamsOverride
-      ? { ...found, ...dto, ...paramsFilters, ...authPersist }
-      : { ...found, ...dto, ...authPersist };
-
+      ? { ...found, ...dto, ...paramsFilters, ...req.parsed.authPersist }
+      : { ...found, ...dto, ...req.parsed.authPersist };
     const updated = await this.repo.save(plainToClass(this.entityType, toSave));
 
     if (returnShallow) {
@@ -158,6 +154,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
       req.parsed.paramsFilter.forEach((filter) => {
         filter.value = updated[filter.field];
       });
+
       return this.getOneOrFail(req);
     }
   }
@@ -170,20 +167,22 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
   public async replaceOne(req: CrudRequest, dto: DeepPartial<T>): Promise<T> {
     const { allowParamsOverride, returnShallow } = req.options.routes.replaceOneBase;
     const paramsFilters = this.getParamFilters(req.parsed);
-    const authPersist = req.parsed.authPersist || {};
-
+    const [_, found] = await oO(this.getOneOrFail(req, returnShallow));
     const toSave = !allowParamsOverride
-      ? { ...dto, ...paramsFilters, ...authPersist }
-      : { ...paramsFilters, ...dto, ...authPersist };
-
+      ? { ...(found || {}), ...dto, ...paramsFilters, ...req.parsed.authPersist }
+      : { ...(found || {}), ...paramsFilters, ...dto, ...req.parsed.authPersist };
     const replaced = await this.repo.save(plainToClass(this.entityType, toSave));
 
     if (returnShallow) {
       return replaced;
     } else {
-      req.parsed.paramsFilter.forEach((filter) => {
-        filter.value = replaced[filter.field];
-      });
+      const primaryParam = this.getPrimaryParam(req.options.params);
+
+      if (!primaryParam) {
+        return replaced;
+      }
+
+      req.parsed.search = { [primaryParam]: replaced[primaryParam] };
       return this.getOneOrFail(req);
     }
   }
@@ -194,15 +193,11 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
    */
   public async deleteOne(req: CrudRequest): Promise<void | T> {
     const { returnDeleted } = req.options.routes.deleteOneBase;
-    const paramsFilters = this.getParamFilters(req.parsed);
-    const authFilter = req.parsed.authFilter || {};
-    const toFind = { ...paramsFilters, ...authFilter };
-
-    const found = await this.getOneShallowOrFail(toFind);
+    const found = await this.getOneOrFail(req, returnDeleted);
+    const toReturn = returnDeleted ? { ...found } : undefined;
     const deleted = await this.repo.remove(found);
 
-    /* istanbul ignore next */
-    return returnDeleted ? { ...deleted, ...paramsFilters, ...authFilter } : undefined;
+    return toReturn;
   }
 
   public getParamFilters(parsed: CrudRequest['parsed']): ObjectLiteral {
@@ -245,85 +240,9 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     const select = this.getSelect(parsed, options.query);
     // select fields
     builder.select(select);
-    // default search condition
-    const defaultSearch = this.getDefaultSearchCondition(options, parsed);
 
-    // legacy filter and or params
-    // will be deprecated in the next major release
-    if (isNil(parsed.search)) {
-      this.setSearchCondition(builder, { $and: defaultSearch });
-      const filters = parsed.filter;
-      const hasFilter = isArrayFull(filters);
-      const hasOr = isArrayFull(parsed.or);
-
-      if (hasFilter && hasOr) {
-        builder.andWhere(
-          new Brackets((qb) => {
-            if (filters.length === 1 && parsed.or.length === 1) {
-              // WHERE :filter OR :or
-              this.setOrWhere(filters[0], `filter0`, qb);
-              this.setOrWhere(parsed.or[0], `or0`, qb);
-            } else if (filters.length === 1) {
-              this.setAndWhere(filters[0], `filter0`, qb);
-              qb.orWhere(
-                new Brackets((qb2) => {
-                  for (let i = 0; i < parsed.or.length; i++) {
-                    this.setAndWhere(parsed.or[i], `or${i}`, qb2 as any);
-                  }
-                }),
-              );
-            } else if (parsed.or.length === 1) {
-              this.setAndWhere(parsed.or[0], `or0`, qb);
-              qb.orWhere(
-                new Brackets((qb2) => {
-                  for (let i = 0; i < filters.length; i++) {
-                    this.setAndWhere(filters[i], `filter${i}`, qb2 as any);
-                  }
-                }),
-              );
-            } else {
-              qb.andWhere(
-                new Brackets((qb2) => {
-                  for (let i = 0; i < filters.length; i++) {
-                    this.setAndWhere(filters[i], `filter${i}`, qb2 as any);
-                  }
-                }),
-              );
-              qb.orWhere(
-                new Brackets((qb2) => {
-                  for (let i = 0; i < parsed.or.length; i++) {
-                    this.setAndWhere(parsed.or[i], `or${i}`, qb2 as any);
-                  }
-                }),
-              );
-            }
-          }),
-        );
-      } else if (hasOr) {
-        builder.andWhere(
-          new Brackets((qb) => {
-            // WHERE :or OR :or OR ...
-            for (let i = 0; i < parsed.or.length; i++) {
-              this.setOrWhere(parsed.or[i], `or${i}`, qb);
-            }
-          }),
-        );
-      } else if (hasFilter) {
-        builder.andWhere(
-          new Brackets((qb) => {
-            // WHERE :filter AND :filter AND ...
-            for (let i = 0; i < filters.length; i++) {
-              this.setAndWhere(filters[i], `filter${i}`, qb);
-            }
-          }),
-        );
-      }
-    } else {
-      const search: SCondition = defaultSearch.length
-        ? { $and: [...defaultSearch, parsed.search] }
-        : /* istanbul ignore next */ parsed.search;
-      this.setSearchCondition(builder, search);
-    }
+    // search
+    this.setSearchCondition(builder, parsed.search);
 
     // set joins
     const joinOptions = options.query.join || {};
@@ -409,27 +328,6 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     return builder.getMany();
   }
 
-  protected getDefaultSearchCondition(
-    options: CrudRequestOptions,
-    parsed: ParsedRequestParams,
-  ): any[] {
-    const filter = this.queryFilterToSearch(options.query.filter);
-    const paramsFilter = this.queryFilterToSearch(parsed.paramsFilter);
-    const authFilter = this.queryFilterToSearch(parsed.authFilter);
-
-    return [...filter, ...paramsFilter, ...authFilter];
-  }
-
-  protected queryFilterToSearch(filter: any): any {
-    return isArrayFull(filter)
-      ? filter.map((item) => ({
-          [item.field]: { [item.operator]: item.value },
-        }))
-      : isObject(filter)
-      ? [filter]
-      : [];
-  }
-
   protected onInitMapEntityColumns() {
     this.entityColumns = this.repo.metadata.columns.map((prop) => {
       // In case column is an embedded, use the propertyPath to get complete path
@@ -461,20 +359,17 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     );
   }
 
-  protected async getOneOrFail(req: CrudRequest): Promise<T> {
+  protected async getOneOrFail(req: CrudRequest, shallow = false): Promise<T> {
     const { parsed, options } = req;
-    const builder = await this.createBuilder(parsed, options);
-    const found = await builder.getOne();
+    const builder = shallow
+      ? this.repo.createQueryBuilder(this.alias)
+      : await this.createBuilder(parsed, options);
 
-    if (!found) {
-      this.throwNotFoundException(this.alias);
+    if (shallow) {
+      this.setSearchCondition(builder, parsed.search);
     }
 
-    return found;
-  }
-
-  protected async getOneShallowOrFail(where: ObjectLiteral): Promise<T> {
-    const found = await this.findOne({ where });
+    const found = await builder.getOne();
 
     if (!found) {
       this.throwNotFoundException(this.alias);
@@ -498,16 +393,14 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
       }
     }
 
-    const authPersist = isObject(parsed.authPersist) ? parsed.authPersist : {};
-
     /* istanbul ignore if */
     if (!hasLength(objKeys(dto))) {
       return undefined;
     }
 
     return dto instanceof this.entityType
-      ? Object.assign(dto, authPersist)
-      : plainToClass(this.entityType, { ...dto, ...authPersist });
+      ? Object.assign(dto, parsed.authPersist)
+      : plainToClass(this.entityType, { ...dto, ...parsed.authPersist });
   }
 
   protected getAllowedColumns(columns: string[], options: QueryOptions): string[] {
@@ -913,6 +806,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     param: any,
   ): { str: string; params: ObjectLiteral } {
     const field = this.getFieldWithAlias(cond.field);
+    const likeOperator = this.dbName === 'postgres' ? 'ILIKE' : 'LIKE';
     let str: string;
     let params: ObjectLiteral;
 
@@ -966,18 +860,12 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
         break;
 
       case '$in':
-        /* istanbul ignore if */
-        if (!Array.isArray(cond.value) || !cond.value.length) {
-          this.throwBadRequestException(`Invalid column '${cond.field}' value`);
-        }
+        this.checkFilterIsArray(cond);
         str = `${field} IN (:...${param})`;
         break;
 
       case '$notin':
-        /* istanbul ignore if */
-        if (!Array.isArray(cond.value) || !cond.value.length) {
-          this.throwBadRequestException(`Invalid column '${cond.field}' value`);
-        }
+        this.checkFilterIsArray(cond);
         str = `${field} NOT IN (:...${param})`;
         break;
 
@@ -992,11 +880,56 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
         break;
 
       case '$between':
-        /* istanbul ignore if */
-        if (!Array.isArray(cond.value) || !cond.value.length || cond.value.length !== 2) {
-          this.throwBadRequestException(`Invalid column '${cond.field}' value`);
-        }
+        this.checkFilterIsArray(cond, cond.value.length !== 2);
         str = `${field} BETWEEN :${param}0 AND :${param}1`;
+        params = {
+          [`${param}0`]: cond.value[0],
+          [`${param}1`]: cond.value[1],
+        };
+        break;
+
+      // case insensitive
+      case '$eqL':
+        str = `LOWER(${field}) = :${param}`;
+        break;
+
+      case '$neL':
+        str = `LOWER(${field}) != :${param}`;
+        break;
+
+      case '$startsL':
+        str = `${field} ${likeOperator} :${param}`;
+        params = { [param]: `${cond.value}%` };
+        break;
+
+      case '$endsL':
+        str = `${field} ${likeOperator} :${param}`;
+        params = { [param]: `%${cond.value}` };
+        break;
+
+      case '$contL':
+        str = `${field} ${likeOperator} :${param}`;
+        params = { [param]: `%${cond.value}%` };
+        break;
+
+      case '$exclL':
+        str = `${field} NOT ${likeOperator} :${param}`;
+        params = { [param]: `%${cond.value}%` };
+        break;
+
+      case '$inL':
+        this.checkFilterIsArray(cond);
+        str = `LOWER(${field}) IN (:...${param})`;
+        break;
+
+      case '$notinL':
+        this.checkFilterIsArray(cond);
+        str = `LOWER(${field}) NOT IN (:...${param})`;
+        break;
+
+      case '$betweenL':
+        this.checkFilterIsArray(cond, cond.value.length !== 2);
+        str = `LOWER(${field}) BETWEEN :${param}0 AND :${param}1`;
         params = {
           [`${param}0`]: cond.value[0],
           [`${param}1`]: cond.value[1],
@@ -1014,5 +947,19 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     }
 
     return { str, params };
+  }
+
+  private checkFilterIsArray(cond: QueryFilter, withLength?: boolean) {
+    if (
+      !Array.isArray(cond.value) ||
+      !cond.value.length ||
+      (!isNil(withLength) ? withLength : false)
+    ) {
+      this.throwBadRequestException(`Invalid column '${cond.field}' value`);
+    }
+  }
+
+  private getPrimaryParam(params: any): string {
+    return objKeys(params).find((param) => params[param] && params[param].primary);
   }
 }

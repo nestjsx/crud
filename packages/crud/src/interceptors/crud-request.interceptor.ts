@@ -4,12 +4,14 @@ import {
   Injectable,
   NestInterceptor,
 } from '@nestjs/common';
-import { RequestQueryParser } from '@nestjsx/crud-request';
-import { isIn, isNil, isFunction, isObject } from '@nestjsx/util';
+import { RequestQueryParser, SCondition, QueryFilter } from '@nestjsx/crud-request';
+import { isNil, isFunction, isArrayFull, hasLength } from '@nestjsx/util';
 
 import { PARSED_CRUD_REQUEST_KEY } from '../constants';
+import { CrudActions } from '../enums';
 import { R } from '../crud/reflection.helper';
 import { MergedCrudOptions, CrudRequest, AuthOptions } from '../interfaces';
+import { QueryFilterFunction } from '../types';
 
 @Injectable()
 export class CrudRequestInterceptor implements NestInterceptor {
@@ -19,16 +21,22 @@ export class CrudRequestInterceptor implements NestInterceptor {
     /* istanbul ignore else */
     if (!req[PARSED_CRUD_REQUEST_KEY]) {
       const ctrl = context.getClass();
+      const handler = context.getHandler();
       const ctrlOptions = R.getCrudOptions(ctrl);
+      const action = R.getAction(handler);
       const crudOptions = this.getCrudOptions(ctrlOptions);
       const parser = RequestQueryParser.create();
 
       parser.parseQuery(req.query);
 
-      /* istanbul ignore else */
       if (!isNil(ctrlOptions)) {
-        parser.parseParams(req.params, crudOptions.params);
-        this.handleAuthorized(req, crudOptions.auth, parser);
+        const search = this.getSearch(parser, crudOptions, action, req.params);
+        const auth = this.getAuth(parser, crudOptions, req);
+        parser.search = auth.or
+          ? { $or: [auth.or, { $and: search }] }
+          : { $and: [auth.filter, ...search] };
+      } else {
+        parser.search = { $and: this.getSearch(parser, crudOptions, action) };
       }
 
       req[PARSED_CRUD_REQUEST_KEY] = this.getCrudRequest(parser, crudOptions);
@@ -64,27 +72,113 @@ export class CrudRequestInterceptor implements NestInterceptor {
     };
   }
 
-  handleAuthorized(req: any, authOptions: AuthOptions, parser: RequestQueryParser) {
-    /* istanbul ignore else */
-    if (isObject(authOptions)) {
-      const hasFilter = isFunction(authOptions.filter);
-      const hasPersist = isFunction(authOptions.persist);
+  getSearch(
+    parser: RequestQueryParser,
+    crudOptions: Partial<MergedCrudOptions>,
+    action: CrudActions,
+    params?: any,
+  ): SCondition[] {
+    // params condition
+    const paramsSearch = this.getParamsSearch(parser, crudOptions, params);
 
-      /* istanbul ignore else */
-      if (hasFilter || hasPersist) {
-        const { method } = req;
-        const userOrRequest = authOptions.property ? req[authOptions.property] : req;
+    // if `CrudOptions.query.filter` is a function then return transformed query search conditions
+    if (isFunction(crudOptions.query.filter)) {
+      const filterCond =
+        (crudOptions.query.filter as QueryFilterFunction)(
+          parser.search,
+          action === CrudActions.ReadAll,
+        ) || {};
 
-        /* istanbul ignore else */
-        if (isIn(method, ['GET', 'PATCH', 'PUT', 'DELETE']) && hasFilter) {
-          parser.setAuthFilter(authOptions.filter(userOrRequest));
-        }
+      return [...paramsSearch, filterCond];
+    }
 
-        /* istanbul ignore else */
-        if (isIn(method, ['PATCH', 'PUT', 'POST']) && hasPersist) {
-          parser.setAuthPersist(authOptions.persist(userOrRequest));
-        }
+    // if `CrudOptions.query.filter` is array or search condition type
+    const optionsFilter = isArrayFull(crudOptions.query.filter)
+      ? (crudOptions.query.filter as QueryFilter[]).map(parser.convertFilterToSearch)
+      : [(crudOptions.query.filter as SCondition) || {}];
+
+    let search: SCondition[] = [];
+
+    if (parser.search) {
+      search = [parser.search];
+    } else if (hasLength(parser.filter) && hasLength(parser.or)) {
+      search =
+        parser.filter.length === 1 && parser.or.length === 1
+          ? [
+              {
+                $or: [
+                  parser.convertFilterToSearch(parser.filter[0]),
+                  parser.convertFilterToSearch(parser.or[0]),
+                ],
+              },
+            ]
+          : [
+              {
+                $or: [
+                  { $and: parser.filter.map(parser.convertFilterToSearch) },
+                  { $and: parser.or.map(parser.convertFilterToSearch) },
+                ],
+              },
+            ];
+    } else if (hasLength(parser.filter)) {
+      search = parser.filter.map(parser.convertFilterToSearch);
+    } else {
+      if (hasLength(parser.or)) {
+        search =
+          parser.or.length === 1
+            ? [parser.convertFilterToSearch(parser.or[0])]
+            : [
+                {
+                  $or: parser.or.map(parser.convertFilterToSearch),
+                },
+              ];
       }
     }
+
+    return [...paramsSearch, ...optionsFilter, ...search];
+  }
+
+  getParamsSearch(
+    parser: RequestQueryParser,
+    crudOptions: Partial<MergedCrudOptions>,
+    params?: any,
+  ): SCondition[] {
+    if (params) {
+      parser.parseParams(params, crudOptions.params);
+
+      return isArrayFull(parser.paramsFilter)
+        ? parser.paramsFilter.map(parser.convertFilterToSearch)
+        : [];
+    }
+
+    return [];
+  }
+
+  getAuth(
+    parser: RequestQueryParser,
+    crudOptions: Partial<MergedCrudOptions>,
+    req: any,
+  ): { filter?: any; or?: any } {
+    let auth: any = {};
+
+    if (crudOptions.auth) {
+      const userOrRequest = crudOptions.auth.property
+        ? req[crudOptions.auth.property]
+        : req;
+
+      if (isFunction(crudOptions.auth.or)) {
+        auth.or = crudOptions.auth.or(userOrRequest);
+      }
+
+      if (isFunction(crudOptions.auth.filter) && !auth.or) {
+        auth.filter = crudOptions.auth.filter(userOrRequest) || {};
+      }
+
+      if (isFunction(crudOptions.auth.persist)) {
+        parser.setAuthPersist(crudOptions.auth.persist(userOrRequest));
+      }
+    }
+
+    return auth;
   }
 }

@@ -37,5 +37,8 @@
   },
   "scripts": {
     "build": "npx tsc -b"
+  },
+  "dependencies": {
+    "@zmotivat0r/o0": "^1.0.2"
   }
 }
