@@ -1,4 +1,4 @@
-import { Controller, INestApplication } from '@nestjs/common';
+import { BadRequestException, Controller, INestApplication } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Test } from '@nestjs/testing';
 
@@ -139,11 +139,14 @@ describe('#crud-mongoose', () => {
         });
       });
 
-      it('should stop at non existent virtual', () => {
-        expect(service.buildNestedVirtualPopulate('posts.wrong', 'title')).toEqual({
-          path: 'posts',
-          select: 'title',
-        });
+      it('should error at non existent virtual', () => {
+        try {
+          service.buildNestedVirtualPopulate('posts.wrong', 'title');
+        } catch (e) {
+          expect(e.message).toEqual(
+            new BadRequestException('wrong is not a valid join.').message,
+          );
+        }
       });
     });
 

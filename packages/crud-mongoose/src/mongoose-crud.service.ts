@@ -329,19 +329,17 @@ export class MongooseCrudService<T extends Document> extends CrudService<T> {
           path: fields[i],
         });
       } else {
-        break;
+        this.throwBadRequestException(`${fields[i]} is not a valid join.`);
       }
     }
 
-    return populates
-      .reverse()
-      .reduce(
-        (populate, cur, index: number) => ({
-          ...cur,
-          ...(index === 0 ? { select } : { populate }),
-        }),
-        {},
-      );
+    return populates.reverse().reduce(
+      (populate, cur, index: number) => ({
+        ...cur,
+        ...(index === 0 ? { select } : { populate }),
+      }),
+      {},
+    );
   }
 
   protected setJoin<K>(
