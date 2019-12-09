@@ -1,15 +1,15 @@
 import {
   QueryFields,
-  QueryFilter,
   QuerySort,
-  SCondition,
 } from '@nestjsx/crud-request/lib/types/request-query.types';
+
+import { QueryFilterOption } from '../types';
 
 export interface QueryOptions {
   allow?: QueryFields;
   exclude?: QueryFields;
   persist?: QueryFields;
-  filter?: QueryFilter[] | SCondition;
+  filter?: QueryFilterOption;
   join?: JoinOptions;
   sort?: QuerySort[];
   limit?: number;

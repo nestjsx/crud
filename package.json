@@ -25,7 +25,7 @@
     "db:prepare:typeorm": "npm run db:drop:typeorm && npm run db:sync:typeorm && npm run db:seeds:typeorm",
     "format": "npx pretty-quick --pattern \"packages/**/!(*.d).ts\"",
     "lint": "npx tslint 'packages/**/*.ts'",
-    "commit": "npx git-cz",
+    "cm": "npx git-cz",
     "postinstall": "npx opencollective"
   },
   "config": {

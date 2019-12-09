@@ -34,16 +34,16 @@ import {
   QueryJoin,
   QuerySort,
   SCondition,
+  SConditionAND,
+  SFields,
 } from './types';
 
 // tslint:disable:variable-name ban-types
 export class RequestQueryParser implements ParsedRequestParams {
   public fields: QueryFields = [];
   public paramsFilter: QueryFilter[] = [];
-  public authFilter: ObjectLiteral = undefined;
   public authPersist: ObjectLiteral = undefined;
   public search: SCondition;
-  public searchJson: SCondition;
   public filter: QueryFilter[] = [];
   public or: QueryFilter[] = [];
   public join: QueryJoin[] = [];
@@ -70,7 +70,6 @@ export class RequestQueryParser implements ParsedRequestParams {
     return {
       fields: this.fields,
       paramsFilter: this.paramsFilter,
-      authFilter: this.authFilter,
       authPersist: this.authPersist,
       search: this.search,
       filter: this.filter,
@@ -143,12 +142,25 @@ export class RequestQueryParser implements ParsedRequestParams {
     return this;
   }
 
-  setAuthFilter(filter: ObjectLiteral = {}) {
-    this.authFilter = filter;
+  setAuthPersist(persist: ObjectLiteral = {}) {
+    this.authPersist = persist || {};
   }
 
-  setAuthPersist(persist: ObjectLiteral = {}) {
-    this.authPersist = persist;
+  convertFilterToSearch(filter: QueryFilter): SFields | SConditionAND {
+    const isEmptyValue = {
+      isnull: true,
+      notnull: true,
+    };
+
+    return filter
+      ? {
+          [filter.field]: {
+            [filter.operator]: isEmptyValue[filter.operator]
+              ? isEmptyValue[filter.operator]
+              : filter.value,
+          },
+        }
+      : {};
   }
 
   private getParamNames(
@@ -321,6 +333,6 @@ export class RequestQueryParser implements ParsedRequestParams {
         break;
     }
 
-    return { field: option.field, operator: 'eq', value };
+    return { field: option.field, operator: '$eq', value };
   }
 }

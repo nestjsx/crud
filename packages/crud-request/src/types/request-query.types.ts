@@ -22,7 +22,9 @@ export type QuerySort = {
 
 export type QuerySortArr = [string, QuerySortOperator];
 
-export type ComparisonOperator =
+export type QuerySortOperator = 'ASC' | 'DESC';
+
+type DeprecatedCondOperator =
   | 'eq'
   | 'ne'
   | 'gt'
@@ -37,31 +39,41 @@ export type ComparisonOperator =
   | 'notin'
   | 'isnull'
   | 'notnull'
-  | 'between'
-  | keyof SFieldOperator;
-export type QuerySortOperator = 'ASC' | 'DESC';
+  | 'between';
 
 export enum CondOperator {
-  EQUALS = 'eq',
-  NOT_EQUALS = 'ne',
-  GREATER_THAN = 'gt',
-  LOWER_THAN = 'lt',
-  GREATER_THAN_EQUALS = 'gte',
-  LOWER_THAN_EQUALS = 'lte',
-  STARTS = 'starts',
-  ENDS = 'ends',
-  CONTAINS = 'cont',
-  EXCLUDES = 'excl',
-  IN = 'in',
-  NOT_IN = 'notin',
-  IS_NULL = 'isnull',
-  NOT_NULL = 'notnull',
-  BETWEEN = 'between',
+  EQUALS = '$eq',
+  NOT_EQUALS = '$ne',
+  GREATER_THAN = '$gt',
+  LOWER_THAN = '$lt',
+  GREATER_THAN_EQUALS = '$gte',
+  LOWER_THAN_EQUALS = '$lte',
+  STARTS = '$starts',
+  ENDS = '$ends',
+  CONTAINS = '$cont',
+  EXCLUDES = '$excl',
+  IN = '$in',
+  NOT_IN = '$notin',
+  IS_NULL = '$isnull',
+  NOT_NULL = '$notnull',
+  BETWEEN = '$between',
+  EQUALS_LOW = '$eqL',
+  NOT_EQUALS_LOW = '$neL',
+  STARTS_LOW = '$startsL',
+  ENDS_LOW = '$endsL',
+  CONTAINS_LOW = '$contL',
+  EXCLUDES_LOW = '$exclL',
+  IN_LOW = '$inL',
+  NOT_IN_LOW = '$betweenL',
 }
+
+export type ComparisonOperator = DeprecatedCondOperator | keyof SFieldOperator;
 
 // new search
 export type SPrimitivesVal = string | number | boolean;
+
 export type SFiledValues = SPrimitivesVal | Array<SPrimitivesVal>;
+
 export type SFieldOperator = {
   $eq?: SFiledValues;
   $ne?: SFiledValues;
@@ -78,13 +90,23 @@ export type SFieldOperator = {
   $between?: SFiledValues;
   $isnull?: SFiledValues;
   $notnull?: SFiledValues;
+  $eqL?: SFiledValues;
+  $neL?: SFiledValues;
+  $startsL?: SFiledValues;
+  $endsL?: SFiledValues;
+  $contL?: SFiledValues;
+  $exclL?: SFiledValues;
+  $inL?: SFiledValues;
+  $notinL?: SFiledValues;
+  $betweenL?: SFiledValues;
   $or?: SFieldOperator;
   $and?: never;
 };
+
 export type SField = SPrimitivesVal | SFieldOperator;
 
 export type SFields = {
-  [key: string]: SField | Array<SFields | SConditionAND>;
+  [key: string]: SField | Array<SFields | SConditionAND> | undefined;
   $or?: Array<SFields | SConditionAND>;
   $and?: never;
 };

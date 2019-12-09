@@ -5,6 +5,7 @@ import { ParamsOptions } from './params-options.interface';
 import { QueryOptions } from './query-options.interface';
 import { RoutesOptions } from './routes-options.interface';
 import { AuthOptions } from './auth-options.interface';
+import { DtoOptions } from './dto-options.interface';
 
 export interface CrudRequestOptions {
   query?: QueryOptions;
@@ -14,6 +15,7 @@ export interface CrudRequestOptions {
 
 export interface CrudOptions {
   model: ModelOptions;
+  dto?: DtoOptions;
   query?: QueryOptions;
   routes?: RoutesOptions;
   params?: ParamsOptions;
