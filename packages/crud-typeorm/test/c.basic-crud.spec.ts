@@ -14,7 +14,6 @@ import { UserProfile } from '../../../integration/crud-typeorm/users-profiles';
 import { HttpExceptionFilter } from '../../../integration/shared/https-exception.filter';
 import { CompaniesService } from './__fixture__/companies.service';
 import { UsersService } from './__fixture__/users.service';
-import { CrudConfigService } from '../../crud/src/module';
 
 // tslint:disable:max-classes-per-file no-shadowed-variable
 describe('#crud-typeorm', () => {
@@ -24,10 +23,12 @@ describe('#crud-typeorm', () => {
     let qb: RequestQueryBuilder;
     let service: CompaniesService;
 
-    CrudConfigService.load({ query: { limit: 5 } });
-
     @Crud({
       model: { type: Company },
+      query: {
+        alwaysPaginate: true,
+        limit: 3,
+      },
     })
     @Controller('companies')
     class CompaniesController {
@@ -65,7 +66,7 @@ describe('#crud-typeorm', () => {
           .get('/companies')
           .end((_, res) => {
             expect(res.status).toBe(200);
-            expect(res.body.data.length).toBe(5);
+            expect(res.body.data.length).toBe(3);
             expect(res.body.page).toBe(1);
             done();
           });
@@ -79,10 +80,9 @@ describe('#crud-typeorm', () => {
     let qb: RequestQueryBuilder;
     let service: CompaniesService;
 
-    CrudConfigService.load({ query: { limit: undefined } });
-
     @Crud({
       model: { type: Company },
+      query: { alwaysPaginate: true },
     })
     @Controller('companies')
     class CompaniesController {
@@ -156,13 +156,12 @@ describe('#crud-typeorm', () => {
       });
     });
   });
+
   describe('#basic crud', () => {
     let app: INestApplication;
     let server: any;
     let qb: RequestQueryBuilder;
     let service: CompaniesService;
-
-    CrudConfigService.load({ query: { alwaysPaginate: false } });
 
     @Crud({
       model: { type: Company },
@@ -294,6 +293,8 @@ describe('#crud-typeorm', () => {
         return request(server)
           .get('/companies')
           .end((_, res) => {
+            console.log(res.body);
+
             expect(res.status).toBe(200);
             expect(res.body.length).toBe(10);
             done();

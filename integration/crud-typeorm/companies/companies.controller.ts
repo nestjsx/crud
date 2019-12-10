@@ -10,6 +10,7 @@ import { CompaniesService } from './companies.service';
     type: Company,
   },
   query: {
+    alwaysPaginate: true,
     join: {
       users: {},
       projects: {},

@@ -80,16 +80,6 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
    */
   public async getMany(req: CrudRequest): Promise<GetManyDefaultResponse<T> | T[]> {
     const { parsed, options } = req;
-
-    if (options.query.alwaysPaginate) {
-      if (parsed.page === undefined) {
-        parsed.page = 1;
-      }
-      if (!parsed.limit && !options.query.limit) {
-        options.query.limit = 10; // default to 10?
-      }
-    }
-
     const builder = await this.createBuilder(parsed, options);
     return this.doGetMany(builder, parsed, options);
   }
@@ -223,13 +213,17 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     return filters;
   }
 
+  public requestHasPage(parsed: ParsedRequestParams): boolean {
+    return Number.isFinite(parsed.page) || Number.isFinite(parsed.offset);
+  }
+
   public decidePagination(
     parsed: ParsedRequestParams,
     options: CrudRequestOptions,
   ): boolean {
     return (
-      (Number.isFinite(parsed.page) || Number.isFinite(parsed.offset)) &&
-      !!this.getTake(parsed, options.query)
+      options.query.alwaysPaginate ||
+      (this.requestHasPage(parsed) && !!this.getTake(parsed, options.query))
     );
   }
 
@@ -332,7 +326,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
       const limit = builder.expressionMap.take;
       const offset = builder.expressionMap.skip;
 
-      return this.createPageInfo(data, total, limit, offset);
+      return this.createPageInfo(data, total, limit || total, offset || 0);
     }
 
     return builder.getMany();

@@ -8,7 +8,7 @@ export class CrudConfigService {
   static config: CrudGlobalConfig = {
     auth: {},
     query: {
-      alwaysPaginate: true,
+      alwaysPaginate: false,
     },
     routes: {
       getManyBase: { interceptors: [], decorators: [] },
