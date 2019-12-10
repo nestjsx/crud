@@ -17,6 +17,146 @@ import { UsersService } from './__fixture__/users.service';
 
 // tslint:disable:max-classes-per-file no-shadowed-variable
 describe('#crud-typeorm', () => {
+  describe('#basic crud using alwaysPaginate default respects global limit', () => {
+    let app: INestApplication;
+    let server: any;
+    let qb: RequestQueryBuilder;
+    let service: CompaniesService;
+
+    @Crud({
+      model: { type: Company },
+      query: {
+        alwaysPaginate: true,
+        limit: 3,
+      },
+    })
+    @Controller('companies')
+    class CompaniesController {
+      constructor(public service: CompaniesService) {}
+    }
+
+    beforeAll(async () => {
+      const fixture = await Test.createTestingModule({
+        imports: [TypeOrmModule.forRoot(withCache), TypeOrmModule.forFeature([Company])],
+        controllers: [CompaniesController],
+        providers: [
+          { provide: APP_FILTER, useClass: HttpExceptionFilter },
+          CompaniesService,
+        ],
+      }).compile();
+
+      app = fixture.createNestApplication();
+      service = app.get<CompaniesService>(CompaniesService);
+
+      await app.init();
+      server = app.getHttpServer();
+    });
+
+    beforeEach(() => {
+      qb = RequestQueryBuilder.create();
+    });
+
+    afterAll(async () => {
+      await app.close();
+    });
+
+    describe('#getAllBase', () => {
+      it('should return an array of all entities', (done) => {
+        return request(server)
+          .get('/companies')
+          .end((_, res) => {
+            expect(res.status).toBe(200);
+            expect(res.body.data.length).toBe(3);
+            expect(res.body.page).toBe(1);
+            done();
+          });
+      });
+    });
+  });
+
+  describe('#basic crud using alwaysPaginate default', () => {
+    let app: INestApplication;
+    let server: any;
+    let qb: RequestQueryBuilder;
+    let service: CompaniesService;
+
+    @Crud({
+      model: { type: Company },
+      query: { alwaysPaginate: true },
+    })
+    @Controller('companies')
+    class CompaniesController {
+      constructor(public service: CompaniesService) {}
+    }
+
+    beforeAll(async () => {
+      const fixture = await Test.createTestingModule({
+        imports: [TypeOrmModule.forRoot(withCache), TypeOrmModule.forFeature([Company])],
+        controllers: [CompaniesController],
+        providers: [
+          { provide: APP_FILTER, useClass: HttpExceptionFilter },
+          CompaniesService,
+        ],
+      }).compile();
+
+      app = fixture.createNestApplication();
+      service = app.get<CompaniesService>(CompaniesService);
+
+      await app.init();
+      server = app.getHttpServer();
+    });
+
+    beforeEach(() => {
+      qb = RequestQueryBuilder.create();
+    });
+
+    afterAll(async () => {
+      await app.close();
+    });
+
+    describe('#getAllBase', () => {
+      it('should return an array of all entities', (done) => {
+        return request(server)
+          .get('/companies')
+          .end((_, res) => {
+            expect(res.status).toBe(200);
+            expect(res.body.data.length).toBe(10);
+            expect(res.body.page).toBe(1);
+            done();
+          });
+      });
+      it('should return an entities with limit', (done) => {
+        const query = qb.setLimit(5).query();
+        return request(server)
+          .get('/companies')
+          .query(query)
+          .end((_, res) => {
+            expect(res.status).toBe(200);
+            expect(res.body.data.length).toBe(5);
+            expect(res.body.page).toBe(1);
+            done();
+          });
+      });
+      it('should return an entities with limit and page', (done) => {
+        const query = qb
+          .setLimit(3)
+          .setPage(1)
+          .sortBy({ field: 'id', order: 'DESC' })
+          .query();
+        return request(server)
+          .get('/companies')
+          .query(query)
+          .end((_, res) => {
+            expect(res.status).toBe(200);
+            expect(res.body.data.length).toBe(3);
+            expect(res.body.count).toBe(3);
+            expect(res.body.page).toBe(1);
+            done();
+          });
+      });
+    });
+  });
+
   describe('#basic crud', () => {
     let app: INestApplication;
     let server: any;
@@ -153,6 +293,8 @@ describe('#crud-typeorm', () => {
         return request(server)
           .get('/companies')
           .end((_, res) => {
+            console.log(res.body);
+
             expect(res.status).toBe(200);
             expect(res.body.length).toBe(10);
             done();
