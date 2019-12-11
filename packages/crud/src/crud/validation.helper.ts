@@ -10,13 +10,13 @@ const transformer = safeRequire('class-transformer');
 const swagger = safeRequire('@nestjs/swagger');
 
 // tslint:disable-next-line:ban-types
-function ApiModelProperty(options?: any): PropertyDecorator {
+function ApiProperty(options?: any): PropertyDecorator {
   return (target: object, propertyKey: string | symbol) => {
     /* istanbul ignore else */
     if (swagger) {
       // tslint:disable-next-line
-      const { ApiModelProperty } = swagger;
-      ApiModelProperty(options)(target, propertyKey);
+      const { ApiProperty } = swagger;
+      ApiProperty(options)(target, propertyKey);
     }
   };
 }
@@ -50,7 +50,7 @@ export class Validation {
 
       // tslint:disable-next-line:max-classes-per-file
       class BulkDtoImpl implements CreateManyDto<T> {
-        @ApiModelProperty({ type: Model, isArray: true })
+        @ApiProperty({ type: Model, isArray: true })
         @IsArray({ groups, always })
         @ArrayNotEmpty({ groups, always })
         @ValidateNested({ each: true, groups, always })
