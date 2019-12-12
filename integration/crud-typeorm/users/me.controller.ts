@@ -1,5 +1,5 @@
 import { Controller } from '@nestjs/common';
-import { ApiUseTags } from '@nestjs/swagger';
+import { ApiTags } from '@nestjs/swagger';
 import { Crud, CrudAuth } from '@nestjsx/crud';
 
 import { User } from './user.entity';
@@ -34,7 +34,7 @@ import { UsersService } from './users.service';
     id: user.id,
   }),
 })
-@ApiUseTags('me')
+@ApiTags('me')
 @Controller('me')
 export class MeController {
   constructor(public service: UsersService) {}

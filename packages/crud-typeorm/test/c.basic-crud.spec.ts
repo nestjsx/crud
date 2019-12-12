@@ -293,8 +293,6 @@ describe('#crud-typeorm', () => {
         return request(server)
           .get('/companies')
           .end((_, res) => {
-            console.log(res.body);
-
             expect(res.status).toBe(200);
             expect(res.body.length).toBe(10);
             done();
