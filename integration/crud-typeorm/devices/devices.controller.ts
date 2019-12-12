@@ -1,5 +1,5 @@
 import { Controller } from '@nestjs/common';
-import { ApiUseTags } from '@nestjs/swagger';
+import { ApiTags } from '@nestjs/swagger';
 import { Crud } from '@nestjsx/crud';
 
 import { Device } from './device.entity';
@@ -15,7 +15,7 @@ import { DevicesService } from './devices.service';
     },
   },
 })
-@ApiUseTags('devices')
+@ApiTags('devices')
 @Controller('/devices')
 export class DevicesController {
   constructor(public service: DevicesService) {}
