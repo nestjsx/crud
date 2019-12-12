@@ -1076,7 +1076,7 @@
     call-me-maybe "^1.0.1"
     glob-to-regexp "^0.3.0"
 
-"@nestjs/common@^6.10.10":
+"@nestjs/common@6.10.10":
   version "6.10.10"
   resolved "https://registry.yarnpkg.com/@nestjs/common/-/common-6.10.10.tgz#8489b1d32e6e63b82dc8e275fd341431b8eef7af"
   integrity sha512-QOPcRLrw5Ra/wRoWYJRnN+Je9xUMGeXGQqyefK0hnKBIne8VMui7N3Vn0HBwijgT/od8TbQ0CGY6iiwKtWqFCQ==
@@ -1085,7 +1085,7 @@
     cli-color "2.0.0"
     uuid "3.3.3"
 
-"@nestjs/core@^6.10.10":
+"@nestjs/core@6.10.10":
   version "6.10.10"
   resolved "https://registry.yarnpkg.com/@nestjs/core/-/core-6.10.10.tgz#7bd586e007d5d17f85cd977d10470152a0663870"
   integrity sha512-VCXrYG+ggvJehoUo9QM7ad34Bn/p4PQGN6e/kZuea9NqcYC14U4L/+WThJ1q3OJHssQAMXKjReiEdIbCau6ZwA==
@@ -1096,7 +1096,7 @@
     object-hash "2.0.1"
     uuid "3.3.3"
 
-"@nestjs/platform-express@^6.10.10":
+"@nestjs/platform-express@6.10.10":
   version "6.10.10"
   resolved "https://registry.yarnpkg.com/@nestjs/platform-express/-/platform-express-6.10.10.tgz#17b300697761622d3d67f635f4ca55d0ab6934f3"
   integrity sha512-UcHMrFwWfdq15ZW2u6q0oda/XI3oR79GEdCvYWfl4anjLxxOc01AH9hjjdcADkHyKrxbwCSjr/H31c04Cvl9FQ==
@@ -1106,7 +1106,7 @@
     express "4.17.1"
     multer "1.4.2"
 
-"@nestjs/swagger@4":
+"@nestjs/swagger@4.0.9":
   version "4.0.9"
   resolved "https://registry.yarnpkg.com/@nestjs/swagger/-/swagger-4.0.9.tgz#dfa2105568515bea837b9119d0b94a8763a7e616"
   integrity sha512-qVPprSzbgxGlODNC0KOnqa8lUdcIsrT/oqljzxDRd1j2Jj2ZqFQN84+n91+Ynukl3MRc+16e/pu9qp6z9041OA==
@@ -1114,14 +1114,14 @@
     lodash "4.17.15"
     path-to-regexp "6.1.0"
 
-"@nestjs/testing@^6.10.10":
+"@nestjs/testing@6.10.10":
   version "6.10.10"
   resolved "https://registry.yarnpkg.com/@nestjs/testing/-/testing-6.10.10.tgz#f16f13bd2c904cd374db58c981ab94bee0d286fe"
   integrity sha512-dusjypkEyiqaQiA4zReb3dE9SGDjkgtOozJXVG12MyUHtKwDkD/ok5dAzynqgbhVIiykIzozUwUPOjauMstTxA==
   dependencies:
     optional "0.1.4"
 
-"@nestjs/typeorm@^6.2.0":
+"@nestjs/typeorm@6.2.0":
   version "6.2.0"
   resolved "https://registry.yarnpkg.com/@nestjs/typeorm/-/typeorm-6.2.0.tgz#6b8e3d80e3fbd9dc5e0a9d1ebf3028f7adb1ace9"
   integrity sha512-CRDYV3oxTUa6mTDJfdW+RPLtVUpGx0RpigQdLlvMFLM56v+bYnrTuuy4vurKDgLNFC+AttL9JLZOgRhW8fGdgQ==
@@ -4877,7 +4877,7 @@ jest-environment-node@^24.9.0:
     jest-mock "^24.9.0"
     jest-util "^24.9.0"
 
-jest-extended@^0.11.2:
+jest-extended@0.11.2:
   version "0.11.2"
   resolved "https://registry.yarnpkg.com/jest-extended/-/jest-extended-0.11.2.tgz#924f4a6b4c946133faf9ec8fba865de9790f4116"
   integrity sha512-gwNMXrAPN0IY5L7VXWfSlC2aGo0KHIsGGcW+lTHYpedt5SJksEvBgMxs29iNikiNOz+cqAZY1s/+kYK0jlj4Jw==
@@ -8558,7 +8558,7 @@ ts-node@8.3.0:
     source-map-support "^0.5.6"
     yn "^3.0.0"
 
-tsconfig-extends@^1.0.1:
+tsconfig-extends@1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/tsconfig-extends/-/tsconfig-extends-1.0.1.tgz#f5e5a4c3520a284c5642a7fb57713cbb7ae42f0f"
   integrity sha1-9eWkw1IKKExWQqf7V3E8u3rkLw8=

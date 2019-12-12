@@ -230,7 +230,7 @@ describe('#request-query', () => {
     describe('#setLimit', () => {
       it('should not throw', () => {
         (qb as any).setLimit();
-        expect(qb.queryObject.per_page).toBeUndefined();
+        expect(qb.queryObject.limit).toBeUndefined();
       });
       it('should throw an error', () => {
         expect((qb.setLimit as any).bind(qb, {})).toThrowError(RequestQueryException);
@@ -238,7 +238,7 @@ describe('#request-query', () => {
       it('should set limit', () => {
         const expected = 10;
         qb.setLimit(expected);
-        expect(qb.queryObject.per_page).toBe(expected);
+        expect(qb.queryObject.limit).toBe(expected);
       });
     });
 
@@ -337,7 +337,7 @@ describe('#request-query', () => {
           .resetCache()
           .query(false);
         const expected =
-          'fields=foo,bar&filter[0]=is||notnull&or[0]=ok||ne||false&join[0]=voo||h,data&per_page=1&offset=2&page=3&sort[0]=foo,DESC&cache=0';
+          'fields=foo,bar&filter[0]=is||notnull&or[0]=ok||ne||false&join[0]=voo||h,data&limit=1&offset=2&page=3&sort[0]=foo,DESC&cache=0';
         expect(test).toBe(expected);
       });
     });
@@ -382,7 +382,7 @@ describe('#request-query', () => {
           resetCache: true,
         }).query(false);
         const expected =
-          'fields=foo,bar&filter[0]=is||notnull&or[0]=ok||ne||false&join[0]=voo||h,data&per_page=1&offset=2&page=3&sort[0]=foo,DESC&cache=0';
+          'fields=foo,bar&filter[0]=is||notnull&or[0]=ok||ne||false&join[0]=voo||h,data&limit=1&offset=2&page=3&sort[0]=foo,DESC&cache=0';
         expect(test).toBe(expected);
       });
       it('should return a valid query string, 2', () => {

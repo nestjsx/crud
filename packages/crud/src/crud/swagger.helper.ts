@@ -102,7 +102,7 @@ export class Swagger {
       page,
       cache,
     } = Swagger.getQueryParamsNames();
-    const oldVersion = Swagger.getSwaggerVersion() === 3;
+    const oldVersion = Swagger.getSwaggerVersion() < 4;
     const docsLink = (a: string) =>
       `<a href="https://github.com/nestjsx/crud/wiki/Requests#${a}" target="_blank">Docs</a>`;
 
