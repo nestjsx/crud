@@ -4,11 +4,15 @@ import { Crud } from '@nestjsx/crud';
 
 import { Company } from './company.entity';
 import { CompaniesService } from './companies.service';
+import { dto } from './dto';
+import { serialize } from './response';
 
 @Crud({
   model: {
     type: Company,
   },
+  dto,
+  serialize,
   query: {
     alwaysPaginate: true,
     join: {

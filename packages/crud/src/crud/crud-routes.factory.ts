@@ -1,4 +1,4 @@
-import { RequestMethod, HttpStatus } from '@nestjs/common';
+import { ClassSerializerInterceptor, HttpStatus, RequestMethod } from '@nestjs/common';
 import { RouteParamtypes } from '@nestjs/common/enums/route-paramtypes.enum';
 import {
   hasLength,
@@ -15,7 +15,7 @@ import * as deepmerge from 'deepmerge';
 import { R } from './reflection.helper';
 import { Swagger } from './swagger.helper';
 import { Validation } from './validation.helper';
-import { CrudRequestInterceptor } from '../interceptors';
+import { CrudRequestInterceptor, CrudResponseInterceptor } from '../interceptors';
 import { BaseRoute, CrudOptions, CrudRequest, MergedCrudOptions } from '../interfaces';
 import { BaseRouteName } from '../types';
 import { CrudActions, CrudValidationGroups } from '../enums';
@@ -100,6 +100,11 @@ export class CrudRoutesFactory {
     // set dto
     if (!isObjectFull(this.options.dto)) {
       this.options.dto = {};
+    }
+
+    // set serialize
+    if (!isObjectFull(this.options.serialize)) {
+      this.options.serialize = {};
     }
 
     R.setCrudOptions(this.options, this.target);
@@ -391,6 +396,8 @@ export class CrudRoutesFactory {
     R.setInterceptors(
       [
         CrudRequestInterceptor,
+        CrudResponseInterceptor,
+        ClassSerializerInterceptor,
         ...(isArrayFull(interceptors) ? /* istanbul ignore next */ interceptors : []),
       ],
       this.targetProto[name],
@@ -446,11 +453,13 @@ export class CrudRoutesFactory {
         : HttpStatus.OK;
     const isArray = isEqual(name, 'createManyBase') || isEqual(name, 'getManyBase');
     const metadata = Swagger.getResponseOk(this.targetProto[name]);
-    const responseOkMeta = Swagger.createResponseOkMeta(status, isArray, this.modelType);
+    const action = this.routeNameAction(name);
+    const response = this.options.serialize[action] || this.modelType;
+    const responseOkMeta = Swagger.createResponseOkMeta(status, isArray, response);
     Swagger.setResponseOk({ ...metadata, ...responseOkMeta }, this.targetProto[name]);
   }
 
   private routeNameAction(name: BaseRouteName): string {
-    return name.split('OneBase')[0];
+    return name.split('OneBase')[0] || name.split('ManyBase')[0];
   }
 }

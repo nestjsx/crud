@@ -9,22 +9,19 @@ import { isNil, isFunction, isArrayFull, hasLength } from '@nestjsx/util';
 
 import { PARSED_CRUD_REQUEST_KEY } from '../constants';
 import { CrudActions } from '../enums';
-import { R } from '../crud/reflection.helper';
-import { MergedCrudOptions, CrudRequest, AuthOptions } from '../interfaces';
+import { MergedCrudOptions, CrudRequest } from '../interfaces';
 import { QueryFilterFunction } from '../types';
+import { CrudBaseInterceptor } from './crud-base.interceptor';
 
 @Injectable()
-export class CrudRequestInterceptor implements NestInterceptor {
+export class CrudRequestInterceptor extends CrudBaseInterceptor
+  implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler) {
     const req = context.switchToHttp().getRequest();
 
     /* istanbul ignore else */
     if (!req[PARSED_CRUD_REQUEST_KEY]) {
-      const ctrl = context.getClass();
-      const handler = context.getHandler();
-      const ctrlOptions = R.getCrudOptions(ctrl);
-      const action = R.getAction(handler);
-      const crudOptions = this.getCrudOptions(ctrlOptions);
+      const { ctrlOptions, crudOptions, action } = this.getCrudInfo(context);
       const parser = RequestQueryParser.create();
 
       parser.parseQuery(req.query);
@@ -43,16 +40,6 @@ export class CrudRequestInterceptor implements NestInterceptor {
     }
 
     return next.handle();
-  }
-
-  getCrudOptions(controllerOptions: MergedCrudOptions): Partial<MergedCrudOptions> {
-    return controllerOptions
-      ? controllerOptions
-      : {
-          query: {},
-          routes: {},
-          params: {},
-        };
   }
 
   getCrudRequest(
