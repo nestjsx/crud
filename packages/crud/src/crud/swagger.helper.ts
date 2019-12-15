@@ -4,9 +4,10 @@ import { RequestQueryBuilder } from '@nestjsx/crud-request';
 
 import { safeRequire } from '../util';
 import { R } from './reflection.helper';
-import { ParamsOptions } from '../interfaces';
+import { ParamsOptions, MergedCrudOptions } from '../interfaces';
 import { BaseRouteName } from '../types';
 
+export const swagger = safeRequire('@nestjs/swagger');
 export const swaggerConst = safeRequire('@nestjs/swagger/dist/constants');
 export const swaggerPkgJson = safeRequire('@nestjs/swagger/package.json');
 
@@ -37,6 +38,20 @@ export class Swagger {
     }
   }
 
+  static setExtraModels(options: MergedCrudOptions) {
+    if (swaggerConst) {
+      const { serialize } = options;
+      const meta = Swagger.getExtraModels(serialize.get);
+      const models: any[] = [
+        ...meta,
+        ...objKeys(serialize)
+          .map((name) => serialize[name])
+          .filter((one) => one && one.name !== serialize.get.name),
+      ];
+      R.set(swaggerConst.DECORATORS.API_EXTRA_MODELS, models, serialize.get);
+    }
+  }
+
   static setResponseOk(metadata: any, func: Function) {
     /* istanbul ignore else */
     if (swaggerConst) {
@@ -54,21 +69,70 @@ export class Swagger {
     return swaggerConst ? R.get(swaggerConst.DECORATORS.API_PARAMETERS, func) || [] : [];
   }
 
+  static getExtraModels(target: any): any[] {
+    return swaggerConst ? R.get(swaggerConst.API_EXTRA_MODELS, target) || [] : [];
+  }
+
   static getResponseOk(func: Function): any {
     /* istanbul ignore next */
     return swaggerConst ? R.get(swaggerConst.DECORATORS.API_RESPONSE, func) || {} : {};
   }
 
-  static createResponseOkMeta(status: HttpStatus, isArray: boolean, dto: any): any {
-    return swaggerConst
-      ? {
-          [status]: {
-            type: dto,
-            isArray,
-            description: '',
-          },
-        }
-      : /* istanbul ignore next */ {};
+  static createResponseMeta(name: BaseRouteName, options: MergedCrudOptions): any {
+    if (swagger) {
+      const { routes, serialize, query } = options;
+
+      switch (name) {
+        case 'getOneBase':
+          return { [HttpStatus.OK]: { type: serialize.get } };
+        case 'getManyBase':
+          return {
+            [HttpStatus.OK]: query.alwaysPaginate
+              ? { type: serialize.getMany }
+              : {
+                  schema: {
+                    oneOf: [
+                      { $ref: swagger.getSchemaPath(serialize.getMany.name) },
+                      {
+                        type: 'array',
+                        items: { $ref: swagger.getSchemaPath(serialize.get.name) },
+                      },
+                    ],
+                  },
+                },
+          };
+        case 'createOneBase':
+          return {
+            [HttpStatus.CREATED]: {
+              schema: { $ref: swagger.getSchemaPath(serialize.create.name) },
+            },
+          };
+        case 'createManyBase':
+          return {
+            [HttpStatus.CREATED]: {
+              schema: {
+                type: 'array',
+                items: { $ref: swagger.getSchemaPath(serialize.create.name) },
+              },
+            },
+          };
+        case 'deleteOneBase':
+          return {
+            [HttpStatus.OK]: routes.deleteOneBase.returnDeleted
+              ? { schema: { $ref: swagger.getSchemaPath(serialize.delete.name) } }
+              : {},
+          };
+        default:
+          const dtoName = serialize[name.split('OneBase')[0]].name;
+          return {
+            [HttpStatus.OK]: {
+              schema: { $ref: swagger.getSchemaPath(dtoName) },
+            },
+          };
+      }
+    }
+
+    return {};
   }
 
   static createPathParasmMeta(options: ParamsOptions): any[] {
@@ -334,4 +398,17 @@ export class Swagger {
   private static getSwaggerVersion(): number {
     return swaggerPkgJson ? parseInt(swaggerPkgJson.version[0], 10) : 3;
   }
+}
+
+// tslint:disable-next-line:ban-types
+export function ApiProperty(options?: any): PropertyDecorator {
+  return (target: object, propertyKey: string | symbol) => {
+    /* istanbul ignore else */
+    if (swagger) {
+      // tslint:disable-next-line
+      const ApiPropertyDecorator = swagger.ApiProperty || swagger.ApiModelProperty;
+      // tslint:disable-next-line
+      ApiPropertyDecorator(options)(target, propertyKey);
+    }
+  };
 }

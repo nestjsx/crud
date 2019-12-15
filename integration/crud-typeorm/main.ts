@@ -11,7 +11,7 @@ CrudConfigService.load({
     property: USER_REQUEST_KEY,
   },
   routes: {
-    exclude: ['createManyBase'],
+    // exclude: ['createManyBase'],
   },
 });
 

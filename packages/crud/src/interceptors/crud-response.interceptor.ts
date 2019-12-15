@@ -4,49 +4,58 @@ import {
   Injectable,
   NestInterceptor,
 } from '@nestjs/common';
-import { isObject, isFunction } from '@nestjsx/util';
-import { plainToClass } from 'class-transformer';
+import { classToPlain, classToPlainFromExist } from 'class-transformer';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { CrudActions } from '../enums';
+import { SerializeOptions } from '../interfaces';
 import { CrudBaseInterceptor } from './crud-base.interceptor';
+
+const actionToDtoNameMap: {
+  [key in keyof typeof CrudActions]: keyof SerializeOptions;
+} = {
+  ReadAll: 'getMany',
+  ReadOne: 'get',
+  CreateMany: 'create',
+  CreateOne: 'create',
+  UpdateOne: 'update',
+  ReplaceOne: 'replace',
+  DeleteAll: 'delete',
+  DeleteOne: 'delete',
+};
 
 @Injectable()
 export class CrudResponseInterceptor extends CrudBaseInterceptor
   implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
-    return next.handle().pipe(map((data) => this.setResponse(context, data)));
+    return next.handle().pipe(map((data) => this.serialize(context, data)));
   }
 
-  protected setResponse(context: ExecutionContext, data: any): any {
+  protected transform(dto: any, data: any) {
+    return dto && data && data.constructor !== Object
+      ? data instanceof dto
+        ? classToPlain(data)
+        : classToPlainFromExist(data, new dto())
+      : data;
+  }
+
+  protected serialize(context: ExecutionContext, data: any): any {
     const { crudOptions, action } = this.getCrudInfo(context);
     const { serialize } = crudOptions;
-    const isAction = (a: CrudActions): boolean => action === a;
-    const transformSimple = (dto: any) => plainToClass(dto, data);
+    const dto = serialize[actionToDtoNameMap[action]];
+    const isArray = Array.isArray(data);
 
-    // getAll
-    // createMany
-
-    if (isAction(CrudActions.ReadOne) && isFunction(serialize.get)) {
-      return transformSimple(serialize.get);
+    switch (action) {
+      case CrudActions.ReadAll:
+        return isArray
+          ? (data as any[]).map((item) => this.transform(serialize.get, item))
+          : this.transform(dto, data);
+      case CrudActions.CreateMany:
+        return isArray
+          ? (data as any[]).map((item) => this.transform(dto, item))
+          : this.transform(dto, data);
+      default:
+        return this.transform(dto, data);
     }
-
-    if (isAction(CrudActions.CreateOne) && isFunction(serialize.create)) {
-      return transformSimple(serialize.create);
-    }
-
-    if (isAction(CrudActions.UpdateOne) && isFunction(serialize.update)) {
-      return transformSimple(serialize.update);
-    }
-
-    if (isAction(CrudActions.ReplaceOne) && isFunction(serialize.replace)) {
-      return transformSimple(serialize.replace);
-    }
-
-    if (isAction(CrudActions.DeleteOne) && isFunction(serialize.delete)) {
-      return transformSimple(serialize.delete);
-    }
-
-    return data;
   }
 }

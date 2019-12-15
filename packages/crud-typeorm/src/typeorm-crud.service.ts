@@ -213,17 +213,14 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     return filters;
   }
 
-  public requestHasPage(parsed: ParsedRequestParams): boolean {
-    return Number.isFinite(parsed.page) || Number.isFinite(parsed.offset);
-  }
-
   public decidePagination(
     parsed: ParsedRequestParams,
     options: CrudRequestOptions,
   ): boolean {
     return (
       options.query.alwaysPaginate ||
-      (this.requestHasPage(parsed) && !!this.getTake(parsed, options.query))
+      ((Number.isFinite(parsed.page) || Number.isFinite(parsed.offset)) &&
+        !!this.getTake(parsed, options.query))
     );
   }
 

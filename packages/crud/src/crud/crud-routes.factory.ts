@@ -1,4 +1,4 @@
-import { ClassSerializerInterceptor, HttpStatus, RequestMethod } from '@nestjs/common';
+import { RequestMethod } from '@nestjs/common';
 import { RouteParamtypes } from '@nestjs/common/enums/route-paramtypes.enum';
 import {
   hasLength,
@@ -13,6 +13,7 @@ import {
 import * as deepmerge from 'deepmerge';
 
 import { R } from './reflection.helper';
+import { SerializeHelper } from './serialize.helper';
 import { Swagger } from './swagger.helper';
 import { Validation } from './validation.helper';
 import { CrudRequestInterceptor, CrudResponseInterceptor } from '../interceptors';
@@ -60,6 +61,7 @@ export class CrudRoutesFactory {
   private create() {
     const routesSchema = this.getRoutesSchema();
     this.mergeOptions();
+    this.setResponseModels();
     this.createRoutes(routesSchema);
     this.overrideRoutes(routesSchema);
     this.enableRoutes(routesSchema);
@@ -106,6 +108,16 @@ export class CrudRoutesFactory {
     if (!isObjectFull(this.options.serialize)) {
       this.options.serialize = {};
     }
+    this.options.serialize.get = this.options.serialize.get || this.modelType;
+    this.options.serialize.getMany =
+      this.options.serialize.getMany ||
+      SerializeHelper.createGetManyDto(this.options.serialize.get, this.modelName);
+    this.options.serialize.create = this.options.serialize.create || this.modelType;
+    this.options.serialize.update = this.options.serialize.update || this.modelType;
+    this.options.serialize.replace = this.options.serialize.replace || this.modelType;
+    this.options.serialize.delete = this.options.routes.deleteOneBase.returnDeleted
+      ? this.options.serialize.update || this.modelType
+      : undefined;
 
     R.setCrudOptions(this.options, this.target);
   }
@@ -113,20 +125,20 @@ export class CrudRoutesFactory {
   private getRoutesSchema(): BaseRoute[] {
     return [
       {
-        name: 'getManyBase',
-        path: '/',
-        method: RequestMethod.GET,
-        enable: false,
-        override: false,
-        withParams: false,
-      },
-      {
         name: 'getOneBase',
         path: '/',
         method: RequestMethod.GET,
         enable: false,
         override: false,
         withParams: true,
+      },
+      {
+        name: 'getManyBase',
+        path: '/',
+        method: RequestMethod.GET,
+        enable: false,
+        override: false,
+        withParams: false,
       },
       {
         name: 'createOneBase',
@@ -226,6 +238,10 @@ export class CrudRoutesFactory {
     }
 
     return true;
+  }
+
+  private setResponseModels() {
+    Swagger.setExtraModels(this.options);
   }
 
   private createRoutes(routesSchema: BaseRoute[]) {
@@ -397,7 +413,6 @@ export class CrudRoutesFactory {
       [
         CrudRequestInterceptor,
         CrudResponseInterceptor,
-        ClassSerializerInterceptor,
         ...(isArrayFull(interceptors) ? /* istanbul ignore next */ interceptors : []),
       ],
       this.targetProto[name],
@@ -447,16 +462,9 @@ export class CrudRoutesFactory {
   }
 
   private setSwaggerResponseOk(name: BaseRouteName) {
-    const status =
-      isEqual(name, 'createManyBase') || isEqual(name, 'createOneBase')
-        ? HttpStatus.CREATED
-        : HttpStatus.OK;
-    const isArray = isEqual(name, 'createManyBase') || isEqual(name, 'getManyBase');
     const metadata = Swagger.getResponseOk(this.targetProto[name]);
-    const action = this.routeNameAction(name);
-    const response = this.options.serialize[action] || this.modelType;
-    const responseOkMeta = Swagger.createResponseOkMeta(status, isArray, response);
-    Swagger.setResponseOk({ ...metadata, ...responseOkMeta }, this.targetProto[name]);
+    const metadataToAdd = Swagger.createResponseMeta(name, this.options) || {};
+    Swagger.setResponseOk({ ...metadata, ...metadataToAdd }, this.targetProto[name]);
   }
 
   private routeNameAction(name: BaseRouteName): string {

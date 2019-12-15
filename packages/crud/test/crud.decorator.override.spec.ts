@@ -102,7 +102,16 @@ describe('#crud', () => {
       });
       it('should return swagger response ok', () => {
         const response = Swagger.getResponseOk(TestController.prototype.getMany);
-        const expected = { '200': { type: TestModel, isArray: true, description: '' } };
+        const expected = {
+          '200': {
+            schema: {
+              oneOf: [
+                { $ref: '#/components/schemas/GetManyTestModelResponseDto' },
+                { items: { $ref: '#/components/schemas/TestModel' }, type: 'array' },
+              ],
+            },
+          },
+        };
         expect(response).toMatchObject(expected);
       });
     });

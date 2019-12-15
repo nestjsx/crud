@@ -13,6 +13,11 @@ import { serialize } from './response';
   },
   dto,
   serialize,
+  routes: {
+    deleteOneBase: {
+      returnDeleted: false,
+    },
+  },
   query: {
     alwaysPaginate: true,
     join: {
