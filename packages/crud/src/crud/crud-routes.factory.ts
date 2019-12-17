@@ -116,7 +116,7 @@ export class CrudRoutesFactory {
     this.options.serialize.update = this.options.serialize.update || this.modelType;
     this.options.serialize.replace = this.options.serialize.replace || this.modelType;
     this.options.serialize.delete = this.options.routes.deleteOneBase.returnDeleted
-      ? this.options.serialize.update || this.modelType
+      ? this.options.serialize.delete || this.modelType
       : undefined;
 
     R.setCrudOptions(this.options, this.target);

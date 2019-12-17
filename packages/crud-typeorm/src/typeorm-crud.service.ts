@@ -194,7 +194,9 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
   public async deleteOne(req: CrudRequest): Promise<void | T> {
     const { returnDeleted } = req.options.routes.deleteOneBase;
     const found = await this.getOneOrFail(req, returnDeleted);
-    const toReturn = returnDeleted ? { ...found } : undefined;
+    const toReturn = returnDeleted
+      ? plainToClass(this.entityType, { ...found })
+      : undefined;
     const deleted = await this.repo.remove(found);
 
     return toReturn;

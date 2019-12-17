@@ -12,16 +12,16 @@ import { SerializeOptions } from '../interfaces';
 import { CrudBaseInterceptor } from './crud-base.interceptor';
 
 const actionToDtoNameMap: {
-  [key in keyof typeof CrudActions]: keyof SerializeOptions;
+  [key in CrudActions]: keyof SerializeOptions;
 } = {
-  ReadAll: 'getMany',
-  ReadOne: 'get',
-  CreateMany: 'create',
-  CreateOne: 'create',
-  UpdateOne: 'update',
-  ReplaceOne: 'replace',
-  DeleteAll: 'delete',
-  DeleteOne: 'delete',
+  [CrudActions.ReadAll]: 'getMany',
+  [CrudActions.ReadOne]: 'get',
+  [CrudActions.CreateMany]: 'create',
+  [CrudActions.CreateOne]: 'create',
+  [CrudActions.UpdateOne]: 'update',
+  [CrudActions.ReplaceOne]: 'replace',
+  [CrudActions.DeleteAll]: 'delete',
+  [CrudActions.DeleteOne]: 'delete',
 };
 
 @Injectable()
@@ -32,11 +32,13 @@ export class CrudResponseInterceptor extends CrudBaseInterceptor
   }
 
   protected transform(dto: any, data: any) {
-    return dto && data && data.constructor !== Object
-      ? data instanceof dto
-        ? classToPlain(data)
-        : classToPlainFromExist(data, new dto())
-      : data;
+    if (!(dto && data && data.constructor !== Object)) {
+      return data;
+    }
+
+    return data instanceof dto
+      ? classToPlain(data)
+      : classToPlain(classToPlainFromExist(data, new dto()));
   }
 
   protected serialize(context: ExecutionContext, data: any): any {

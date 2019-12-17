@@ -4,14 +4,21 @@ import { Crud } from '@nestjsx/crud';
 
 import { Device } from './device.entity';
 import { DevicesService } from './devices.service';
+import { serialize } from './response';
 
 @Crud({
   model: { type: Device },
+  serialize,
   params: {
     deviceKey: {
       field: 'deviceKey',
       type: 'uuid',
       primary: true,
+    },
+  },
+  routes: {
+    deleteOneBase: {
+      returnDeleted: true,
     },
   },
 })
