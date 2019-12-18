@@ -5,9 +5,9 @@ import { APP_FILTER } from '@nestjs/core';
 
 import { Crud } from '../src/decorators/crud.decorator';
 import { HttpExceptionFilter } from './__fixture__/exception.filter';
-import { TestModel } from './__fixture__/test.model';
+import { TestModel } from './__fixture__/models';
 import { TestCreateDto, TestUpdateDto } from './__fixture__/dto';
-import { TestService } from './__fixture__/test.service';
+import { TestService } from './__fixture__/services';
 
 describe('#crud', () => {
   describe('#dto options', () => {

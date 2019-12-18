@@ -1,13 +1,10 @@
+import { Type, Transform, classToPlainFromExist, classToPlain } from 'class-transformer';
 import { GetManyDefaultResponse } from '../interfaces';
 import { safeRequire } from '../util';
 import { ApiProperty } from './swagger.helper';
 
-const transformer = safeRequire('class-transformer');
-
 export class SerializeHelper {
   static createGetManyDto(dto: any, resourceName: string): any {
-    const { Type } = transformer;
-
     class GetManyResponseDto implements GetManyDefaultResponse<any> {
       @ApiProperty({ type: dto, isArray: true })
       @Type(() => dto)

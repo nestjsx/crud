@@ -13,8 +13,8 @@ import * as supertest from 'supertest';
 import { Crud, ParsedRequest, CrudAuth, Override } from '../src/decorators';
 import { CrudRequestInterceptor } from '../src/interceptors';
 import { CrudRequest } from '../src/interfaces';
-import { TestModel } from './__fixture__/test.model';
-import { TestService } from './__fixture__/test.service';
+import { TestModel } from './__fixture__/models';
+import { TestService } from './__fixture__/services';
 
 // tslint:disable:max-classes-per-file
 describe('#crud', () => {

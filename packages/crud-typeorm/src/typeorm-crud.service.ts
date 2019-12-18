@@ -745,34 +745,6 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     return select;
   }
 
-  protected getSkip(query: ParsedRequestParams, take: number): number | null {
-    return query.page && take
-      ? take * (query.page - 1)
-      : query.offset
-      ? query.offset
-      : null;
-  }
-
-  protected getTake(query: ParsedRequestParams, options: QueryOptions): number | null {
-    if (query.limit) {
-      return options.maxLimit
-        ? query.limit <= options.maxLimit
-          ? query.limit
-          : options.maxLimit
-        : query.limit;
-    }
-    /* istanbul ignore if */
-    if (options.limit) {
-      return options.maxLimit
-        ? options.limit <= options.maxLimit
-          ? options.limit
-          : options.maxLimit
-        : options.limit;
-    }
-
-    return options.maxLimit ? options.maxLimit : null;
-  }
-
   protected getSort(query: ParsedRequestParams, options: QueryOptions) {
     return query.sort && query.sort.length
       ? this.mapSort(query.sort)

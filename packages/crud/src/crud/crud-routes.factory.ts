@@ -463,11 +463,14 @@ export class CrudRoutesFactory {
 
   private setSwaggerResponseOk(name: BaseRouteName) {
     const metadata = Swagger.getResponseOk(this.targetProto[name]);
-    const metadataToAdd = Swagger.createResponseMeta(name, this.options) || {};
+    const metadataToAdd =
+      Swagger.createResponseMeta(name, this.options) || /* istanbul ignore next */ {};
     Swagger.setResponseOk({ ...metadata, ...metadataToAdd }, this.targetProto[name]);
   }
 
   private routeNameAction(name: BaseRouteName): string {
-    return name.split('OneBase')[0] || name.split('ManyBase')[0];
+    return (
+      name.split('OneBase')[0] || /* istanbul ignore next */ name.split('ManyBase')[0]
+    );
   }
 }

@@ -9,8 +9,8 @@ import { CrudController, CrudRequest, CreateManyDto } from '../src/interfaces';
 import { R, Swagger } from '../src/crud';
 import { CrudActions } from '../src/enums';
 import { HttpExceptionFilter } from './__fixture__/exception.filter';
-import { TestModel } from './__fixture__/test.model';
-import { TestService } from './__fixture__/test.service';
+import { TestModel } from './__fixture__/models';
+import { TestService } from './__fixture__/services';
 
 describe('#crud', () => {
   describe('#override methods', () => {
