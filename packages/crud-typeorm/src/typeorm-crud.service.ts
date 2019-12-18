@@ -170,7 +170,12 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     const [_, found] = await oO(this.getOneOrFail(req, returnShallow));
     const toSave = !allowParamsOverride
       ? { ...(found || {}), ...dto, ...paramsFilters, ...req.parsed.authPersist }
-      : { ...(found || {}), ...paramsFilters, ...dto, ...req.parsed.authPersist };
+      : {
+          ...(found || /* istanbul ignore next */ {}),
+          ...paramsFilters,
+          ...dto,
+          ...req.parsed.authPersist,
+        };
     const replaced = await this.repo.save(plainToClass(this.entityType, toSave));
 
     if (returnShallow) {
@@ -178,6 +183,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     } else {
       const primaryParam = this.getPrimaryParam(req.options.params);
 
+      /* istanbul ignore if */
       if (!primaryParam) {
         return replaced;
       }
@@ -781,7 +787,8 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     param: any,
   ): { str: string; params: ObjectLiteral } {
     const field = this.getFieldWithAlias(cond.field);
-    const likeOperator = this.dbName === 'postgres' ? 'ILIKE' : 'LIKE';
+    const likeOperator =
+      this.dbName === 'postgres' ? 'ILIKE' : /* istanbul ignore next */ 'LIKE';
     let str: string;
     let params: ObjectLiteral;
 
@@ -902,15 +909,6 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
         str = `LOWER(${field}) NOT IN (:...${param})`;
         break;
 
-      case '$betweenL':
-        this.checkFilterIsArray(cond, cond.value.length !== 2);
-        str = `LOWER(${field}) BETWEEN :${param}0 AND :${param}1`;
-        params = {
-          [`${param}0`]: cond.value[0],
-          [`${param}1`]: cond.value[1],
-        };
-        break;
-
       /* istanbul ignore next */
       default:
         str = `${field} = :${param}`;
@@ -925,6 +923,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
   }
 
   private checkFilterIsArray(cond: QueryFilter, withLength?: boolean) {
+    /* istanbul ignore if */
     if (
       !Array.isArray(cond.value) ||
       !cond.value.length ||

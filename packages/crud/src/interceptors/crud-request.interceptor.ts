@@ -74,7 +74,7 @@ export class CrudRequestInterceptor extends CrudBaseInterceptor
         (crudOptions.query.filter as QueryFilterFunction)(
           parser.search,
           action === CrudActions.ReadAll,
-        ) || {};
+        ) || /* istanbul ignore next */ {};
 
       return [...paramsSearch, filterCond];
     }
@@ -114,7 +114,7 @@ export class CrudRequestInterceptor extends CrudBaseInterceptor
         search =
           parser.or.length === 1
             ? [parser.convertFilterToSearch(parser.or[0])]
-            : [
+            : /* istanbul ignore next */ [
                 {
                   $or: parser.or.map(parser.convertFilterToSearch),
                 },
@@ -148,6 +148,7 @@ export class CrudRequestInterceptor extends CrudBaseInterceptor
   ): { filter?: any; or?: any } {
     let auth: any = {};
 
+    /* istanbul ignore else */
     if (crudOptions.auth) {
       const userOrRequest = crudOptions.auth.property
         ? req[crudOptions.auth.property]
@@ -158,7 +159,8 @@ export class CrudRequestInterceptor extends CrudBaseInterceptor
       }
 
       if (isFunction(crudOptions.auth.filter) && !auth.or) {
-        auth.filter = crudOptions.auth.filter(userOrRequest) || {};
+        auth.filter =
+          crudOptions.auth.filter(userOrRequest) || /* istanbul ignore next */ {};
       }
 
       if (isFunction(crudOptions.auth.persist)) {

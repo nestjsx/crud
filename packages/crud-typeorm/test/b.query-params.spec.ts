@@ -734,6 +734,69 @@ describe('#crud-typeorm', () => {
           .expect(200);
         expect(res.body).toBeArrayOfSize(0);
       });
+      it('should return with $eqL search operator', async () => {
+        const query = qb.search({ name: { $eqL: 'project1' } }).query();
+        const res = await projects4()
+          .query(query)
+          .expect(200);
+        expect(res.body).toBeArrayOfSize(1);
+      });
+      it('should return with $neL search operator', async () => {
+        const query = qb.search({ name: { $neL: 'project1' } }).query();
+        const res = await projects4()
+          .query(query)
+          .expect(200);
+        expect(res.body).toBeArrayOfSize(9);
+      });
+      it('should return with $startsL search operator', async () => {
+        const query = qb.search({ email: { $startsL: '2' } }).query();
+        const res = await request(server)
+          .get('/users')
+          .query(query)
+          .expect(200);
+        expect(res.body).toBeArrayOfSize(3);
+      });
+      it('should return with $endsL search operator', async () => {
+        const query = qb.search({ domain: { $endsL: '0' } }).query();
+        const res = await request(server)
+          .get('/companies')
+          .query(query)
+          .expect(200);
+        expect(res.body).toBeArrayOfSize(1);
+      });
+      it('should return with $contL search operator', async () => {
+        const query = qb.search({ email: { $contL: '1@' } }).query();
+        const res = await request(server)
+          .get('/users')
+          .query(query)
+          .expect(200);
+        expect(res.body).toBeArrayOfSize(3);
+      });
+      it('should return with $exclL search operator', async () => {
+        const query = qb.search({ email: { $exclL: '1@' } }).query();
+        const res = await request(server)
+          .get('/users')
+          .query(query)
+          .expect(200);
+        expect(res.body).toBeArrayOfSize(18);
+      });
+      it('should return with $inL search operator', async () => {
+        const query = qb.search({ name: { $inL: ['name2', 'name3'] } }).query();
+        const res = await request(server)
+          .get('/companies')
+          .query(query)
+          .expect(200);
+        expect(res.body).toBeArrayOfSize(2);
+      });
+      it('should return with $notinL search operator', async () => {
+        const query = qb
+          .search({ name: { $notinL: ['project7', 'project8', 'project9'] } })
+          .query();
+        const res = await projects4()
+          .query(query)
+          .expect(200);
+        expect(res.body).toBeArrayOfSize(7);
+      });
     });
 
     describe('#update', () => {

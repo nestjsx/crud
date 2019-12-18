@@ -113,7 +113,7 @@ export class Swagger {
         case 'createManyBase':
           return {
             [HttpStatus.CREATED]: serialize.createMany
-              ? {
+              ? /* istanbul ignore next */ {
                   schema: { $ref: swagger.getSchemaPath(serialize.createMany.name) },
                 }
               : {

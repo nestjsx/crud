@@ -69,7 +69,7 @@ export abstract class CrudService<T> {
     return (
       options.query.alwaysPaginate ||
       ((Number.isFinite(parsed.page) || Number.isFinite(parsed.offset)) &&
-        !!this.getTake(parsed, options.query))
+        /* istanbul ignore next */ !!this.getTake(parsed, options.query))
     );
   }
 
