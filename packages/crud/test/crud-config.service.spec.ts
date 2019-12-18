@@ -83,7 +83,7 @@ describe('#crud', () => {
             decorators: [],
           },
           getOneBase: { interceptors: [], decorators: [] },
-          createOneBase: { interceptors: [], decorators: [] },
+          createOneBase: { interceptors: [], decorators: [], returnShallow: false },
           createManyBase: { interceptors: [], decorators: [] },
           updateOneBase: {
             interceptors: [],

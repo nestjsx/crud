@@ -7,6 +7,7 @@ import { Crud } from '@nestjsx/crud';
 import { RequestQueryBuilder } from '@nestjsx/crud-request';
 import * as request from 'supertest';
 import { Company } from '../../../integration/crud-typeorm/companies';
+import { Device } from '../../../integration/crud-typeorm/devices';
 import { withCache } from '../../../integration/crud-typeorm/orm.config';
 import { Project } from '../../../integration/crud-typeorm/projects';
 import { User } from '../../../integration/crud-typeorm/users';
@@ -14,6 +15,7 @@ import { UserProfile } from '../../../integration/crud-typeorm/users-profiles';
 import { HttpExceptionFilter } from '../../../integration/shared/https-exception.filter';
 import { CompaniesService } from './__fixture__/companies.service';
 import { UsersService } from './__fixture__/users.service';
+import { DevicesService } from './__fixture__/devices.service';
 
 // tslint:disable:max-classes-per-file no-shadowed-variable
 describe('#crud-typeorm', () => {
@@ -233,22 +235,44 @@ describe('#crud-typeorm', () => {
       constructor(public service: UsersService) {}
     }
 
+    @Crud({
+      model: { type: Device },
+      params: {
+        deviceKey: {
+          field: 'deviceKey',
+          type: 'uuid',
+          primary: true,
+        },
+      },
+      routes: {
+        createOneBase: {
+          returnShallow: true,
+        },
+      },
+    })
+    @Controller('devices')
+    class DevicesController {
+      constructor(public service: DevicesService) {}
+    }
+
     beforeAll(async () => {
       const fixture = await Test.createTestingModule({
         imports: [
           TypeOrmModule.forRoot({ ...withCache, logging: false }),
-          TypeOrmModule.forFeature([Company, Project, User, UserProfile]),
+          TypeOrmModule.forFeature([Company, Project, User, UserProfile, Device]),
         ],
         controllers: [
           CompaniesController,
           UsersController,
           UsersController2,
           UsersController3,
+          DevicesController,
         ],
         providers: [
           { provide: APP_FILTER, useClass: HttpExceptionFilter },
           CompaniesService,
           UsersService,
+          DevicesService,
         ],
       }).compile();
 
@@ -438,6 +462,18 @@ describe('#crud-typeorm', () => {
             expect(res.status).toBe(201);
             expect(res.body.id).toBeTruthy();
             expect(res.body.companyId).toBe(1);
+            done();
+          });
+      });
+      it('should return with `returnShallow`', (done) => {
+        const dto: any = { description: 'returnShallow is true' };
+        return request(server)
+          .post('/devices')
+          .send(dto)
+          .end((_, res) => {
+            expect(res.status).toBe(201);
+            expect(res.body.deviceKey).toBeTruthy();
+            expect(res.body.description).toBeTruthy();
             done();
           });
       });

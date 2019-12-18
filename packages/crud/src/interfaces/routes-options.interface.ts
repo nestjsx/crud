@@ -21,7 +21,9 @@ export interface GetMayRouteOptions extends BaseRouteOptions {}
 
 export interface GetOneRouteOptions extends BaseRouteOptions {}
 
-export interface CreateOneRouteOptions extends BaseRouteOptions {}
+export interface CreateOneRouteOptions extends BaseRouteOptions {
+  returnShallow?: boolean;
+}
 
 export interface CreateManyRouteOptions extends BaseRouteOptions {}
 

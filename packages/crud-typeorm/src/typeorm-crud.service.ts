@@ -98,6 +98,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
    * @param dto
    */
   public async createOne(req: CrudRequest, dto: DeepPartial<T>): Promise<T> {
+    const { returnShallow } = req.options.routes.createOneBase;
     const entity = this.prepareEntityBeforeSave(dto, req.parsed);
 
     /* istanbul ignore if */
@@ -105,7 +106,21 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
       this.throwBadRequestException(`Empty data. Nothing to save.`);
     }
 
-    return this.repo.save<any>(entity);
+    const saved = await this.repo.save<any>(entity);
+
+    if (returnShallow) {
+      return saved;
+    } else {
+      const primaryParam = this.getPrimaryParam(req.options);
+
+      /* istanbul ignore if */
+      if (!primaryParam && /* istanbul ignore next */ isNil(saved[primaryParam])) {
+        return saved;
+      } else {
+        req.parsed.search = { [primaryParam]: saved[primaryParam] };
+        return this.getOneOrFail(req);
+      }
+    }
   }
 
   /**
@@ -181,7 +196,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     if (returnShallow) {
       return replaced;
     } else {
-      const primaryParam = this.getPrimaryParam(req.options.params);
+      const primaryParam = this.getPrimaryParam(req.options);
 
       /* istanbul ignore if */
       if (!primaryParam) {
@@ -931,9 +946,5 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     ) {
       this.throwBadRequestException(`Invalid column '${cond.field}' value`);
     }
-  }
-
-  private getPrimaryParam(params: any): string {
-    return objKeys(params).find((param) => params[param] && params[param].primary);
   }
 }
