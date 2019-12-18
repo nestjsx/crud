@@ -9,22 +9,19 @@ import { isNil, isFunction, isArrayFull, hasLength } from '@nestjsx/util';
 
 import { PARSED_CRUD_REQUEST_KEY } from '../constants';
 import { CrudActions } from '../enums';
-import { R } from '../crud/reflection.helper';
-import { MergedCrudOptions, CrudRequest, AuthOptions } from '../interfaces';
+import { MergedCrudOptions, CrudRequest } from '../interfaces';
 import { QueryFilterFunction } from '../types';
+import { CrudBaseInterceptor } from './crud-base.interceptor';
 
 @Injectable()
-export class CrudRequestInterceptor implements NestInterceptor {
+export class CrudRequestInterceptor extends CrudBaseInterceptor
+  implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler) {
     const req = context.switchToHttp().getRequest();
 
     /* istanbul ignore else */
     if (!req[PARSED_CRUD_REQUEST_KEY]) {
-      const ctrl = context.getClass();
-      const handler = context.getHandler();
-      const ctrlOptions = R.getCrudOptions(ctrl);
-      const action = R.getAction(handler);
-      const crudOptions = this.getCrudOptions(ctrlOptions);
+      const { ctrlOptions, crudOptions, action } = this.getCrudInfo(context);
       const parser = RequestQueryParser.create();
 
       parser.parseQuery(req.query);
@@ -43,16 +40,6 @@ export class CrudRequestInterceptor implements NestInterceptor {
     }
 
     return next.handle();
-  }
-
-  getCrudOptions(controllerOptions: MergedCrudOptions): Partial<MergedCrudOptions> {
-    return controllerOptions
-      ? controllerOptions
-      : {
-          query: {},
-          routes: {},
-          params: {},
-        };
   }
 
   getCrudRequest(
@@ -87,7 +74,7 @@ export class CrudRequestInterceptor implements NestInterceptor {
         (crudOptions.query.filter as QueryFilterFunction)(
           parser.search,
           action === CrudActions.ReadAll,
-        ) || {};
+        ) || /* istanbul ignore next */ {};
 
       return [...paramsSearch, filterCond];
     }
@@ -127,7 +114,7 @@ export class CrudRequestInterceptor implements NestInterceptor {
         search =
           parser.or.length === 1
             ? [parser.convertFilterToSearch(parser.or[0])]
-            : [
+            : /* istanbul ignore next */ [
                 {
                   $or: parser.or.map(parser.convertFilterToSearch),
                 },
@@ -161,6 +148,7 @@ export class CrudRequestInterceptor implements NestInterceptor {
   ): { filter?: any; or?: any } {
     let auth: any = {};
 
+    /* istanbul ignore else */
     if (crudOptions.auth) {
       const userOrRequest = crudOptions.auth.property
         ? req[crudOptions.auth.property]
@@ -171,7 +159,8 @@ export class CrudRequestInterceptor implements NestInterceptor {
       }
 
       if (isFunction(crudOptions.auth.filter) && !auth.or) {
-        auth.filter = crudOptions.auth.filter(userOrRequest) || {};
+        auth.filter =
+          crudOptions.auth.filter(userOrRequest) || /* istanbul ignore next */ {};
       }
 
       if (isFunction(crudOptions.auth.persist)) {

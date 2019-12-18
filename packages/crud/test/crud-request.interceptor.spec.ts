@@ -13,8 +13,8 @@ import * as supertest from 'supertest';
 import { Crud, ParsedRequest, CrudAuth, Override } from '../src/decorators';
 import { CrudRequestInterceptor } from '../src/interceptors';
 import { CrudRequest } from '../src/interfaces';
-import { TestModel } from './__fixture__/test.model';
-import { TestService } from './__fixture__/test.service';
+import { TestModel } from './__fixture__/models';
+import { TestService } from './__fixture__/services';
 
 // tslint:disable:max-classes-per-file
 describe('#crud', () => {
@@ -71,10 +71,13 @@ describe('#crud', () => {
 
   @Crud({
     model: { type: TestModel },
+    query: {
+      filter: () => ({ name: 'persist' }),
+    },
   })
   @CrudAuth({
     property: 'user',
-    filter: (user) => ({ foo: user, buz: 1 }),
+    filter: (user) => ({ user: 'test', buz: 1 }),
     persist: () => ({ bar: false }),
   })
   @Controller('test3')
@@ -96,7 +99,7 @@ describe('#crud', () => {
     model: { type: TestModel },
   })
   @CrudAuth({
-    filter: (req) => ({ foo: req.method }),
+    or: () => ({ id: 1 }),
   })
   @Controller('test4')
   class Test4Controller {
@@ -199,14 +202,7 @@ describe('#crud', () => {
       expect(res.body.filter[0].value).toBe(0);
     });
 
-    // it('should handle authorized request, 1', async () => {
-    //   const res = await $.get('/test3').expect(200);
-    //   const authFilter = { buz: 1 };
-    //   const { parsed } = res.body;
-    //   expect(parsed.authFilter).toMatchObject(authFilter);
-    // });
-
-    it('should handle authorized request, 2', async () => {
+    it('should handle authorized request, 1', async () => {
       const res = await $.post('/test3')
         .send({})
         .expect(201);
@@ -215,11 +211,27 @@ describe('#crud', () => {
       expect(parsed.authPersist).toMatchObject(authPersist);
     });
 
-    // it('should handle authorized request, 3', async () => {
-    //   const res = await $.get('/test4').expect(200);
-    //   const authFilter = { foo: 'GET' };
-    //   const { parsed } = res.body;
-    //   expect(parsed.authFilter).toMatchObject(authFilter);
-    // });
+    it('should handle authorized request, 2', async () => {
+      const res = await $.get('/test3').expect(200);
+      const search = { $and: [{ user: 'test', buz: 1 }, {}] };
+      expect(res.body.parsed.search).toMatchObject(search);
+    });
+
+    it('should handle authorized request, 3', async () => {
+      const query = qb.search({ name: 'test' }).query();
+      const res = await $.get('/test4')
+        .query(query)
+        .expect(200);
+      const search = { $or: [{ id: 1 }, { $and: [{}, { name: 'test' }] }] };
+      expect(res.body.parsed.search).toMatchObject(search);
+    });
+    it('should handle authorized request, 4', async () => {
+      const query = qb.search({ name: 'test' }).query();
+      const res = await $.get('/test3')
+        .query(query)
+        .expect(200);
+      const search = { $and: [{ user: 'test', buz: 1 }, { name: 'persist' }] };
+      expect(res.body.parsed.search).toMatchObject(search);
+    });
   });
 });

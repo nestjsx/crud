@@ -4,23 +4,10 @@ import { isFalse, isNil } from '@nestjsx/util';
 import { CrudValidationGroups } from '../enums';
 import { CreateManyDto, CrudOptions, MergedCrudOptions } from '../interfaces';
 import { safeRequire } from '../util';
+import { ApiProperty } from './swagger.helper';
 
 const validator = safeRequire('class-validator');
 const transformer = safeRequire('class-transformer');
-const swagger = safeRequire('@nestjs/swagger');
-
-// tslint:disable-next-line:ban-types
-function ApiProperty(options?: any): PropertyDecorator {
-  return (target: object, propertyKey: string | symbol) => {
-    /* istanbul ignore else */
-    if (swagger) {
-      // tslint:disable-next-line
-      const ApiPropertyDecorator = swagger.ApiProperty || swagger.ApiModelProperty;
-      // tslint:disable-next-line
-      ApiPropertyDecorator(options)(target, propertyKey);
-    }
-  };
-}
 
 class BulkDto<T> implements CreateManyDto<T> {
   bulk: T[];
@@ -61,7 +48,7 @@ export class Validation {
 
       Object.defineProperty(BulkDtoImpl, 'name', {
         writable: false,
-        value: `Generated${Model.name}BulkDto`,
+        value: `CreateMany${options.model.type.name}Dto`,
       });
 
       return BulkDtoImpl;

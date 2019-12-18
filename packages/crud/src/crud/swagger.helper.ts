@@ -4,9 +4,10 @@ import { RequestQueryBuilder } from '@nestjsx/crud-request';
 
 import { safeRequire } from '../util';
 import { R } from './reflection.helper';
-import { ParamsOptions } from '../interfaces';
+import { ParamsOptions, MergedCrudOptions } from '../interfaces';
 import { BaseRouteName } from '../types';
 
+export const swagger = safeRequire('@nestjs/swagger');
 export const swaggerConst = safeRequire('@nestjs/swagger/dist/constants');
 export const swaggerPkgJson = safeRequire('@nestjs/swagger/package.json');
 
@@ -37,6 +38,21 @@ export class Swagger {
     }
   }
 
+  static setExtraModels(options: MergedCrudOptions) {
+    /* istanbul ignore else */
+    if (swaggerConst) {
+      const { serialize } = options;
+      const meta = Swagger.getExtraModels(serialize.get);
+      const models: any[] = [
+        ...meta,
+        ...objKeys(serialize)
+          .map((name) => serialize[name])
+          .filter((one) => one && one.name !== serialize.get.name),
+      ];
+      R.set(swaggerConst.DECORATORS.API_EXTRA_MODELS, models, serialize.get);
+    }
+  }
+
   static setResponseOk(metadata: any, func: Function) {
     /* istanbul ignore else */
     if (swaggerConst) {
@@ -54,21 +70,76 @@ export class Swagger {
     return swaggerConst ? R.get(swaggerConst.DECORATORS.API_PARAMETERS, func) || [] : [];
   }
 
+  static getExtraModels(target: any): any[] {
+    /* istanbul ignore next */
+    return swaggerConst ? R.get(swaggerConst.API_EXTRA_MODELS, target) || [] : [];
+  }
+
   static getResponseOk(func: Function): any {
     /* istanbul ignore next */
     return swaggerConst ? R.get(swaggerConst.DECORATORS.API_RESPONSE, func) || {} : {};
   }
 
-  static createResponseOkMeta(status: HttpStatus, isArray: boolean, dto: any): any {
-    return swaggerConst
-      ? {
-          [status]: {
-            type: dto,
-            isArray,
-            description: '',
-          },
-        }
-      : /* istanbul ignore next */ {};
+  static createResponseMeta(name: BaseRouteName, options: MergedCrudOptions): any {
+    /* istanbul ignore else */
+    if (swagger) {
+      const { routes, serialize, query } = options;
+
+      switch (name) {
+        case 'getOneBase':
+          return { [HttpStatus.OK]: { type: serialize.get } };
+        case 'getManyBase':
+          return {
+            [HttpStatus.OK]: query.alwaysPaginate
+              ? { type: serialize.getMany }
+              : {
+                  schema: {
+                    oneOf: [
+                      { $ref: swagger.getSchemaPath(serialize.getMany.name) },
+                      {
+                        type: 'array',
+                        items: { $ref: swagger.getSchemaPath(serialize.get.name) },
+                      },
+                    ],
+                  },
+                },
+          };
+        case 'createOneBase':
+          return {
+            [HttpStatus.CREATED]: {
+              schema: { $ref: swagger.getSchemaPath(serialize.create.name) },
+            },
+          };
+        case 'createManyBase':
+          return {
+            [HttpStatus.CREATED]: serialize.createMany
+              ? /* istanbul ignore next */ {
+                  schema: { $ref: swagger.getSchemaPath(serialize.createMany.name) },
+                }
+              : {
+                  schema: {
+                    type: 'array',
+                    items: { $ref: swagger.getSchemaPath(serialize.create.name) },
+                  },
+                },
+          };
+        case 'deleteOneBase':
+          return {
+            [HttpStatus.OK]: routes.deleteOneBase.returnDeleted
+              ? { schema: { $ref: swagger.getSchemaPath(serialize.delete.name) } }
+              : {},
+          };
+        default:
+          const dtoName = serialize[name.split('OneBase')[0]].name;
+          return {
+            [HttpStatus.OK]: {
+              schema: { $ref: swagger.getSchemaPath(dtoName) },
+            },
+          };
+      }
+    } else {
+      return {};
+    }
   }
 
   static createPathParasmMeta(options: ParamsOptions): any[] {
@@ -113,7 +184,7 @@ export class Swagger {
       in: 'query',
     };
     const fieldsMeta = oldVersion
-      ? {
+      ? /* istanbul ignore next */ {
           ...fieldsMetaBase,
           type: 'array',
           items: {
@@ -140,7 +211,7 @@ export class Swagger {
       in: 'query',
     };
     const searchMeta = oldVersion
-      ? { ...searchMetaBase, type: 'string' }
+      ? /* istanbul ignore next */ { ...searchMetaBase, type: 'string' }
       : { ...searchMetaBase, schema: { type: 'string' } };
 
     const filterMetaBase = {
@@ -150,7 +221,7 @@ export class Swagger {
       in: 'query',
     };
     const filterMeta = oldVersion
-      ? {
+      ? /* istanbul ignore next */ {
           ...filterMetaBase,
           items: {
             type: 'string',
@@ -176,7 +247,7 @@ export class Swagger {
       in: 'query',
     };
     const orMeta = oldVersion
-      ? {
+      ? /* istanbul ignore next */ {
           ...orMetaBase,
           items: {
             type: 'string',
@@ -202,7 +273,7 @@ export class Swagger {
       in: 'query',
     };
     const sortMeta = oldVersion
-      ? {
+      ? /* istanbul ignore next */ {
           ...sortMetaBase,
           items: {
             type: 'string',
@@ -228,7 +299,7 @@ export class Swagger {
       in: 'query',
     };
     const joinMeta = oldVersion
-      ? {
+      ? /* istanbul ignore next */ {
           ...joinMetaBase,
           items: {
             type: 'string',
@@ -254,7 +325,7 @@ export class Swagger {
       in: 'query',
     };
     const limitMeta = oldVersion
-      ? { ...limitMetaBase, type: 'integer' }
+      ? /* istanbul ignore next */ { ...limitMetaBase, type: 'integer' }
       : { ...limitMetaBase, schema: { type: 'integer' } };
 
     const offsetMetaBase = {
@@ -264,7 +335,7 @@ export class Swagger {
       in: 'query',
     };
     const offsetMeta = oldVersion
-      ? { ...offsetMetaBase, type: 'integer' }
+      ? /* istanbul ignore next */ { ...offsetMetaBase, type: 'integer' }
       : { ...offsetMetaBase, schema: { type: 'integer' } };
 
     const pageMetaBase = {
@@ -274,7 +345,7 @@ export class Swagger {
       in: 'query',
     };
     const pageMeta = oldVersion
-      ? { ...pageMetaBase, type: 'integer' }
+      ? /* istanbul ignore next */ { ...pageMetaBase, type: 'integer' }
       : { ...pageMetaBase, schema: { type: 'integer' } };
 
     const cacheMetaBase = {
@@ -284,7 +355,12 @@ export class Swagger {
       in: 'query',
     };
     const cacheMeta = oldVersion
-      ? { ...cacheMetaBase, type: 'integer', minimum: 0, maximum: 1 }
+      ? /* istanbul ignore next */ {
+          ...cacheMetaBase,
+          type: 'integer',
+          minimum: 0,
+          maximum: 1,
+        }
       : { ...cacheMetaBase, schema: { type: 'integer', minimum: 0, maximum: 1 } };
 
     switch (name) {
@@ -332,6 +408,22 @@ export class Swagger {
   }
 
   private static getSwaggerVersion(): number {
-    return swaggerPkgJson ? parseInt(swaggerPkgJson.version[0], 10) : 3;
+    return swaggerPkgJson
+      ? parseInt(swaggerPkgJson.version[0], 10)
+      : /* istanbul ignore next */ 3;
   }
+}
+
+// tslint:disable-next-line:ban-types
+export function ApiProperty(options?: any): PropertyDecorator {
+  return (target: object, propertyKey: string | symbol) => {
+    /* istanbul ignore else */
+    if (swagger) {
+      // tslint:disable-next-line
+      const ApiPropertyDecorator =
+        swagger.ApiProperty || /* istanbul ignore next */ swagger.ApiModelProperty;
+      // tslint:disable-next-line
+      ApiPropertyDecorator(options)(target, propertyKey);
+    }
+  };
 }

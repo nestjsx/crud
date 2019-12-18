@@ -143,7 +143,7 @@ export class RequestQueryParser implements ParsedRequestParams {
   }
 
   setAuthPersist(persist: ObjectLiteral = {}) {
-    this.authPersist = persist || {};
+    this.authPersist = persist || /* istanbul ignore next */ {};
   }
 
   convertFilterToSearch(filter: QueryFilter): SFields | SConditionAND {
@@ -160,7 +160,7 @@ export class RequestQueryParser implements ParsedRequestParams {
               : filter.value,
           },
         }
-      : {};
+      : /* istanbul ignore next */ {};
   }
 
   private getParamNames(

@@ -4,10 +4,19 @@ import { Crud } from '@nestjsx/crud';
 
 import { Company } from './company.entity';
 import { CompaniesService } from './companies.service';
+import { dto } from './dto';
+import { serialize } from './response';
 
 @Crud({
   model: {
     type: Company,
+  },
+  dto,
+  serialize,
+  routes: {
+    deleteOneBase: {
+      returnDeleted: false,
+    },
   },
   query: {
     alwaysPaginate: true,

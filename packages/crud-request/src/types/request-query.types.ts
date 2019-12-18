@@ -64,7 +64,6 @@ export enum CondOperator {
   CONTAINS_LOW = '$contL',
   EXCLUDES_LOW = '$exclL',
   IN_LOW = '$inL',
-  NOT_IN_LOW = '$betweenL',
 }
 
 export type ComparisonOperator = DeprecatedCondOperator | keyof SFieldOperator;
@@ -98,7 +97,6 @@ export type SFieldOperator = {
   $exclL?: SFiledValues;
   $inL?: SFiledValues;
   $notinL?: SFiledValues;
-  $betweenL?: SFiledValues;
   $or?: SFieldOperator;
   $and?: never;
 };

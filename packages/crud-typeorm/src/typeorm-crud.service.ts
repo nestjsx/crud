@@ -170,7 +170,12 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     const [_, found] = await oO(this.getOneOrFail(req, returnShallow));
     const toSave = !allowParamsOverride
       ? { ...(found || {}), ...dto, ...paramsFilters, ...req.parsed.authPersist }
-      : { ...(found || {}), ...paramsFilters, ...dto, ...req.parsed.authPersist };
+      : {
+          ...(found || /* istanbul ignore next */ {}),
+          ...paramsFilters,
+          ...dto,
+          ...req.parsed.authPersist,
+        };
     const replaced = await this.repo.save(plainToClass(this.entityType, toSave));
 
     if (returnShallow) {
@@ -178,6 +183,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     } else {
       const primaryParam = this.getPrimaryParam(req.options.params);
 
+      /* istanbul ignore if */
       if (!primaryParam) {
         return replaced;
       }
@@ -194,7 +200,9 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
   public async deleteOne(req: CrudRequest): Promise<void | T> {
     const { returnDeleted } = req.options.routes.deleteOneBase;
     const found = await this.getOneOrFail(req, returnDeleted);
-    const toReturn = returnDeleted ? { ...found } : undefined;
+    const toReturn = returnDeleted
+      ? plainToClass(this.entityType, { ...found })
+      : undefined;
     const deleted = await this.repo.remove(found);
 
     return toReturn;
@@ -213,17 +221,14 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     return filters;
   }
 
-  public requestHasPage(parsed: ParsedRequestParams): boolean {
-    return Number.isFinite(parsed.page) || Number.isFinite(parsed.offset);
-  }
-
   public decidePagination(
     parsed: ParsedRequestParams,
     options: CrudRequestOptions,
   ): boolean {
     return (
       options.query.alwaysPaginate ||
-      (this.requestHasPage(parsed) && !!this.getTake(parsed, options.query))
+      ((Number.isFinite(parsed.page) || Number.isFinite(parsed.offset)) &&
+        !!this.getTake(parsed, options.query))
     );
   }
 
@@ -746,34 +751,6 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     return select;
   }
 
-  protected getSkip(query: ParsedRequestParams, take: number): number | null {
-    return query.page && take
-      ? take * (query.page - 1)
-      : query.offset
-      ? query.offset
-      : null;
-  }
-
-  protected getTake(query: ParsedRequestParams, options: QueryOptions): number | null {
-    if (query.limit) {
-      return options.maxLimit
-        ? query.limit <= options.maxLimit
-          ? query.limit
-          : options.maxLimit
-        : query.limit;
-    }
-    /* istanbul ignore if */
-    if (options.limit) {
-      return options.maxLimit
-        ? options.limit <= options.maxLimit
-          ? options.limit
-          : options.maxLimit
-        : options.limit;
-    }
-
-    return options.maxLimit ? options.maxLimit : null;
-  }
-
   protected getSort(query: ParsedRequestParams, options: QueryOptions) {
     return query.sort && query.sort.length
       ? this.mapSort(query.sort)
@@ -810,7 +787,8 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     param: any,
   ): { str: string; params: ObjectLiteral } {
     const field = this.getFieldWithAlias(cond.field);
-    const likeOperator = this.dbName === 'postgres' ? 'ILIKE' : 'LIKE';
+    const likeOperator =
+      this.dbName === 'postgres' ? 'ILIKE' : /* istanbul ignore next */ 'LIKE';
     let str: string;
     let params: ObjectLiteral;
 
@@ -931,15 +909,6 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
         str = `LOWER(${field}) NOT IN (:...${param})`;
         break;
 
-      case '$betweenL':
-        this.checkFilterIsArray(cond, cond.value.length !== 2);
-        str = `LOWER(${field}) BETWEEN :${param}0 AND :${param}1`;
-        params = {
-          [`${param}0`]: cond.value[0],
-          [`${param}1`]: cond.value[1],
-        };
-        break;
-
       /* istanbul ignore next */
       default:
         str = `${field} = :${param}`;
@@ -954,6 +923,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
   }
 
   private checkFilterIsArray(cond: QueryFilter, withLength?: boolean) {
+    /* istanbul ignore if */
     if (
       !Array.isArray(cond.value) ||
       !cond.value.length ||

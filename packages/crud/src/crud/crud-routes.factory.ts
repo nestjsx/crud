@@ -1,4 +1,4 @@
-import { RequestMethod, HttpStatus } from '@nestjs/common';
+import { RequestMethod } from '@nestjs/common';
 import { RouteParamtypes } from '@nestjs/common/enums/route-paramtypes.enum';
 import {
   hasLength,
@@ -13,9 +13,10 @@ import {
 import * as deepmerge from 'deepmerge';
 
 import { R } from './reflection.helper';
+import { SerializeHelper } from './serialize.helper';
 import { Swagger } from './swagger.helper';
 import { Validation } from './validation.helper';
-import { CrudRequestInterceptor } from '../interceptors';
+import { CrudRequestInterceptor, CrudResponseInterceptor } from '../interceptors';
 import { BaseRoute, CrudOptions, CrudRequest, MergedCrudOptions } from '../interfaces';
 import { BaseRouteName } from '../types';
 import { CrudActions, CrudValidationGroups } from '../enums';
@@ -60,6 +61,7 @@ export class CrudRoutesFactory {
   private create() {
     const routesSchema = this.getRoutesSchema();
     this.mergeOptions();
+    this.setResponseModels();
     this.createRoutes(routesSchema);
     this.overrideRoutes(routesSchema);
     this.enableRoutes(routesSchema);
@@ -102,19 +104,26 @@ export class CrudRoutesFactory {
       this.options.dto = {};
     }
 
+    // set serialize
+    if (!isObjectFull(this.options.serialize)) {
+      this.options.serialize = {};
+    }
+    this.options.serialize.get = this.options.serialize.get || this.modelType;
+    this.options.serialize.getMany =
+      this.options.serialize.getMany ||
+      SerializeHelper.createGetManyDto(this.options.serialize.get, this.modelName);
+    this.options.serialize.create = this.options.serialize.create || this.modelType;
+    this.options.serialize.update = this.options.serialize.update || this.modelType;
+    this.options.serialize.replace = this.options.serialize.replace || this.modelType;
+    this.options.serialize.delete = this.options.routes.deleteOneBase.returnDeleted
+      ? this.options.serialize.delete || this.modelType
+      : undefined;
+
     R.setCrudOptions(this.options, this.target);
   }
 
   private getRoutesSchema(): BaseRoute[] {
     return [
-      {
-        name: 'getManyBase',
-        path: '/',
-        method: RequestMethod.GET,
-        enable: false,
-        override: false,
-        withParams: false,
-      },
       {
         name: 'getOneBase',
         path: '/',
@@ -122,6 +131,14 @@ export class CrudRoutesFactory {
         enable: false,
         override: false,
         withParams: true,
+      },
+      {
+        name: 'getManyBase',
+        path: '/',
+        method: RequestMethod.GET,
+        enable: false,
+        override: false,
+        withParams: false,
       },
       {
         name: 'createOneBase',
@@ -221,6 +238,10 @@ export class CrudRoutesFactory {
     }
 
     return true;
+  }
+
+  private setResponseModels() {
+    Swagger.setExtraModels(this.options);
   }
 
   private createRoutes(routesSchema: BaseRoute[]) {
@@ -391,6 +412,7 @@ export class CrudRoutesFactory {
     R.setInterceptors(
       [
         CrudRequestInterceptor,
+        CrudResponseInterceptor,
         ...(isArrayFull(interceptors) ? /* istanbul ignore next */ interceptors : []),
       ],
       this.targetProto[name],
@@ -440,17 +462,15 @@ export class CrudRoutesFactory {
   }
 
   private setSwaggerResponseOk(name: BaseRouteName) {
-    const status =
-      isEqual(name, 'createManyBase') || isEqual(name, 'createOneBase')
-        ? HttpStatus.CREATED
-        : HttpStatus.OK;
-    const isArray = isEqual(name, 'createManyBase') || isEqual(name, 'getManyBase');
     const metadata = Swagger.getResponseOk(this.targetProto[name]);
-    const responseOkMeta = Swagger.createResponseOkMeta(status, isArray, this.modelType);
-    Swagger.setResponseOk({ ...metadata, ...responseOkMeta }, this.targetProto[name]);
+    const metadataToAdd =
+      Swagger.createResponseMeta(name, this.options) || /* istanbul ignore next */ {};
+    Swagger.setResponseOk({ ...metadata, ...metadataToAdd }, this.targetProto[name]);
   }
 
   private routeNameAction(name: BaseRouteName): string {
-    return name.split('OneBase')[0];
+    return (
+      name.split('OneBase')[0] || /* istanbul ignore next */ name.split('ManyBase')[0]
+    );
   }
 }
