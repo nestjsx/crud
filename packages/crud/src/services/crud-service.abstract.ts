@@ -1,5 +1,6 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { ParsedRequestParams } from '@nestjsx/crud-request';
+import { objKeys } from '@nestjsx/util';
 
 import {
   CreateManyDto,
@@ -109,5 +110,15 @@ export abstract class CrudService<T> {
       : query.offset
       ? query.offset
       : null;
+  }
+
+  /**
+   * Get primary param name from CrudOptions
+   * @param options
+   */
+  getPrimaryParam(options: CrudRequestOptions): string {
+    return objKeys(options.params).find(
+      (param) => options.params[param] && options.params[param].primary,
+    );
   }
 }
