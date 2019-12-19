@@ -98,9 +98,33 @@ describe('#crud', () => {
       constructor(@Inject(SERVICE2_TOKEN) public service: TestSerializeService) {}
     }
 
+    @Crud({
+      model: {
+        type: { name: 'SomeModel' },
+      },
+      serialize: {
+        get: false,
+        getMany: false,
+        create: false,
+        createMany: false,
+        update: false,
+        replace: false,
+      },
+    })
+    @Controller('test5')
+    class Test5Controller {
+      constructor(@Inject(SERVICE2_TOKEN) public service: TestSerializeService) {}
+    }
+
     beforeAll(async () => {
       const fixture = await Test.createTestingModule({
-        controllers: [TestController, Test2Controller, Test3Controller, Test4Controller],
+        controllers: [
+          TestController,
+          Test2Controller,
+          Test3Controller,
+          Test4Controller,
+          Test5Controller,
+        ],
         providers: [
           { provide: APP_FILTER, useClass: HttpExceptionFilter },
           {
@@ -160,7 +184,7 @@ describe('#crud', () => {
       });
     });
 
-    describe('#getManyBase', () => {
+    describe('#getOneBase', () => {
       it('should return model', (done) => {
         return request(server)
           .get('/test4/1')
@@ -178,6 +202,18 @@ describe('#crud', () => {
           .end((_, res) => {
             expect(res.body.isActive).toBeDefined();
             expect(res.body.email).toBeUndefined();
+            done();
+          });
+      });
+      it('should return model without serializing', (done) => {
+        return request(server)
+          .get('/test5/1')
+          .expect(200)
+          .end((_, res) => {
+            expect(res.body.id).toBeDefined();
+            expect(res.body.name).toBeDefined();
+            expect(res.body.email).toBeDefined();
+            expect(res.body.isActive).toBeDefined();
             done();
           });
       });

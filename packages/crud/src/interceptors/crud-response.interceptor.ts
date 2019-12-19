@@ -4,7 +4,7 @@ import {
   Injectable,
   NestInterceptor,
 } from '@nestjs/common';
-import { isNil } from '@nestjsx/util';
+import { isFalse, isObject, isFunction } from '@nestjsx/util';
 import { classToPlain, classToPlainFromExist } from 'class-transformer';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
@@ -32,9 +32,13 @@ export class CrudResponseInterceptor extends CrudBaseInterceptor
     return next.handle().pipe(map((data) => this.serialize(context, data)));
   }
 
-  protected transform(dto: any, data: any, forced = false) {
-    if (!(dto && data && data.constructor !== Object) && !forced) {
+  protected transform(dto: any, data: any) {
+    if (!isObject(data) || isFalse(dto)) {
       return data;
+    }
+
+    if (!isFunction(dto)) {
+      return data.constructor !== Object ? classToPlain(data) : data;
     }
 
     return data instanceof dto
@@ -50,17 +54,9 @@ export class CrudResponseInterceptor extends CrudBaseInterceptor
 
     switch (action) {
       case CrudActions.ReadAll:
-        const defaultPaginated =
-          !isNil(data) &&
-          !isNil(data.data) &&
-          !isNil(data.count) &&
-          !isNil(data.total) &&
-          !isNil(data.page) &&
-          !isNil(data.pageCount);
-
         return isArray
           ? (data as any[]).map((item) => this.transform(serialize.get, item))
-          : this.transform(dto, data, defaultPaginated);
+          : this.transform(dto, data);
       case CrudActions.CreateMany:
         return isArray
           ? (data as any[]).map((item) => this.transform(dto, item))
