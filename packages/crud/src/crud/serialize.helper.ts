@@ -1,6 +1,5 @@
-import { Type, Transform, classToPlainFromExist, classToPlain } from 'class-transformer';
+import { Type } from 'class-transformer';
 import { GetManyDefaultResponse } from '../interfaces';
-import { safeRequire } from '../util';
 import { ApiProperty } from './swagger.helper';
 
 export class SerializeHelper {
@@ -29,5 +28,16 @@ export class SerializeHelper {
     });
 
     return GetManyResponseDto;
+  }
+
+  static createGetOneResponseDto(resourceName: string): any {
+    class GetOneResponseDto {}
+
+    Object.defineProperty(GetOneResponseDto, 'name', {
+      writable: false,
+      value: `${resourceName}ResponseDto`,
+    });
+
+    return GetOneResponseDto;
   }
 }

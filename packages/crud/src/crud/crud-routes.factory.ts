@@ -1,9 +1,10 @@
 import { RequestMethod } from '@nestjs/common';
 import { RouteParamtypes } from '@nestjs/common/enums/route-paramtypes.enum';
 import {
-  hasLength,
+  isFalse,
   isArrayFull,
   isObjectFull,
+  isFunction,
   objKeys,
   isIn,
   isEqual,
@@ -24,6 +25,7 @@ import { CrudConfigService } from '../module';
 
 export class CrudRoutesFactory {
   protected options: MergedCrudOptions;
+  protected swaggerModels: any = {};
 
   constructor(private target: any, options: CrudOptions) {
     this.options = options;
@@ -108,16 +110,30 @@ export class CrudRoutesFactory {
     if (!isObjectFull(this.options.serialize)) {
       this.options.serialize = {};
     }
-    this.options.serialize.get = this.options.serialize.get || this.modelType;
-    this.options.serialize.getMany =
-      this.options.serialize.getMany ||
-      SerializeHelper.createGetManyDto(this.options.serialize.get, this.modelName);
-    this.options.serialize.create = this.options.serialize.create || this.modelType;
-    this.options.serialize.update = this.options.serialize.update || this.modelType;
-    this.options.serialize.replace = this.options.serialize.replace || this.modelType;
-    this.options.serialize.delete = this.options.routes.deleteOneBase.returnDeleted
-      ? this.options.serialize.delete || this.modelType
-      : undefined;
+    this.options.serialize.get = isFalse(this.options.serialize.get)
+      ? false
+      : this.options.serialize.get || this.modelType;
+    this.options.serialize.getMany = isFalse(this.options.serialize.getMany)
+      ? false
+      : this.options.serialize.getMany
+      ? this.options.serialize.getMany
+      : isFalse(this.options.serialize.get)
+      ? /* istanbul ignore next */ false
+      : SerializeHelper.createGetManyDto(this.options.serialize.get, this.modelName);
+    this.options.serialize.create = isFalse(this.options.serialize.create)
+      ? false
+      : this.options.serialize.create || this.modelType;
+    this.options.serialize.update = isFalse(this.options.serialize.update)
+      ? false
+      : this.options.serialize.update || this.modelType;
+    this.options.serialize.replace = isFalse(this.options.serialize.replace)
+      ? false
+      : this.options.serialize.replace || this.modelType;
+    this.options.serialize.delete =
+      isFalse(this.options.serialize.delete) ||
+      !this.options.routes.deleteOneBase.returnDeleted
+        ? false
+        : this.options.serialize.delete || this.modelType;
 
     R.setCrudOptions(this.options, this.target);
   }
@@ -241,7 +257,28 @@ export class CrudRoutesFactory {
   }
 
   private setResponseModels() {
-    Swagger.setExtraModels(this.options);
+    const modelType = isFunction(this.modelType)
+      ? this.modelType
+      : SerializeHelper.createGetOneResponseDto(this.modelName);
+    this.swaggerModels.get = isFunction(this.options.serialize.get)
+      ? this.options.serialize.get
+      : modelType;
+    this.swaggerModels.getMany =
+      this.options.serialize.getMany ||
+      SerializeHelper.createGetManyDto(this.swaggerModels.get, this.modelName);
+    this.swaggerModels.create = isFunction(this.options.serialize.create)
+      ? this.options.serialize.create
+      : modelType;
+    this.swaggerModels.update = isFunction(this.options.serialize.update)
+      ? this.options.serialize.update
+      : modelType;
+    this.swaggerModels.replace = isFunction(this.options.serialize.replace)
+      ? this.options.serialize.replace
+      : modelType;
+    this.swaggerModels.delete = isFunction(this.options.serialize.delete)
+      ? this.options.serialize.delete
+      : modelType;
+    Swagger.setExtraModels(this.swaggerModels);
   }
 
   private createRoutes(routesSchema: BaseRoute[]) {
@@ -464,7 +501,8 @@ export class CrudRoutesFactory {
   private setSwaggerResponseOk(name: BaseRouteName) {
     const metadata = Swagger.getResponseOk(this.targetProto[name]);
     const metadataToAdd =
-      Swagger.createResponseMeta(name, this.options) || /* istanbul ignore next */ {};
+      Swagger.createResponseMeta(name, this.options, this.swaggerModels) ||
+      /* istanbul ignore next */ {};
     Swagger.setResponseOk({ ...metadata, ...metadataToAdd }, this.targetProto[name]);
   }
 

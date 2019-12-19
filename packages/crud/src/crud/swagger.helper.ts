@@ -1,5 +1,5 @@
 import { HttpStatus } from '@nestjs/common';
-import { objKeys, isString } from '@nestjsx/util';
+import { objKeys, isString, isFunction } from '@nestjsx/util';
 import { RequestQueryBuilder } from '@nestjsx/crud-request';
 
 import { safeRequire } from '../util';
@@ -38,18 +38,17 @@ export class Swagger {
     }
   }
 
-  static setExtraModels(options: MergedCrudOptions) {
+  static setExtraModels(swaggerModels: any) {
     /* istanbul ignore else */
     if (swaggerConst) {
-      const { serialize } = options;
-      const meta = Swagger.getExtraModels(serialize.get);
+      const meta = Swagger.getExtraModels(swaggerModels.get);
       const models: any[] = [
         ...meta,
-        ...objKeys(serialize)
-          .map((name) => serialize[name])
-          .filter((one) => one && one.name !== serialize.get.name),
+        ...objKeys(swaggerModels)
+          .map((name) => swaggerModels[name])
+          .filter((one) => one && one.name !== swaggerModels.get.name),
       ];
-      R.set(swaggerConst.DECORATORS.API_EXTRA_MODELS, models, serialize.get);
+      R.set(swaggerConst.DECORATORS.API_EXTRA_MODELS, models, swaggerModels.get);
     }
   }
 
@@ -80,25 +79,29 @@ export class Swagger {
     return swaggerConst ? R.get(swaggerConst.DECORATORS.API_RESPONSE, func) || {} : {};
   }
 
-  static createResponseMeta(name: BaseRouteName, options: MergedCrudOptions): any {
+  static createResponseMeta(
+    name: BaseRouteName,
+    options: MergedCrudOptions,
+    swaggerModels: any,
+  ): any {
     /* istanbul ignore else */
     if (swagger) {
-      const { routes, serialize, query } = options;
+      const { routes, query } = options;
 
       switch (name) {
         case 'getOneBase':
-          return { [HttpStatus.OK]: { type: serialize.get } };
+          return { [HttpStatus.OK]: { type: swaggerModels.get } };
         case 'getManyBase':
           return {
             [HttpStatus.OK]: query.alwaysPaginate
-              ? { type: serialize.getMany }
+              ? { type: swaggerModels.getMany }
               : {
                   schema: {
                     oneOf: [
-                      { $ref: swagger.getSchemaPath(serialize.getMany.name) },
+                      { $ref: swagger.getSchemaPath(swaggerModels.getMany.name) },
                       {
                         type: 'array',
-                        items: { $ref: swagger.getSchemaPath(serialize.get.name) },
+                        items: { $ref: swagger.getSchemaPath(swaggerModels.get.name) },
                       },
                     ],
                   },
@@ -107,30 +110,30 @@ export class Swagger {
         case 'createOneBase':
           return {
             [HttpStatus.CREATED]: {
-              schema: { $ref: swagger.getSchemaPath(serialize.create.name) },
+              schema: { $ref: swagger.getSchemaPath(swaggerModels.create.name) },
             },
           };
         case 'createManyBase':
           return {
-            [HttpStatus.CREATED]: serialize.createMany
+            [HttpStatus.CREATED]: swaggerModels.createMany
               ? /* istanbul ignore next */ {
-                  schema: { $ref: swagger.getSchemaPath(serialize.createMany.name) },
+                  schema: { $ref: swagger.getSchemaPath(swaggerModels.createMany.name) },
                 }
               : {
                   schema: {
                     type: 'array',
-                    items: { $ref: swagger.getSchemaPath(serialize.create.name) },
+                    items: { $ref: swagger.getSchemaPath(swaggerModels.create.name) },
                   },
                 },
           };
         case 'deleteOneBase':
           return {
             [HttpStatus.OK]: routes.deleteOneBase.returnDeleted
-              ? { schema: { $ref: swagger.getSchemaPath(serialize.delete.name) } }
+              ? { schema: { $ref: swagger.getSchemaPath(swaggerModels.delete.name) } }
               : {},
           };
         default:
-          const dtoName = serialize[name.split('OneBase')[0]].name;
+          const dtoName = swaggerModels[name.split('OneBase')[0]].name;
           return {
             [HttpStatus.OK]: {
               schema: { $ref: swagger.getSchemaPath(dtoName) },
