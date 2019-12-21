@@ -1,5 +1,8 @@
 <div align="center">
-  <h1>CRUD (@nestjsx/crud-typeorm)</h1>
+  <h1>CRUD (nest-crud-mongoose)</h1>
+</div>
+<div align="center">
+    <h2 style="color: red">This is a canary version of CRUD Mongoose for testing before it is merged into @nestjsx/crud</h2>
 </div>
 <div align="center">
   <strong>for RESTful APIs built with NestJs</strong>
@@ -51,7 +54,7 @@
 
 <div align="center">
   <sub>Built by
-  <a href="https://twitter.com/MichaelYali">@MichaelYali</a> and
+  <a href="https://twitter.com/jaycooperbel">@jaycooperbell</a> and
   <a href="https://github.com/nestjsx/crud/graphs/contributors">
     Contributors
   </a>
@@ -63,7 +66,7 @@ We believe that everyone who's working with NestJs and building some RESTful ser
 
 ## Features
 
-<img align="right" src="https://raw.githubusercontent.com/nestjsx/crud/master/img/crud-usage2.png" alt="CRUD usage" />
+Reference: [Integration Tests](https://github.com/yharaskrik/crud/tree/master/integration/crud-mongoose) for examples on usage
 
 - Super easy to install and start using the full-featured controllers and services :point_right:
 
@@ -86,14 +89,14 @@ We believe that everyone who's working with NestJs and building some RESTful ser
 ## Install
 
 ```shell
-npm i @nestjsx/crud-typeorm @nestjs/typeorm typeorm
+npm i nest-crud-mongoose @nestjs/mongoose mongoose
 ```
 
 ## Packages
 
 - [**@nestjsx/crud**](https://www.npmjs.com/package/@nestjsx/crud) - core package which provides `@Crud()` decorator for endpoints generation, global configuration, validation, helper decorators ([docs](https://github.com/nestjsx/crud/wiki/Controllers#description))
 - [**@nestjsx/crud-request**](https://www.npmjs.com/package/@nestjsx/crud-request) - request builder/parser package which provides `RequestQueryBuilder` class for a frontend usage and `RequestQueryParser` that is being used internally for handling and validating query/path params on a backend side ([docs](https://github.com/nestjsx/crud/wiki/Requests#frontend-usage))
-- [**@nestjsx/crud-typeorm**](https://www.npmjs.com/package/@nestjsx/crud-typeorm) - TypeORM package which provides base `TypeOrmCrudService` with methods for CRUD database operations ([docs](https://github.com/nestjsx/crud/wiki/ServiceTypeorm))
+- [**nest-crud-mongoose**](https://www.npmjs.com/package/nest-crud-mongoose) - Mongoose package which provides base `MongooseCrudService` with methods for CRUD database operations ([docs](https://github.com/nestjsx/crud/wiki/ServiceMongoose))
 
 ## Documentation
 

@@ -66,6 +66,7 @@
     "@nestjs/swagger": "4.4.0",
     "@nestjs/testing": "7.0.3",
     "@nestjs/typeorm": "7.0.0",
+    "nest-crud-mongoose": "^0.0.1",
     "@nuxtjs/opencollective": "0.2.2",
     "@types/jest": "24.0.18",
     "@types/node": "12.7.5",

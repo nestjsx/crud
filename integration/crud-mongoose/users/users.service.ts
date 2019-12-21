@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { MongooseCrudService } from '@nestjsx/crud-mongoose';
+import { MongooseCrudService } from 'nest-crud-mongoose';
 import { Model } from 'mongoose';
 import { UserDocument } from './user.document';
 
