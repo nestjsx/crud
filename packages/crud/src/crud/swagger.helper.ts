@@ -87,11 +87,21 @@ export class Swagger {
     /* istanbul ignore else */
     if (swagger) {
       const { routes, query } = options;
+      const oldVersion = Swagger.getSwaggerVersion() < 4;
 
       switch (name) {
         case 'getOneBase':
           return { [HttpStatus.OK]: { type: swaggerModels.get } };
         case 'getManyBase':
+          /* istanbul ignore if */
+          if (oldVersion) {
+            return {
+              [HttpStatus.OK]: {
+                type: swaggerModels.getMany,
+              },
+            };
+          }
+
           return {
             [HttpStatus.OK]: query.alwaysPaginate
               ? { type: swaggerModels.getMany }
@@ -108,12 +118,31 @@ export class Swagger {
                 },
           };
         case 'createOneBase':
+          /* istanbul ignore if */
+          if (oldVersion) {
+            return {
+              [HttpStatus.OK]: {
+                type: swaggerModels.create,
+              },
+            };
+          }
+
           return {
             [HttpStatus.CREATED]: {
               schema: { $ref: swagger.getSchemaPath(swaggerModels.create.name) },
             },
           };
         case 'createManyBase':
+          /* istanbul ignore if */
+          if (oldVersion) {
+            return {
+              [HttpStatus.OK]: {
+                type: swaggerModels.create,
+                isArray: true,
+              },
+            };
+          }
+
           return {
             [HttpStatus.CREATED]: swaggerModels.createMany
               ? /* istanbul ignore next */ {
@@ -127,16 +156,36 @@ export class Swagger {
                 },
           };
         case 'deleteOneBase':
+          /* istanbul ignore if */
+          if (oldVersion) {
+            return {
+              [HttpStatus.OK]: routes.deleteOneBase.returnDeleted
+                ? {
+                    type: swaggerModels.delete,
+                  }
+                : {},
+            };
+          }
           return {
             [HttpStatus.OK]: routes.deleteOneBase.returnDeleted
               ? { schema: { $ref: swagger.getSchemaPath(swaggerModels.delete.name) } }
               : {},
           };
         default:
-          const dtoName = swaggerModels[name.split('OneBase')[0]].name;
+          const dto = swaggerModels[name.split('OneBase')[0]];
+
+          /* istanbul ignore if */
+          if (oldVersion) {
+            return {
+              [HttpStatus.OK]: {
+                type: dto,
+              },
+            };
+          }
+
           return {
             [HttpStatus.OK]: {
-              schema: { $ref: swagger.getSchemaPath(dtoName) },
+              schema: { $ref: swagger.getSchemaPath(dto.name) },
             },
           };
       }
