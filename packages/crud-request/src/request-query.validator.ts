@@ -6,6 +6,7 @@ import {
   isEqual,
   isNumber,
   isNil,
+  objKeys,
 } from '@nestjsx/util';
 
 import { RequestQueryException } from './exceptions';
@@ -16,9 +17,10 @@ import {
   ComparisonOperator,
   QueryJoin,
   QuerySort,
+  CondOperator,
 } from './types';
 
-export const comparisonOperatorsList = [
+export const deprecatedComparisonOperatorsList = [
   'eq',
   'ne',
   'gt',
@@ -35,6 +37,11 @@ export const comparisonOperatorsList = [
   'notnull',
   'between',
 ];
+export const comparisonOperatorsList = [
+  ...deprecatedComparisonOperatorsList,
+  ...objKeys(CondOperator).map((n) => CondOperator[n]),
+];
+
 export const sortOrdersList = ['ASC', 'DESC'];
 
 const comparisonOperatorsListStr = comparisonOperatorsList.join();
