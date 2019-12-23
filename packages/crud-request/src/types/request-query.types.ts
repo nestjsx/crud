@@ -64,6 +64,7 @@ export enum CondOperator {
   CONTAINS_LOW = '$contL',
   EXCLUDES_LOW = '$exclL',
   IN_LOW = '$inL',
+  NOT_IN_LOW = '$notinL',
 }
 
 export type ComparisonOperator = DeprecatedCondOperator | keyof SFieldOperator;
