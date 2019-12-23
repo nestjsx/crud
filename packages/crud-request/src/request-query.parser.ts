@@ -256,8 +256,17 @@ export class RequestQueryParser implements ParsedRequestParams {
   }
 
   private conditionParser(cond: 'filter' | 'or' | 'search', data: string): QueryFilter {
-    const isArrayValue = ['in', 'notin', 'between'];
-    const isEmptyValue = ['isnull', 'notnull'];
+    const isArrayValue = [
+      'in',
+      'notin',
+      'between',
+      '$in',
+      '$notin',
+      '$between',
+      '$inL',
+      '$notinL',
+    ];
+    const isEmptyValue = ['isnull', 'notnull', '$isnull', '$notnull'];
     const param = data.split(this._options.delim);
     const field = param[0];
     const operator = param[1] as ComparisonOperator;
