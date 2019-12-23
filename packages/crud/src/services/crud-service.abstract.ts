@@ -117,8 +117,15 @@ export abstract class CrudService<T> {
    * @param options
    */
   getPrimaryParam(options: CrudRequestOptions): string {
-    return objKeys(options.params).find(
-      (param) => options.params[param] && options.params[param].primary,
+    const param = objKeys(options.params).find(
+      (n) => options.params[n] && options.params[n].primary,
     );
+
+    /* istanbul ignore if */
+    if (!param) {
+      return undefined;
+    }
+
+    return options.params[param].field;
   }
 }
