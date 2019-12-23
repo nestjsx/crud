@@ -16,25 +16,10 @@ import {
   ComparisonOperator,
   QueryJoin,
   QuerySort,
+  CondOperator,
 } from './types';
 
-export const comparisonOperatorsList = [
-  'eq',
-  'ne',
-  'gt',
-  'lt',
-  'gte',
-  'lte',
-  'starts',
-  'ends',
-  'cont',
-  'excl',
-  'in',
-  'notin',
-  'isnull',
-  'notnull',
-  'between',
-];
+export const comparisonOperatorsList = Object.keys(CondOperator).map(op => CondOperator[op]);
 export const sortOrdersList = ['ASC', 'DESC'];
 
 const comparisonOperatorsListStr = comparisonOperatorsList.join();
