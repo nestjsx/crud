@@ -41,6 +41,15 @@ describe('#crud-mongoose', () => {
           returnDeleted: true,
         },
       },
+      serialize: {
+        getMany: false,
+        get: false,
+        create: false,
+        createMany: false,
+        update: false,
+        replace: false,
+        delete: false,
+      },
     })
     @Controller('users')
     class UsersController {
