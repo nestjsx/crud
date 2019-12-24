@@ -7,6 +7,15 @@ import { CommentsService } from './comments.service';
   model: {
     type: Comment,
   },
+  serialize: {
+    get: false,
+    getMany: false,
+    createMany: false,
+    create: false,
+    update: false,
+    replace: false,
+    delete: false
+  }
 })
 @Controller('comments')
 export class CommentsController implements CrudController<Comment> {
