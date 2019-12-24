@@ -4,6 +4,7 @@ import { Test } from '@nestjs/testing';
 
 import { Crud } from '@nestjsx/crud';
 import { RequestQueryBuilder } from '@nestjsx/crud-request';
+import { Exclude } from 'class-transformer';
 import { Model } from 'mongoose';
 import * as request from 'supertest';
 import { commentSchema } from '../../../integration/crud-mongoose/comments';
@@ -17,6 +18,11 @@ import { User } from '../../../integration/crud-mongoose/users';
 import { UserDocument } from '../../../integration/crud-mongoose/users/user.document';
 import { userSchema } from '../../../integration/crud-mongoose/users/user.schema';
 import { UsersService } from './__fixture__/users.service';
+
+class NoPasswordUser {
+  @Exclude()
+  password?: string;
+}
 
 // tslint:disable:max-classes-per-file no-shadowed-variable
 describe('#crud-mongoose', () => {
@@ -42,13 +48,7 @@ describe('#crud-mongoose', () => {
         },
       },
       serialize: {
-        get: false,
-        getMany: false,
-        createMany: false,
-        create: false,
-        update: false,
-        replace: false,
-        delete: false,
+        get: NoPasswordUser,
       },
     })
     @Controller('users')
@@ -229,7 +229,14 @@ describe('#crud-mongoose', () => {
             .get('/users/5de34417cd5e475f96a46583')
             .end((_, res) => {
               expect(res.status).toBe(200);
-              expect(res.body._id).toBe('5de34417cd5e475f96a46583');
+              expect(res.body).toEqual({
+                _id: '5de34417cd5e475f96a46583',
+                id: '5de34417cd5e475f96a46583',
+                name: 'jay',
+                __v: jasmine.anything(),
+                updatedAt: jasmine.anything(),
+                createdAt: jasmine.anything(),
+              });
               done();
             });
         });

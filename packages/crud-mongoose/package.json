@@ -40,5 +40,9 @@
   "directories": {
     "lib": "lib",
     "test": "test"
+  },
+  "peerDependencies": {
+    "@nestjsx/crud": "^4.3.3",
+    "@nestjsx/crud-request": "^4.3.3"
   }
 }

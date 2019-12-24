@@ -24,9 +24,16 @@ import {
 /**
  * mongoose imports
  */
-import * as mongoose from 'mongoose';
 import { Document, DocumentQuery, Model, Schema, Types } from 'mongoose';
 import { DeepPartial, ObjectLiteral } from 'typeorm';
+
+/**
+ * Required so that ObjectIds are serialized correctly
+ * See: http://thecodebarbarian.com/whats-new-in-mongoose-54-global-schematype-configuration.html#schematype-getters
+ */
+// tslint:disable-next-line:no-var-requires
+const mongoose = require('mongoose');
+mongoose.ObjectId.get((v) => (v ? v.toString() : null));
 
 export class MongooseCrudService<T extends Document> extends CrudService<T> {
   private entityColumns: string[] = [];
@@ -79,7 +86,7 @@ export class MongooseCrudService<T extends Document> extends CrudService<T> {
       return this.createPageInfo(data, total, take, skip);
     }
 
-    return builder.lean();
+    return builder;
   }
 
   /**
@@ -129,7 +136,7 @@ export class MongooseCrudService<T extends Document> extends CrudService<T> {
       this.throwBadRequestException(`Empty data. Nothing to save.`);
     }
 
-    return this.repo.create(bulk);
+    return ((await this.repo.create(bulk)) as unknown) as T[];
   }
 
   /**
