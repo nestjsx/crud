@@ -79,7 +79,7 @@ export class MongooseCrudService<T extends Document> extends CrudService<T> {
       return this.createPageInfo(data, total, take, skip);
     }
 
-    return builder;
+    return builder.lean();
   }
 
   /**
