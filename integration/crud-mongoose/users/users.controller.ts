@@ -7,6 +7,15 @@ import { UsersService } from './users.service';
   model: {
     type: User,
   },
+  serialize: {
+    get: false,
+    getMany: false,
+    createMany: false,
+    create: false,
+    update: false,
+    replace: false,
+    delete: false
+  }
 })
 @Controller('users')
 export class UsersController implements CrudController<User> {

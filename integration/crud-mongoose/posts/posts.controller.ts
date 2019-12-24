@@ -7,6 +7,15 @@ import { PostsService } from './posts.service';
   model: {
     type: Post,
   },
+  serialize: {
+    get: false,
+    getMany: false,
+    createMany: false,
+    create: false,
+    update: false,
+    replace: false,
+    delete: false
+  }
 })
 @Controller('posts')
 export class PostsController implements CrudController<Post> {

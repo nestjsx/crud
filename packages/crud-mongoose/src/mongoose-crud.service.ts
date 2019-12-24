@@ -140,9 +140,8 @@ export class MongooseCrudService<T extends Document> extends CrudService<T> {
   public async updateOne(req: CrudRequest, dto: any): Promise<T> {
     const { allowParamsOverride, returnShallow } = req.options.routes.updateOneBase;
     const paramsFilters = this.getParamFilters(req.parsed);
-    const authFilter = req.parsed.authFilter || {};
     const authPersist = req.parsed.authPersist || {};
-    const toFind = { ...paramsFilters, ...authFilter };
+    const toFind = { ...paramsFilters };
 
     const found = returnShallow
       ? await this.getOneShallowOrFail(toFind)
@@ -197,14 +196,13 @@ export class MongooseCrudService<T extends Document> extends CrudService<T> {
   public async deleteOne(req: CrudRequest): Promise<void | T> {
     const { returnDeleted } = req.options.routes.deleteOneBase;
     const paramsFilters = this.getParamFilters(req.parsed);
-    const authFilter = req.parsed.authFilter || {};
-    const toFind = { ...paramsFilters, ...authFilter };
+    const toFind = { ...paramsFilters };
 
     const found = await this.getOneShallowOrFail(toFind);
     const deleted = await this.repo.findOneAndDelete({ _id: found._id });
 
     /* istanbul ignore next */
-    return returnDeleted ? { ...deleted, ...paramsFilters, ...authFilter } : undefined;
+    return returnDeleted ? { ...deleted, ...paramsFilters } : undefined;
   }
 
   public getParamFilters(parsed: CrudRequest['parsed']): ObjectLiteral {
@@ -418,9 +416,8 @@ export class MongooseCrudService<T extends Document> extends CrudService<T> {
   ): any {
     const filter = this.queryFilterToSearch(options.query.filter);
     const paramsFilter = this.queryFilterToSearch(parsed.paramsFilter);
-    const authFilter = this.queryFilterToSearch(parsed.authFilter);
 
-    return { ...filter, ...paramsFilter, ...authFilter };
+    return { ...filter, ...paramsFilter };
   }
 
   private queryFilterToSearch(filter: any): any {
@@ -428,7 +425,7 @@ export class MongooseCrudService<T extends Document> extends CrudService<T> {
       ? filter.reduce(
           (prev, item) => ({
             ...prev,
-            [item.field]: { [`$${item.operator}`]: item.value },
+            [item.field]: { [item.operator]: item.value },
           }),
           {},
         )
@@ -491,34 +488,6 @@ export class MongooseCrudService<T extends Document> extends CrudService<T> {
       .join(' ');
 
     return select;
-  }
-
-  private getSkip(query: ParsedRequestParams, take: number): number | null {
-    return query.page && take
-      ? take * (query.page - 1)
-      : query.offset
-      ? query.offset
-      : null;
-  }
-
-  private getTake(query: ParsedRequestParams, options: QueryOptions): number | null {
-    if (query.limit) {
-      return options.maxLimit
-        ? query.limit <= options.maxLimit
-          ? query.limit
-          : options.maxLimit
-        : query.limit;
-    }
-    /* istanbul ignore if */
-    if (options.limit) {
-      return options.maxLimit
-        ? options.limit <= options.maxLimit
-          ? options.limit
-          : options.maxLimit
-        : options.limit;
-    }
-
-    return options.maxLimit ? options.maxLimit : null;
   }
 
   private getSort(query: ParsedRequestParams, options: QueryOptions) {
