@@ -13,4 +13,8 @@ export class User extends BaseEntity {
   @IsString({ groups: [CREATE, UPDATE] })
   @IsOptional({ groups: [CREATE, UPDATE] })
   email?: string;
+
+  @IsString()
+  @IsOptional()
+  password?: string
 }
