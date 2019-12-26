@@ -41,10 +41,11 @@ export class CrudConfigService {
     const query = isObjectFull(config.query) ? config.query : {};
     const routes = isObjectFull(config.routes) ? config.routes : {};
     const params = isObjectFull(config.params) ? config.params : {};
+    const serialize = isObjectFull(config.serialize) ? config.serialize : {};
 
     CrudConfigService.config = deepmerge(
       CrudConfigService.config,
-      { auth, query, routes, params },
+      { auth, query, routes, params, serialize },
       { arrayMerge: (a, b, c) => b },
     );
   }

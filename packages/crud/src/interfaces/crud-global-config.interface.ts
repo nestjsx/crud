@@ -15,4 +15,13 @@ export interface CrudGlobalConfig {
     cache?: number | false;
     alwaysPaginate?: boolean;
   };
+  serialize?: {
+    getMany?: false;
+    get?: false;
+    create?: false;
+    createMany?: false;
+    update?: false;
+    replace?: false;
+    delete?: false;
+  };
 }
