@@ -29,6 +29,9 @@ const conf: CrudGlobalConfig = {
       allowParamsOverride: true,
     },
   },
+  serialize: {
+    get: false,
+  },
 };
 
 // Important: load config before (!!!) you import AppModule
