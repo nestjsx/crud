@@ -107,9 +107,8 @@ export class CrudRoutesFactory {
     }
 
     // set serialize
-    if (!isObjectFull(this.options.serialize)) {
-      this.options.serialize = {};
-    }
+    const serialize = isObjectFull(this.options.serialize) ? this.options.serialize : {};
+    this.options.serialize = { ...CrudConfigService.config.serialize, ...serialize };
     this.options.serialize.get = isFalse(this.options.serialize.get)
       ? false
       : this.options.serialize.get || this.modelType;
