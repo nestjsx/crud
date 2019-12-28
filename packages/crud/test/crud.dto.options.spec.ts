@@ -66,8 +66,8 @@ describe('#crud', () => {
         return request(server)
           .post('/test')
           .send(send)
-          .expect(400)
           .end((_, res) => {
+            expect(res.status).toEqual(400);
             expect(res.body.message[0].property).toBe('age');
             done();
           });
@@ -97,8 +97,8 @@ describe('#crud', () => {
         return request(server)
           .patch('/test/1')
           .send(send)
-          .expect(400)
           .end((_, res) => {
+            expect(res.status).toEqual(400);
             expect(res.body.message[0].property).toBe('email');
             done();
           });
