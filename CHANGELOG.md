@@ -1,3 +1,15 @@
+## [4.4.1] - 2019-12-28
+
+### Bug Fixes
+
+- **crud** fixed `CrudRequestInterceptor` validation status code from 500 to 400 ([#374](https://github.com/nestjsx/crud/issues/374), [#247](https://github.com/nestjsx/crud/issues/247))
+
+## [4.4.0] - 2019-12-27
+
+## Features
+
+- **crud** added `serialize` to the global options
+
 ## [4.3.0] - 2019-12-21
 
 ### Features
@@ -99,6 +111,8 @@
 
 - several fixes
 
+[4.4.1]: https://github.com/nestjsx/crud/compare/v4.4.0...v4.4.1
+[4.4.0]: https://github.com/nestjsx/crud/compare/v4.3.0...v4.4.0
 [4.3.0]: https://github.com/nestjsx/crud/compare/v4.2.0...v4.3.0
 [4.2.0]: https://github.com/nestjsx/crud/compare/v4.1.0...v4.2.0
 [4.1.0]: https://github.com/nestjsx/crud/compare/v4.0.1...v4.1.0
