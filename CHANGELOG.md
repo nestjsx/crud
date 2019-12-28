@@ -6,7 +6,7 @@
 
 ## [4.4.0] - 2019-12-27
 
-## Features
+### Features
 
 - **crud** added `serialize` to the global options
 
