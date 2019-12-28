@@ -79,9 +79,9 @@ describe('#crud', () => {
         return request(server)
           .get('/test')
           .query(query)
-          .expect(500)
           .end((_, res) => {
             const expected = { statusCode: 400, message: 'Invalid filter value' };
+            expect(res.status).toEqual(400);
             expect(res.body).toMatchObject(expected);
             done();
           });
@@ -124,8 +124,8 @@ describe('#crud', () => {
         return request(server)
           .post('/test/bulk')
           .send(send)
-          .expect(400)
           .end((_, res) => {
+            expect(res.status).toEqual(400);
             expect(res.body.message[0].property).toBe('bulk');
             done();
           });
