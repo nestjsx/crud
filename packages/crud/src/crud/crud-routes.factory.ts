@@ -470,7 +470,8 @@ export class CrudRoutesFactory {
 
   private setSwaggerOperation(name: BaseRouteName) {
     const summary = Swagger.operationsMap(this.modelName)[name];
-    Swagger.setOperation({ summary }, this.targetProto[name]);
+    const operationId = name + this.targetProto.constructor.name + this.modelName;
+    Swagger.setOperation({ summary, operationId }, this.targetProto[name]);
   }
 
   private setSwaggerPathParams(name: BaseRouteName) {
