@@ -1,6 +1,6 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 
-import { TestService } from './__fixture__/test.service';
+import { TestService } from './__fixture__/services';
 
 describe('#crud', () => {
   describe('#CrudService', () => {

@@ -9,6 +9,7 @@ import {
   isStringFull,
   objKeys,
   isNil,
+  ObjectLiteral,
 } from '@nestjsx/util';
 
 import { RequestQueryException } from './exceptions';
@@ -33,14 +34,16 @@ import {
   QueryJoin,
   QuerySort,
   SCondition,
+  SConditionAND,
+  SFields,
 } from './types';
 
 // tslint:disable:variable-name ban-types
 export class RequestQueryParser implements ParsedRequestParams {
   public fields: QueryFields = [];
   public paramsFilter: QueryFilter[] = [];
+  public authPersist: ObjectLiteral = undefined;
   public search: SCondition;
-  public searchJson: SCondition;
   public filter: QueryFilter[] = [];
   public or: QueryFilter[] = [];
   public join: QueryJoin[] = [];
@@ -67,6 +70,7 @@ export class RequestQueryParser implements ParsedRequestParams {
     return {
       fields: this.fields,
       paramsFilter: this.paramsFilter,
+      authPersist: this.authPersist,
       search: this.search,
       filter: this.filter,
       or: this.or,
@@ -129,11 +133,34 @@ export class RequestQueryParser implements ParsedRequestParams {
       if (hasLength(paramNames)) {
         this._params = params;
         this._paramsOptions = options;
-        this.paramsFilter = paramNames.map((name) => this.paramParser(name));
+        this.paramsFilter = paramNames
+          .map((name) => this.paramParser(name))
+          .filter((filter) => filter);
       }
     }
 
     return this;
+  }
+
+  setAuthPersist(persist: ObjectLiteral = {}) {
+    this.authPersist = persist || /* istanbul ignore next */ {};
+  }
+
+  convertFilterToSearch(filter: QueryFilter): SFields | SConditionAND {
+    const isEmptyValue = {
+      isnull: true,
+      notnull: true,
+    };
+
+    return filter
+      ? {
+          [filter.field]: {
+            [filter.operator]: isEmptyValue[filter.operator]
+              ? isEmptyValue[filter.operator]
+              : filter.value,
+          },
+        }
+      : /* istanbul ignore next */ {};
   }
 
   private getParamNames(
@@ -180,6 +207,12 @@ export class RequestQueryParser implements ParsedRequestParams {
       if (!isDate(parsed) && isObject(parsed)) {
         // throw new Error('Don\'t support object now');
         return val;
+      } else if (
+        typeof parsed === 'number' &&
+        parsed.toLocaleString('fullwide', { useGrouping: false }) !== val
+      ) {
+        // JS cannot handle big numbers. Leave it as a string to prevent data loss
+        return val;
       }
 
       return parsed;
@@ -223,8 +256,17 @@ export class RequestQueryParser implements ParsedRequestParams {
   }
 
   private conditionParser(cond: 'filter' | 'or' | 'search', data: string): QueryFilter {
-    const isArrayValue = ['in', 'notin', 'between'];
-    const isEmptyValue = ['isnull', 'notnull'];
+    const isArrayValue = [
+      'in',
+      'notin',
+      'between',
+      '$in',
+      '$notin',
+      '$between',
+      '$inL',
+      '$notinL',
+    ];
+    const isEmptyValue = ['isnull', 'notnull', '$isnull', '$notnull'];
     const param = data.split(this._options.delim);
     const field = param[0];
     const operator = param[1] as ComparisonOperator;
@@ -281,10 +323,16 @@ export class RequestQueryParser implements ParsedRequestParams {
   private paramParser(name: string): QueryFilter {
     validateParamOption(this._paramsOptions, name);
     const option = this._paramsOptions[name];
-    const value = this.parseValue(this._params[name]);
+
+    if (option.disabled) {
+      return undefined;
+    }
+
+    let value = this._params[name];
 
     switch (option.type) {
       case 'number':
+        value = this.parseValue(value);
         validateNumeric(value, `param ${name}`);
         break;
       case 'uuid':
@@ -294,6 +342,6 @@ export class RequestQueryParser implements ParsedRequestParams {
         break;
     }
 
-    return { field: option.field, operator: 'eq', value };
+    return { field: option.field, operator: '$eq', value };
   }
 }

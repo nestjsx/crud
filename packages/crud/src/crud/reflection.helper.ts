@@ -8,7 +8,7 @@ import {
   ROUTE_ARGS_METADATA,
 } from '@nestjs/common/constants';
 
-import { BaseRoute, CrudOptions } from '../interfaces';
+import { BaseRoute, MergedCrudOptions, AuthOptions } from '../interfaces';
 import { BaseRouteName } from '../types';
 import {
   CRUD_OPTIONS_METADATA,
@@ -16,6 +16,7 @@ import {
   PARSED_CRUD_REQUEST_KEY,
   PARSED_BODY_METADATA,
   OVERRIDE_METHOD_METADATA,
+  CRUD_AUTH_OPTIONS_METADATA,
 } from '../constants';
 import { CrudActions } from '../enums';
 
@@ -110,7 +111,7 @@ export class R {
     return R.createRouteArg(RouteParamtypes.BODY, index, pipes);
   }
 
-  static setCrudOptions(options: CrudOptions, target: any) {
+  static setCrudOptions(options: MergedCrudOptions, target: any) {
     R.set(CRUD_OPTIONS_METADATA, options, target);
   }
 
@@ -135,7 +136,15 @@ export class R {
     R.set(ACTION_NAME_METADATA, action, func);
   }
 
-  static getCrudOptions(target: any): CrudOptions {
+  static setCrudAuthOptions(metadata: any, target: any) {
+    R.set(CRUD_AUTH_OPTIONS_METADATA, metadata, target);
+  }
+
+  static getCrudAuthOptions(target: any): AuthOptions {
+    return R.get(CRUD_AUTH_OPTIONS_METADATA, target);
+  }
+
+  static getCrudOptions(target: any): MergedCrudOptions {
     return R.get(CRUD_OPTIONS_METADATA, target);
   }
 

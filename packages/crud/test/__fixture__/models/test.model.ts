@@ -7,7 +7,7 @@ import {
   IsEmpty,
 } from 'class-validator';
 
-import { CrudValidationGroups } from '../../src';
+import { CrudValidationGroups } from '../../../src';
 
 const { CREATE, UPDATE } = CrudValidationGroups;
 

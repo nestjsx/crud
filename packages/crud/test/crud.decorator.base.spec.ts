@@ -7,8 +7,8 @@ import { RequestQueryBuilder } from '@nestjsx/crud-request';
 import { Crud } from '../src/decorators/crud.decorator';
 import { CreateManyDto } from '../src/interfaces';
 import { HttpExceptionFilter } from './__fixture__/exception.filter';
-import { TestModel } from './__fixture__/test.model';
-import { TestService } from './__fixture__/test.service';
+import { TestModel } from './__fixture__/models';
+import { TestService } from './__fixture__/services';
 
 describe('#crud', () => {
   describe('#base methods', () => {
@@ -55,9 +55,9 @@ describe('#crud', () => {
         return request(server)
           .get('/test')
           .query(query)
-          .expect(500)
           .end((_, res) => {
             const expected = { statusCode: 400, message: 'Invalid filter value' };
+            expect(res.status).toEqual(400);
             expect(res.body).toMatchObject(expected);
             done();
           });
@@ -73,12 +73,12 @@ describe('#crud', () => {
       it('should return status 400', (done) => {
         return request(server)
           .get('/test/invalid')
-          .expect(400)
           .end((_, res) => {
             const expected = {
               statusCode: 400,
               message: 'Invalid param id. Number expected',
             };
+            expect(res.status).toEqual(400);
             expect(res.body).toMatchObject(expected);
             done();
           });
@@ -107,8 +107,8 @@ describe('#crud', () => {
         return request(server)
           .post('/test')
           .send(send)
-          .expect(400)
           .end((_, res) => {
+            expect(res.status).toEqual(400);
             expect(res.body.message[0].property).toBe('age');
             done();
           });
@@ -145,8 +145,8 @@ describe('#crud', () => {
         return request(server)
           .post('/test/bulk')
           .send(send)
-          .expect(400)
           .end((_, res) => {
+            expect(res.status).toEqual(400);
             expect(res.body.message[0].property).toBe('bulk');
             done();
           });
@@ -176,8 +176,8 @@ describe('#crud', () => {
         return request(server)
           .put('/test/1')
           .send(send)
-          .expect(400)
           .end((_, res) => {
+            expect(res.status).toEqual(400);
             expect(res.body.message[0].property).toBe('id');
             done();
           });
@@ -207,8 +207,8 @@ describe('#crud', () => {
         return request(server)
           .patch('/test/1')
           .send(send)
-          .expect(400)
           .end((_, res) => {
+            expect(res.status).toEqual(400);
             expect(res.body.message[0].property).toBe('id');
             done();
           });

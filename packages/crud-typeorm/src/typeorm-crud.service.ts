@@ -20,26 +20,36 @@ import {
   hasLength,
   isArrayFull,
   isObject,
-  isObjectFull,
   isUndefined,
   objKeys,
   isNil,
   isNull,
 } from '@nestjsx/util';
+import { oO } from '@zmotivat0r/o0';
 import { plainToClass } from 'class-transformer';
 import { ClassType } from 'class-transformer/ClassTransformer';
-import { Brackets, ObjectLiteral, Repository, SelectQueryBuilder } from 'typeorm';
+import {
+  Brackets,
+  ObjectLiteral,
+  Repository,
+  SelectQueryBuilder,
+  DeepPartial,
+  WhereExpression,
+  ConnectionOptions,
+} from 'typeorm';
 import { RelationMetadata } from 'typeorm/metadata/RelationMetadata';
 
 export class TypeOrmCrudService<T> extends CrudService<T> {
-  private entityColumns: string[];
-  private entityPrimaryColumns: string[];
-  private entityColumnsHash: ObjectLiteral = {};
-  private entityRelationsHash: ObjectLiteral = {};
+  protected dbName: ConnectionOptions['type'];
+  protected entityColumns: string[];
+  protected entityPrimaryColumns: string[];
+  protected entityColumnsHash: ObjectLiteral = {};
+  protected entityRelationsHash: ObjectLiteral = {};
 
   constructor(protected repo: Repository<T>) {
     super();
 
+    this.dbName = this.repo.metadata.connection.options.type;
     this.onInitMapEntityColumns();
     this.onInitMapRelations();
   }
@@ -56,11 +66,11 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     return this.repo.count.bind(this.repo);
   }
 
-  private get entityType(): ClassType<T> {
+  protected get entityType(): ClassType<T> {
     return this.repo.target as ClassType<T>;
   }
 
-  private get alias(): string {
+  protected get alias(): string {
     return this.repo.metadata.targetName;
   }
 
@@ -71,16 +81,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
   public async getMany(req: CrudRequest): Promise<GetManyDefaultResponse<T> | T[]> {
     const { parsed, options } = req;
     const builder = await this.createBuilder(parsed, options);
-
-    if (this.decidePagination(parsed, options)) {
-      const [data, total] = await builder.getManyAndCount();
-      const limit = builder.expressionMap.take;
-      const offset = builder.expressionMap.skip;
-
-      return this.createPageInfo(data, total, limit, offset);
-    }
-
-    return builder.getMany();
+    return this.doGetMany(builder, parsed, options);
   }
 
   /**
@@ -96,15 +97,30 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
    * @param req
    * @param dto
    */
-  public async createOne(req: CrudRequest, dto: T): Promise<T> {
-    const entity = this.prepareEntityBeforeSave(dto, req.parsed.paramsFilter);
+  public async createOne(req: CrudRequest, dto: DeepPartial<T>): Promise<T> {
+    const { returnShallow } = req.options.routes.createOneBase;
+    const entity = this.prepareEntityBeforeSave(dto, req.parsed);
 
     /* istanbul ignore if */
     if (!entity) {
       this.throwBadRequestException(`Empty data. Nothing to save.`);
     }
 
-    return this.repo.save<any>(entity);
+    const saved = await this.repo.save<any>(entity);
+
+    if (returnShallow) {
+      return saved;
+    } else {
+      const primaryParam = this.getPrimaryParam(req.options);
+
+      /* istanbul ignore if */
+      if (!primaryParam && /* istanbul ignore next */ isNil(saved[primaryParam])) {
+        return saved;
+      } else {
+        req.parsed.search = { [primaryParam]: saved[primaryParam] };
+        return this.getOneOrFail(req);
+      }
+    }
   }
 
   /**
@@ -112,14 +128,17 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
    * @param req
    * @param dto
    */
-  public async createMany(req: CrudRequest, dto: CreateManyDto<T>): Promise<T[]> {
+  public async createMany(
+    req: CrudRequest,
+    dto: CreateManyDto<DeepPartial<T>>,
+  ): Promise<T[]> {
     /* istanbul ignore if */
     if (!isObject(dto) || !isArrayFull(dto.bulk)) {
       this.throwBadRequestException(`Empty data. Nothing to save.`);
     }
 
     const bulk = dto.bulk
-      .map((one) => this.prepareEntityBeforeSave(one, req.parsed.paramsFilter))
+      .map((one) => this.prepareEntityBeforeSave(one, req.parsed))
       .filter((d) => !isUndefined(d));
 
     /* istanbul ignore if */
@@ -135,20 +154,24 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
    * @param req
    * @param dto
    */
-  public async updateOne(req: CrudRequest, dto: T): Promise<T> {
-    const found = await this.getOneOrFail(req);
+  public async updateOne(req: CrudRequest, dto: DeepPartial<T>): Promise<T> {
+    const { allowParamsOverride, returnShallow } = req.options.routes.updateOneBase;
+    const paramsFilters = this.getParamFilters(req.parsed);
+    const found = await this.getOneOrFail(req, returnShallow);
+    const toSave = !allowParamsOverride
+      ? { ...found, ...dto, ...paramsFilters, ...req.parsed.authPersist }
+      : { ...found, ...dto, ...req.parsed.authPersist };
+    const updated = await this.repo.save(plainToClass(this.entityType, toSave));
 
-    /* istanbul ignore else */
-    if (
-      hasLength(req.parsed.paramsFilter) &&
-      !req.options.routes.updateOneBase.allowParamsOverride
-    ) {
-      for (const filter of req.parsed.paramsFilter) {
-        dto[filter.field] = filter.value;
-      }
+    if (returnShallow) {
+      return updated;
+    } else {
+      req.parsed.paramsFilter.forEach((filter) => {
+        filter.value = updated[filter.field];
+      });
+
+      return this.getOneOrFail(req);
     }
-
-    return this.repo.save<any>({ ...found, ...dto });
   }
 
   /**
@@ -156,18 +179,33 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
    * @param req
    * @param dto
    */
-  public async replaceOne(req: CrudRequest, dto: T): Promise<T> {
-    /* istanbul ignore else */
-    if (
-      hasLength(req.parsed.paramsFilter) &&
-      !req.options.routes.replaceOneBase.allowParamsOverride
-    ) {
-      for (const filter of req.parsed.paramsFilter) {
-        dto[filter.field] = filter.value;
-      }
-    }
+  public async replaceOne(req: CrudRequest, dto: DeepPartial<T>): Promise<T> {
+    const { allowParamsOverride, returnShallow } = req.options.routes.replaceOneBase;
+    const paramsFilters = this.getParamFilters(req.parsed);
+    const [_, found] = await oO(this.getOneOrFail(req, returnShallow));
+    const toSave = !allowParamsOverride
+      ? { ...(found || {}), ...dto, ...paramsFilters, ...req.parsed.authPersist }
+      : {
+          ...(found || /* istanbul ignore next */ {}),
+          ...paramsFilters,
+          ...dto,
+          ...req.parsed.authPersist,
+        };
+    const replaced = await this.repo.save(plainToClass(this.entityType, toSave));
 
-    return this.repo.save<any>(dto);
+    if (returnShallow) {
+      return replaced;
+    } else {
+      const primaryParam = this.getPrimaryParam(req.options);
+
+      /* istanbul ignore if */
+      if (!primaryParam) {
+        return replaced;
+      }
+
+      req.parsed.search = { [primaryParam]: replaced[primaryParam] };
+      return this.getOneOrFail(req);
+    }
   }
 
   /**
@@ -175,18 +213,27 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
    * @param req
    */
   public async deleteOne(req: CrudRequest): Promise<void | T> {
-    const found = await this.getOneOrFail(req);
+    const { returnDeleted } = req.options.routes.deleteOneBase;
+    const found = await this.getOneOrFail(req, returnDeleted);
+    const toReturn = returnDeleted
+      ? plainToClass(this.entityType, { ...found })
+      : undefined;
     const deleted = await this.repo.remove(found);
 
-    /* istanbul ignore else */
-    if (req.options.routes.deleteOneBase.returnDeleted) {
-      // set params, because id is undefined
-      for (const filter of req.parsed.paramsFilter) {
-        deleted[filter.field] = filter.value;
-      }
+    return toReturn;
+  }
 
-      return deleted;
+  public getParamFilters(parsed: CrudRequest['parsed']): ObjectLiteral {
+    let filters = {};
+
+    /* istanbul ignore else */
+    if (hasLength(parsed.paramsFilter)) {
+      for (const filter of parsed.paramsFilter) {
+        filters[filter.field] = filter.value;
+      }
     }
+
+    return filters;
   }
 
   public decidePagination(
@@ -194,8 +241,9 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     options: CrudRequestOptions,
   ): boolean {
     return (
-      (Number.isFinite(parsed.page) || Number.isFinite(parsed.offset)) &&
-      !!this.getTake(parsed, options.query)
+      options.query.alwaysPaginate ||
+      ((Number.isFinite(parsed.page) || Number.isFinite(parsed.offset)) &&
+        !!this.getTake(parsed, options.query))
     );
   }
 
@@ -212,81 +260,13 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
   ): Promise<SelectQueryBuilder<T>> {
     // create query builder
     const builder = this.repo.createQueryBuilder(this.alias);
-
     // get select fields
     const select = this.getSelect(parsed, options.query);
-
     // select fields
     builder.select(select);
 
-    // legacy filter and or params
-    // will be deprecated in the next major release
-    if (isNil(parsed.search)) {
-      const defaultSearch = this.getDefaultSearchCondition(options, parsed);
-      this.setSearchCondition(builder, { $and: defaultSearch });
-
-      const filters = parsed.filter;
-      const hasFilter = isArrayFull(filters);
-      const hasOr = isArrayFull(parsed.or);
-
-      if (hasFilter && hasOr) {
-        if (filters.length === 1 && parsed.or.length === 1) {
-          // WHERE :filter OR :or
-          this.setOrWhere(filters[0], `filter0`, builder);
-          this.setOrWhere(parsed.or[0], `or0`, builder);
-        } else if (filters.length === 1) {
-          this.setAndWhere(filters[0], `filter0`, builder);
-          builder.orWhere(
-            new Brackets((qb) => {
-              for (let i = 0; i < parsed.or.length; i++) {
-                this.setAndWhere(parsed.or[i], `or${i}`, qb as any);
-              }
-            }),
-          );
-        } else if (parsed.or.length === 1) {
-          this.setAndWhere(parsed.or[0], `or0`, builder);
-          builder.orWhere(
-            new Brackets((qb) => {
-              for (let i = 0; i < filters.length; i++) {
-                this.setAndWhere(filters[i], `filter${i}`, qb as any);
-              }
-            }),
-          );
-        } else {
-          builder.andWhere(
-            new Brackets((qb) => {
-              for (let i = 0; i < filters.length; i++) {
-                this.setAndWhere(filters[i], `filter${i}`, qb as any);
-              }
-            }),
-          );
-          builder.orWhere(
-            new Brackets((qb) => {
-              for (let i = 0; i < parsed.or.length; i++) {
-                this.setAndWhere(parsed.or[i], `or${i}`, qb as any);
-              }
-            }),
-          );
-        }
-      } else if (hasOr) {
-        // WHERE :or OR :or OR ...
-        for (let i = 0; i < parsed.or.length; i++) {
-          this.setOrWhere(parsed.or[i], `or${i}`, builder);
-        }
-      } else if (hasFilter) {
-        // WHERE :filter AND :filter AND ...
-        for (let i = 0; i < filters.length; i++) {
-          this.setAndWhere(filters[i], `filter${i}`, builder);
-        }
-      }
-    } else {
-      // new search condition mechanism
-      const defaultSearch = this.getDefaultSearchCondition(options, parsed);
-      const search: SCondition = defaultSearch.length
-        ? { $and: [...defaultSearch, parsed.search] }
-        : /* istanbul ignore next */ parsed.search;
-      this.setSearchCondition(builder, search);
-    }
+    // search
+    this.setSearchCondition(builder, parsed.search);
 
     // set joins
     const joinOptions = options.query.join || {};
@@ -346,28 +326,39 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     return builder;
   }
 
-  private getDefaultSearchCondition(
+  /**
+   * depends on paging call `SelectQueryBuilder#getMany` or `SelectQueryBuilder#getManyAndCount`
+   * helpful for overriding `TypeOrmCrudService#getMany`
+   * @see getMany
+   * @see SelectQueryBuilder#getMany
+   * @see SelectQueryBuilder#getManyAndCount
+   * @param builder
+   * @param query
+   * @param options
+   */
+  protected async doGetMany(
+    builder: SelectQueryBuilder<T>,
+    query: ParsedRequestParams,
     options: CrudRequestOptions,
-    parsed: ParsedRequestParams,
-  ): any[] {
-    const filter = this.queryFilterToSearch(options.query.filter as QueryFilter[]);
-    const paramsFilter = this.queryFilterToSearch(parsed.paramsFilter);
+  ): Promise<GetManyDefaultResponse<T> | T[]> {
+    if (this.decidePagination(query, options)) {
+      const [data, total] = await builder.getManyAndCount();
+      const limit = builder.expressionMap.take;
+      const offset = builder.expressionMap.skip;
 
-    return [...filter, ...paramsFilter];
+      return this.createPageInfo(data, total, limit || total, offset || 0);
+    }
+
+    return builder.getMany();
   }
 
-  private queryFilterToSearch(filter: QueryFilter[]): any {
-    return isArrayFull(filter)
-      ? filter.map((item) => ({
-          [item.field]: { [item.operator]: item.value },
-        }))
-      : isObject(filter)
-      ? [filter]
-      : [];
-  }
-
-  private onInitMapEntityColumns() {
+  protected onInitMapEntityColumns() {
     this.entityColumns = this.repo.metadata.columns.map((prop) => {
+      // In case column is an embedded, use the propertyPath to get complete path
+      if (prop.embeddedMetadata) {
+        this.entityColumnsHash[prop.propertyPath] = true;
+        return prop.propertyPath;
+      }
       this.entityColumnsHash[prop.propertyName] = true;
       return prop.propertyName;
     });
@@ -376,38 +367,32 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
       .map((prop) => prop.propertyName);
   }
 
-  private onInitMapRelations() {
+  protected onInitMapRelations() {
     this.entityRelationsHash = this.repo.metadata.relations.reduce(
       (hash, curr) => ({
         ...hash,
         [curr.propertyName]: {
           name: curr.propertyName,
-          type: this.getJoinType(curr.relationType),
           columns: curr.inverseEntityMetadata.columns.map((col) => col.propertyName),
-          referencedColumn: (curr.joinColumns.length
-            ? curr.joinColumns[0]
-            : curr.inverseRelation.joinColumns[0]
-          ).referencedColumn.propertyName,
+          primaryColumns: curr.inverseEntityMetadata.primaryColumns.map(
+            (col) => col.propertyName,
+          ),
         },
       }),
       {},
     );
   }
 
-  private getJoinType(relationType: string): string {
-    switch (relationType) {
-      case 'many-to-one':
-      case 'one-to-one':
-        return 'innerJoin';
-
-      default:
-        return 'leftJoin';
-    }
-  }
-
-  private async getOneOrFail(req: CrudRequest): Promise<T> {
+  protected async getOneOrFail(req: CrudRequest, shallow = false): Promise<T> {
     const { parsed, options } = req;
-    const builder = await this.createBuilder(parsed, options);
+    const builder = shallow
+      ? this.repo.createQueryBuilder(this.alias)
+      : await this.createBuilder(parsed, options);
+
+    if (shallow) {
+      this.setSearchCondition(builder, parsed.search);
+    }
+
     const found = await builder.getOne();
 
     if (!found) {
@@ -417,14 +402,17 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     return found;
   }
 
-  private prepareEntityBeforeSave(dto: T, paramsFilter: QueryFilter[]): T {
+  protected prepareEntityBeforeSave(
+    dto: DeepPartial<T>,
+    parsed: CrudRequest['parsed'],
+  ): T {
     /* istanbul ignore if */
     if (!isObject(dto)) {
       return undefined;
     }
 
-    if (hasLength(paramsFilter)) {
-      for (const filter of paramsFilter) {
+    if (hasLength(parsed.paramsFilter)) {
+      for (const filter of parsed.paramsFilter) {
         dto[filter.field] = filter.value;
       }
     }
@@ -434,45 +422,12 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
       return undefined;
     }
 
-    return dto instanceof this.entityType ? dto : plainToClass(this.entityType, dto);
+    return dto instanceof this.entityType
+      ? Object.assign(dto, parsed.authPersist)
+      : plainToClass(this.entityType, { ...dto, ...parsed.authPersist });
   }
 
-  private hasColumn(column: string): boolean {
-    return this.entityColumnsHash[column];
-  }
-
-  private hasRelation(column: string): boolean {
-    return this.entityRelationsHash[column];
-  }
-
-  private validateHasColumn(column: string) {
-    if (column.indexOf('.') !== -1) {
-      const nests = column.split('.');
-      let relation;
-      column = nests[nests.length - 1];
-      relation = nests.slice(0, nests.length - 1).join('.');
-
-      if (!this.hasRelation(relation)) {
-        this.throwBadRequestException(`Invalid relation name '${relation}'`);
-      }
-
-      const noColumn = !(this.entityRelationsHash[relation].columns as string[]).find(
-        (o) => o === column,
-      );
-
-      if (noColumn) {
-        this.throwBadRequestException(
-          `Invalid column name '${column}' for relation '${relation}'`,
-        );
-      }
-    } else {
-      if (!this.hasColumn(column)) {
-        this.throwBadRequestException(`Invalid column name '${column}'`);
-      }
-    }
-  }
-
-  private getAllowedColumns(columns: string[], options: QueryOptions): string[] {
+  protected getAllowedColumns(columns: string[], options: QueryOptions): string[] {
     return (!options.exclude || !options.exclude.length) &&
       (!options.allow || /* istanbul ignore next */ !options.allow.length)
       ? columns
@@ -487,7 +442,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
         );
   }
 
-  private getRelationMetadata(field: string) {
+  protected getRelationMetadata(field: string) {
     try {
       const fields = field.split('.');
       const target = fields[fields.length - 1];
@@ -512,7 +467,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     }
   }
 
-  private setJoin(
+  protected setJoin(
     cond: QueryJoin,
     joinOptions: JoinOptions,
     builder: SelectQueryBuilder<T>,
@@ -526,12 +481,10 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
 
       this.entityRelationsHash[cond.field] = {
         name: curr.propertyName,
-        type: this.getJoinType(curr.relationType),
         columns: curr.inverseEntityMetadata.columns.map((col) => col.propertyName),
-        referencedColumn: (curr.joinColumns.length
-          ? /* istanbul ignore next */ curr.joinColumns[0]
-          : curr.inverseRelation.joinColumns[0]
-        ).referencedColumn.propertyName,
+        primaryColumns: curr.inverseEntityMetadata.primaryColumns.map(
+          (col) => col.propertyName,
+        ),
         nestedRelation: curr.nestedRelation,
       };
     }
@@ -547,39 +500,48 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
         return true;
       }
 
+      const alias = options.alias ? options.alias : relation.name;
+
       const columns =
         !cond.select || !cond.select.length
           ? allowed
           : cond.select.filter((col) => allowed.some((a) => a === col));
 
       const select = [
-        relation.referencedColumn,
+        ...relation.primaryColumns,
         ...(options.persist && options.persist.length ? options.persist : []),
         ...columns,
-      ].map((col) => `${relation.name}.${col}`);
+      ].map((col) => `${alias}.${col}`);
 
       const relationPath = relation.nestedRelation || `${this.alias}.${relation.name}`;
+      const relationType = options.required ? 'innerJoin' : 'leftJoin';
 
-      builder[relation.type](relationPath, relation.name);
+      builder[relationType](relationPath, alias);
       builder.addSelect(select);
     }
 
     return true;
   }
 
-  private setAndWhere(cond: QueryFilter, i: any, builder: SelectQueryBuilder<T>) {
-    this.validateHasColumn(cond.field);
+  protected setAndWhere(
+    cond: QueryFilter,
+    i: any,
+    builder: SelectQueryBuilder<T> | WhereExpression,
+  ) {
     const { str, params } = this.mapOperatorsToQuery(cond, `andWhere${i}`);
     builder.andWhere(str, params);
   }
 
-  private setOrWhere(cond: QueryFilter, i: any, builder: SelectQueryBuilder<T>) {
-    this.validateHasColumn(cond.field);
+  protected setOrWhere(
+    cond: QueryFilter,
+    i: any,
+    builder: SelectQueryBuilder<T> | WhereExpression,
+  ) {
     const { str, params } = this.mapOperatorsToQuery(cond, `orWhere${i}`);
     builder.orWhere(str, params);
   }
 
-  private setSearchCondition(
+  protected setSearchCondition(
     builder: SelectQueryBuilder<T>,
     search: SCondition,
     condition: SConditionKey = '$and',
@@ -697,7 +659,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     }
   }
 
-  private builderAddBrackets(
+  protected builderAddBrackets(
     builder: SelectQueryBuilder<T>,
     condition: SConditionKey,
     brackets: Brackets,
@@ -709,7 +671,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     }
   }
 
-  private builderSetWhere(
+  protected builderSetWhere(
     builder: SelectQueryBuilder<T>,
     condition: SConditionKey,
     field: string,
@@ -727,7 +689,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     fn.apply(this, args);
   }
 
-  private setSearchFieldObjectCondition(
+  protected setSearchFieldObjectCondition(
     builder: SelectQueryBuilder<T>,
     condition: SConditionKey,
     field: string,
@@ -787,7 +749,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     }
   }
 
-  private getSelect(query: ParsedRequestParams, options: QueryOptions): string[] {
+  protected getSelect(query: ParsedRequestParams, options: QueryOptions): string[] {
     const allowed = this.getAllowedColumns(this.entityColumns, options);
 
     const columns =
@@ -804,35 +766,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     return select;
   }
 
-  private getSkip(query: ParsedRequestParams, take: number): number | null {
-    return query.page && take
-      ? take * (query.page - 1)
-      : query.offset
-      ? query.offset
-      : null;
-  }
-
-  private getTake(query: ParsedRequestParams, options: QueryOptions): number | null {
-    if (query.limit) {
-      return options.maxLimit
-        ? query.limit <= options.maxLimit
-          ? query.limit
-          : options.maxLimit
-        : query.limit;
-    }
-    /* istanbul ignore if */
-    if (options.limit) {
-      return options.maxLimit
-        ? options.limit <= options.maxLimit
-          ? options.limit
-          : options.maxLimit
-        : options.limit;
-    }
-
-    return options.maxLimit ? options.maxLimit : null;
-  }
-
-  private getSort(query: ParsedRequestParams, options: QueryOptions) {
+  protected getSort(query: ParsedRequestParams, options: QueryOptions) {
     return query.sort && query.sort.length
       ? this.mapSort(query.sort)
       : options.sort && options.sort.length
@@ -840,7 +774,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
       : {};
   }
 
-  private getFieldWithAlias(field: string) {
+  protected getFieldWithAlias(field: string) {
     const cols = field.split('.');
     // relation is alias
     switch (cols.length) {
@@ -853,22 +787,23 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     }
   }
 
-  private mapSort(sort: QuerySort[]) {
+  protected mapSort(sort: QuerySort[]) {
     const params: ObjectLiteral = {};
 
     for (let i = 0; i < sort.length; i++) {
-      this.validateHasColumn(sort[i].field);
       params[this.getFieldWithAlias(sort[i].field)] = sort[i].order;
     }
 
     return params;
   }
 
-  private mapOperatorsToQuery(
+  protected mapOperatorsToQuery(
     cond: QueryFilter,
     param: any,
   ): { str: string; params: ObjectLiteral } {
     const field = this.getFieldWithAlias(cond.field);
+    const likeOperator =
+      this.dbName === 'postgres' ? 'ILIKE' : /* istanbul ignore next */ 'LIKE';
     let str: string;
     let params: ObjectLiteral;
 
@@ -922,18 +857,12 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
         break;
 
       case '$in':
-        /* istanbul ignore if */
-        if (!Array.isArray(cond.value) || !cond.value.length) {
-          this.throwBadRequestException(`Invalid column '${cond.field}' value`);
-        }
+        this.checkFilterIsArray(cond);
         str = `${field} IN (:...${param})`;
         break;
 
       case '$notin':
-        /* istanbul ignore if */
-        if (!Array.isArray(cond.value) || !cond.value.length) {
-          this.throwBadRequestException(`Invalid column '${cond.field}' value`);
-        }
+        this.checkFilterIsArray(cond);
         str = `${field} NOT IN (:...${param})`;
         break;
 
@@ -948,15 +877,51 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
         break;
 
       case '$between':
-        /* istanbul ignore if */
-        if (!Array.isArray(cond.value) || !cond.value.length || cond.value.length !== 2) {
-          this.throwBadRequestException(`Invalid column '${cond.field}' value`);
-        }
+        this.checkFilterIsArray(cond, cond.value.length !== 2);
         str = `${field} BETWEEN :${param}0 AND :${param}1`;
         params = {
           [`${param}0`]: cond.value[0],
           [`${param}1`]: cond.value[1],
         };
+        break;
+
+      // case insensitive
+      case '$eqL':
+        str = `LOWER(${field}) = :${param}`;
+        break;
+
+      case '$neL':
+        str = `LOWER(${field}) != :${param}`;
+        break;
+
+      case '$startsL':
+        str = `${field} ${likeOperator} :${param}`;
+        params = { [param]: `${cond.value}%` };
+        break;
+
+      case '$endsL':
+        str = `${field} ${likeOperator} :${param}`;
+        params = { [param]: `%${cond.value}` };
+        break;
+
+      case '$contL':
+        str = `${field} ${likeOperator} :${param}`;
+        params = { [param]: `%${cond.value}%` };
+        break;
+
+      case '$exclL':
+        str = `${field} NOT ${likeOperator} :${param}`;
+        params = { [param]: `%${cond.value}%` };
+        break;
+
+      case '$inL':
+        this.checkFilterIsArray(cond);
+        str = `LOWER(${field}) IN (:...${param})`;
+        break;
+
+      case '$notinL':
+        this.checkFilterIsArray(cond);
+        str = `LOWER(${field}) NOT IN (:...${param})`;
         break;
 
       /* istanbul ignore next */
@@ -970,5 +935,16 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     }
 
     return { str, params };
+  }
+
+  private checkFilterIsArray(cond: QueryFilter, withLength?: boolean) {
+    /* istanbul ignore if */
+    if (
+      !Array.isArray(cond.value) ||
+      !cond.value.length ||
+      (!isNil(withLength) ? withLength : false)
+    ) {
+      this.throwBadRequestException(`Invalid column '${cond.field}' value`);
+    }
   }
 }

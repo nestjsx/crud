@@ -1,5 +1,5 @@
 import { Controller } from '@nestjs/common';
-import { ApiUseTags } from '@nestjs/swagger';
+import { ApiTags } from '@nestjs/swagger';
 import {
   Crud,
   CrudController,
@@ -31,6 +31,10 @@ import { UsersService } from './users.service';
       company: {
         exclude: ['description'],
       },
+      'company.projects': {
+        alias: 'pr',
+        exclude: ['description'],
+      },
       profile: {
         eager: true,
         exclude: ['updatedAt'],
@@ -38,7 +42,7 @@ import { UsersService } from './users.service';
     },
   },
 })
-@ApiUseTags('users')
+@ApiTags('users')
 @Controller('/companies/:companyId/users')
 export class UsersController implements CrudController<User> {
   constructor(public service: UsersService) {}

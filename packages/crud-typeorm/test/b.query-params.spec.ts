@@ -1,9 +1,9 @@
-import 'jest-extended';
 import { Controller, INestApplication } from '@nestjs/common';
 import { APP_FILTER } from '@nestjs/core';
 import { Test } from '@nestjs/testing';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { RequestQueryBuilder } from '@nestjsx/crud-request';
+import 'jest-extended';
 import * as request from 'supertest';
 
 import { Company } from '../../../integration/crud-typeorm/companies';
@@ -12,7 +12,7 @@ import { Project } from '../../../integration/crud-typeorm/projects';
 import { User } from '../../../integration/crud-typeorm/users';
 import { UserProfile } from '../../../integration/crud-typeorm/users-profiles';
 import { HttpExceptionFilter } from '../../../integration/shared/https-exception.filter';
-import { Crud } from '../../crud/src/decorators/crud.decorator';
+import { Crud } from '../../crud/src/decorators';
 import { CompaniesService } from './__fixture__/companies.service';
 import { ProjectsService } from './__fixture__/projects.service';
 import { UsersService } from './__fixture__/users.service';
@@ -45,6 +45,11 @@ describe('#crud-typeorm', () => {
 
     @Crud({
       model: { type: Project },
+      routes: {
+        updateOneBase: {
+          returnShallow: true,
+        },
+      },
       query: {
         join: {
           company: {
@@ -52,6 +57,8 @@ describe('#crud-typeorm', () => {
             persist: ['id'],
             exclude: ['updatedAt', 'createdAt'],
           },
+          users: {},
+          userProjects: {},
         },
         sort: [{ field: 'id', order: 'ASC' }],
         limit: 100,
@@ -98,11 +105,28 @@ describe('#crud-typeorm', () => {
         join: {
           company: {},
           'company.projects': {},
+          userLicenses: {},
         },
       },
     })
     @Controller('users')
     class UsersController {
+      constructor(public service: UsersService) {}
+    }
+
+    @Crud({
+      model: { type: User },
+      query: {
+        join: {
+          company: {},
+          'company.projects': {
+            alias: 'pr',
+          },
+        },
+      },
+    })
+    @Controller('users2')
+    class UsersController2 {
       constructor(public service: UsersService) {}
     }
 
@@ -119,6 +143,7 @@ describe('#crud-typeorm', () => {
           ProjectsController3,
           ProjectsController4,
           UsersController,
+          UsersController2,
         ],
         providers: [
           { provide: APP_FILTER, useClass: HttpExceptionFilter },
@@ -139,7 +164,7 @@ describe('#crud-typeorm', () => {
     });
 
     afterAll(async () => {
-      app.close();
+      await app.close();
     });
 
     describe('#select', () => {
@@ -149,7 +174,7 @@ describe('#crud-typeorm', () => {
           .get('/companies')
           .query(query)
           .end((_, res) => {
-            expect(res.status).toBe(400);
+            expect(res.status).toBe(500);
             done();
           });
       });
@@ -319,7 +344,7 @@ describe('#crud-typeorm', () => {
           .get('/users/1')
           .query(query)
           .end((_, res) => {
-            expect(res.status).toBe(400);
+            expect(res.status).toBe(500);
             done();
           });
       });
@@ -337,7 +362,7 @@ describe('#crud-typeorm', () => {
           .get('/users/1')
           .query(query)
           .end((_, res) => {
-            expect(res.status).toBe(400);
+            expect(res.status).toBe(500);
             done();
           });
       });
@@ -355,7 +380,7 @@ describe('#crud-typeorm', () => {
           .get('/users/1')
           .query(query)
           .end((_, res) => {
-            expect(res.status).toBe(400);
+            expect(res.status).toBe(500);
             done();
           });
       });
@@ -388,7 +413,6 @@ describe('#crud-typeorm', () => {
             done();
           });
       });
-
       it('should return joined entity, 2', (done) => {
         const query = qb
           .setFilter({ field: 'company.projects.id', operator: 'notnull' })
@@ -402,6 +426,55 @@ describe('#crud-typeorm', () => {
             expect(res.status).toBe(200);
             expect(res.body.company).toBeDefined();
             expect(res.body.company.projects).toBeDefined();
+            done();
+          });
+      });
+      it('should return joined entity with alias', (done) => {
+        const query = qb
+          .setFilter({ field: 'pr.id', operator: 'notnull' })
+          .setJoin({ field: 'company' })
+          .setJoin({ field: 'company.projects' })
+          .query();
+        return request(server)
+          .get('/users2/1')
+          .query(query)
+          .end((_, res) => {
+            expect(res.status).toBe(200);
+            expect(res.body.company).toBeDefined();
+            expect(res.body.company.projects).toBeDefined();
+            done();
+          });
+      });
+      it('should return joined entity with ManyToMany pivot table', (done) => {
+        const query = qb
+          .setJoin({ field: 'users' })
+          .setJoin({ field: 'userProjects' })
+          .query();
+        return request(server)
+          .get('/projects/1')
+          .query(query)
+          .end((_, res) => {
+            expect(res.status).toBe(200);
+            expect(res.body.users).toBeDefined();
+            expect(res.body.users.length).toBe(2);
+            expect(res.body.users[0].id).toBe(1);
+            expect(res.body.userProjects).toBeDefined();
+            expect(res.body.userProjects.length).toBe(2);
+            expect(res.body.userProjects[0].review).toBe('User project 1 1');
+            done();
+          });
+      });
+    });
+
+    describe('#query composite key join', () => {
+      it('should return joined relation', (done) => {
+        const query = qb.setJoin({ field: 'userLicenses' }).query();
+        return request(server)
+          .get('/users/1')
+          .query(query)
+          .end((_, res) => {
+            expect(res.status).toBe(200);
+            expect(res.body.userLicenses).toBeDefined();
             done();
           });
       });
@@ -660,6 +733,84 @@ describe('#crud-typeorm', () => {
           .query(query)
           .expect(200);
         expect(res.body).toBeArrayOfSize(0);
+      });
+      it('should return with $eqL search operator', async () => {
+        const query = qb.search({ name: { $eqL: 'project1' } }).query();
+        const res = await projects4()
+          .query(query)
+          .expect(200);
+        expect(res.body).toBeArrayOfSize(1);
+      });
+      it('should return with $neL search operator', async () => {
+        const query = qb.search({ name: { $neL: 'project1' } }).query();
+        const res = await projects4()
+          .query(query)
+          .expect(200);
+        expect(res.body).toBeArrayOfSize(9);
+      });
+      it('should return with $startsL search operator', async () => {
+        const query = qb.search({ email: { $startsL: '2' } }).query();
+        const res = await request(server)
+          .get('/users')
+          .query(query)
+          .expect(200);
+        expect(res.body).toBeArrayOfSize(3);
+      });
+      it('should return with $endsL search operator', async () => {
+        const query = qb.search({ domain: { $endsL: '0' } }).query();
+        const res = await request(server)
+          .get('/companies')
+          .query(query)
+          .expect(200);
+        expect(res.body).toBeArrayOfSize(1);
+      });
+      it('should return with $contL search operator', async () => {
+        const query = qb.search({ email: { $contL: '1@' } }).query();
+        const res = await request(server)
+          .get('/users')
+          .query(query)
+          .expect(200);
+        expect(res.body).toBeArrayOfSize(3);
+      });
+      it('should return with $exclL search operator', async () => {
+        const query = qb.search({ email: { $exclL: '1@' } }).query();
+        const res = await request(server)
+          .get('/users')
+          .query(query)
+          .expect(200);
+        expect(res.body).toBeArrayOfSize(18);
+      });
+      it('should return with $inL search operator', async () => {
+        const query = qb.search({ name: { $inL: ['name2', 'name3'] } }).query();
+        const res = await request(server)
+          .get('/companies')
+          .query(query)
+          .expect(200);
+        expect(res.body).toBeArrayOfSize(2);
+      });
+      it('should return with $notinL search operator', async () => {
+        const query = qb
+          .search({ name: { $notinL: ['project7', 'project8', 'project9'] } })
+          .query();
+        const res = await projects4()
+          .query(query)
+          .expect(200);
+        expect(res.body).toBeArrayOfSize(7);
+      });
+    });
+
+    describe('#update', () => {
+      it('should update company id of project', async () => {
+        await request(server)
+          .patch('/projects/18')
+          .send({ companyId: 10 })
+          .expect(200);
+
+        const modified = await request(server)
+          .get('/projects/18')
+          .expect(200);
+
+        expect(modified.body.companyId).toBe(10);
       });
     });
   });
