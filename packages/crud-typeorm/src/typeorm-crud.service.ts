@@ -895,22 +895,22 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
         break;
 
       case '$startsL':
-        str = `${field} ${likeOperator} :${param}`;
+        str = `LOWER(${field}) ${likeOperator} :${param}`;
         params = { [param]: `${cond.value}%` };
         break;
 
       case '$endsL':
-        str = `${field} ${likeOperator} :${param}`;
+        str = `LOWER(${field}) ${likeOperator} :${param}`;
         params = { [param]: `%${cond.value}` };
         break;
 
       case '$contL':
-        str = `${field} ${likeOperator} :${param}`;
+        str = `LOWER(${field}) ${likeOperator} :${param}`;
         params = { [param]: `%${cond.value}%` };
         break;
 
       case '$exclL':
-        str = `${field} NOT ${likeOperator} :${param}`;
+        str = `LOWER(${field}) NOT ${likeOperator} :${param}`;
         params = { [param]: `%${cond.value}%` };
         break;
 
