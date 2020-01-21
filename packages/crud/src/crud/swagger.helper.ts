@@ -296,6 +296,7 @@ export class Swagger {
           items: {
             type: 'string',
           },
+          type: 'array',
           collectionFormat: 'multi',
         }
       : {
@@ -322,6 +323,7 @@ export class Swagger {
           items: {
             type: 'string',
           },
+          type: 'array',
           collectionFormat: 'multi',
         }
       : {
@@ -348,6 +350,7 @@ export class Swagger {
           items: {
             type: 'string',
           },
+          type: 'array',
           collectionFormat: 'multi',
         }
       : {
@@ -374,6 +377,7 @@ export class Swagger {
           items: {
             type: 'string',
           },
+          type: 'array',
           collectionFormat: 'multi',
         }
       : {
