@@ -1,0 +1,48 @@
+{
+  "name": "nest-crud-mongoose",
+  "description": "NestJs CRUD for RESTful APIs - Mongoose",
+  "version": "0.0.5",
+  "license": "MIT",
+  "main": "lib/index.js",
+  "typings": "lib/index.d.ts",
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "lib"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nestjsx/crud.git"
+  },
+  "bugs": {
+    "url": "https://github.com/nestjsx/crud/issues"
+  },
+  "keywords": [
+    "typescript",
+    "mongoose",
+    "mongodb",
+    "nest",
+    "nestjs",
+    "rest",
+    "restful",
+    "api",
+    "crud",
+    "crud-generator",
+    "backend",
+    "frameworks"
+  ],
+  "author": "Jay Bell <jay@trellis.org>",
+  "scripts": {
+    "build": "npx tsc -b"
+  },
+  "homepage": "https://github.com/nestjsx/crud#readme",
+  "directories": {
+    "lib": "lib",
+    "test": "test"
+  },
+  "peerDependencies": {
+    "@nestjsx/crud": "^4.3.3",
+    "@nestjsx/crud-request": "^4.3.3"
+  }
+}

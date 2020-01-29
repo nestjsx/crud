@@ -4,7 +4,7 @@ import {
   Injectable,
   NestInterceptor,
 } from '@nestjs/common';
-import { isFalse, isObject, isFunction } from '@nestjsx/util';
+import { isFalse, isFunction, isObject } from '@nestjsx/util';
 import { classToPlain, classToPlainFromExist } from 'class-transformer';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
@@ -35,6 +35,14 @@ export class CrudResponseInterceptor extends CrudBaseInterceptor
   protected transform(dto: any, data: any) {
     if (!isObject(data) || isFalse(dto)) {
       return data;
+    }
+
+    if (isFunction(data.toObject)) {
+      const plain = data.toObject({
+        getters: true,
+      });
+
+      return dto ? classToPlain(classToPlainFromExist(plain, new dto())) : plain;
     }
 
     if (!isFunction(dto)) {

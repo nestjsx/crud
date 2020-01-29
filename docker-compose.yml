@@ -23,3 +23,10 @@ services:
     command: redis-server
     networks:
       - nestjsx_crud
+
+  mongo:
+    image: mongo
+    ports:
+      - 27017:27017
+    networks:
+      - nestjsx_crud
