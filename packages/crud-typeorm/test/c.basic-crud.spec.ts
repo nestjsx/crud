@@ -174,6 +174,22 @@ describe('#crud-typeorm', () => {
     }
 
     @Crud({
+      model: { type: Company },
+      query: {
+        join: {
+          users: {
+            eager: true,
+            required: true,
+          },
+        },
+      },
+    })
+    @Controller('companiesWithUsers')
+    class CompaniesController2 {
+      constructor(public service: CompaniesService) {}
+    }
+
+    @Crud({
       model: { type: User },
       params: {
         companyId: {
@@ -263,6 +279,7 @@ describe('#crud-typeorm', () => {
         ],
         controllers: [
           CompaniesController,
+          CompaniesController2,
           UsersController,
           UsersController2,
           UsersController3,
@@ -609,6 +626,21 @@ describe('#crud-typeorm', () => {
         const res = await users3().expect(200);
         expect(res.body.id).toBe(21);
         expect(res.body.profile).toBe(null);
+      });
+    });
+
+    describe('embedded fields in joined entity', () => {
+      const companiesWithUsers = () => request(server).get('/companiesWithUsers/1');
+
+      it('embedded fields should exists in joined entity', async () => {
+        const res = await companiesWithUsers().expect(200);
+        expect(res.body.id).toBe(1);
+        expect(
+          res.body.users.filter(
+            (user) =>
+              typeof user.name === 'undefined' || typeof user.name.first === 'undefined',
+          ),
+        ).toStrictEqual([]);
       });
     });
   });
