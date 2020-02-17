@@ -373,9 +373,9 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
         ...hash,
         [curr.propertyName]: {
           name: curr.propertyName,
-          columns: curr.inverseEntityMetadata.columns.map((col) => col.propertyName),
+          columns: curr.inverseEntityMetadata.columns.map((col) => col.propertyPath),
           primaryColumns: curr.inverseEntityMetadata.primaryColumns.map(
-            (col) => col.propertyName,
+            (col) => col.propertyPath,
           ),
         },
       }),
