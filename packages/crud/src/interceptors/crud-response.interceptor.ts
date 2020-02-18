@@ -50,15 +50,16 @@ export class CrudResponseInterceptor extends CrudBaseInterceptor
     const { crudOptions, action } = this.getCrudInfo(context);
     const { serialize } = crudOptions;
     const dto = serialize[actionToDtoNameMap[action]];
-    const isArray = Array.isArray(data);
 
     switch (action) {
       case CrudActions.ReadAll:
-        return isArray
-          ? (data as any[]).map((item) => this.transform(serialize.get, item))
-          : this.transform(dto, data);
+        // handle GetManyDefaultResponse
+        const itemsList = data.hasOwnProperty('data') ? data.data : data;
+        return Array.isArray(itemsList)
+          ? (itemsList as any[]).map((item) => this.transform(serialize.get, item))
+          : this.transform(dto, itemsList);
       case CrudActions.CreateMany:
-        return isArray
+        return Array.isArray(data)
           ? (data as any[]).map((item) => this.transform(dto, item))
           : this.transform(dto, data);
       default:
