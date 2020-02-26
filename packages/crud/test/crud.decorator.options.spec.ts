@@ -1,10 +1,12 @@
-import * as request from 'supertest';
-import { Test } from '@nestjs/testing';
-import { Controller, INestApplication } from '@nestjs/common';
+import { Controller, Get, INestApplication, SetMetadata, UseInterceptors } from '@nestjs/common';
 import { APP_FILTER } from '@nestjs/core';
+import { Test } from '@nestjs/testing';
+import * as request from 'supertest';
+import { CrudRequestInterceptor } from '../lib/interceptors';
 
-import { Crud } from '../src/decorators';
-import { CrudOptions } from '../src/interfaces';
+import { CRUD_OPTIONS_METADATA } from '../src/constants';
+import { Crud, ParsedRequest } from '../src/decorators';
+import { CrudOptions, CrudRequest, CrudRequestOptions } from '../src/interfaces';
 import { HttpExceptionFilter } from './__fixture__/exception.filter';
 import { TestModel } from './__fixture__/models';
 import { TestService } from './__fixture__/services';
@@ -24,6 +26,7 @@ describe('#crud', () => {
         },
       },
       query: {
+        filter: { name: 'test' },
         limit: 10,
       },
       routes: {
@@ -60,11 +63,24 @@ describe('#crud', () => {
         },
       },
     };
+    const additionalOptions: CrudRequestOptions = {
+      query: {
+        filter: [{ field: 'for_method_a_only', operator: 'eq', value: true }],
+      },
+    };
 
     @Crud(options)
     @Controller('test')
     class TestController {
-      constructor(public service: TestService<TestModel>) {}
+      constructor(public service: TestService<TestModel>) {
+      }
+
+      @SetMetadata(CRUD_OPTIONS_METADATA, additionalOptions)
+      @Get('method-a')
+      @UseInterceptors(CrudRequestInterceptor)
+      methodA(@ParsedRequest() req: CrudRequest) {
+        return { req };
+      }
     }
 
     beforeAll(async () => {
@@ -94,6 +110,16 @@ describe('#crud', () => {
           expect(opt.params).toMatchObject(options.params);
           done();
         });
+    });
+
+    it('should return method options in ParsedRequest', async () => {
+      const res = await request(server)
+        .get('/test/method-a')
+        .expect(200);
+
+      const opt = res.body.req.options;
+
+      expect(opt.query).toMatchObject({ ...options.query, ...additionalOptions.query });
     });
   });
 });
