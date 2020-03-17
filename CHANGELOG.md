@@ -1,3 +1,9 @@
+## [4.4.2] - 2020-03-17
+
+### Bug Fixes
+
+- **crud** fixed custom routes params caused by NestJs v7 breaking changes ([#443](https://github.com/nestjsx/crud/issues/443))
+
 ## [4.4.1] - 2019-12-28
 
 ### Bug Fixes
@@ -111,6 +117,7 @@
 
 - several fixes
 
+[4.4.2]: https://github.com/nestjsx/crud/compare/v4.4.1...v4.4.2
 [4.4.1]: https://github.com/nestjsx/crud/compare/v4.4.0...v4.4.1
 [4.4.0]: https://github.com/nestjsx/crud/compare/v4.3.0...v4.4.0
 [4.3.0]: https://github.com/nestjsx/crud/compare/v4.2.0...v4.3.0
