@@ -31,7 +31,7 @@
     { "path": "crud" },
     { "path": "crud-typeorm" },
     { "path": "crud-request" },
-    { "path": "crid-mongoose"},
+    { "path": "crud-mongoose" },
     { "path": "util" }
   ]
 }
