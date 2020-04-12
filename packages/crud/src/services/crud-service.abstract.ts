@@ -52,12 +52,8 @@ export abstract class CrudService<T> {
       data,
       count: data.length,
       total,
-      page: Math.floor(offset / limit) + 1,
-      pageCount:
-        limit && total
-          ? Math.ceil(total / limit)
-          : /* istanbul ignore next line */
-            undefined,
+      page: limit ? Math.floor(offset / limit) + 1 : 1,
+      pageCount: limit && total ? Math.ceil(total / limit) : 1,
     };
   }
 
