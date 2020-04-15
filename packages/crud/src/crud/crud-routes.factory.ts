@@ -488,7 +488,7 @@ export class CrudRoutesFactory {
           {},
         )
       : this.options.params;
-    const pathParamsMeta = Swagger.createPathParasmMeta(params);
+    const pathParamsMeta = Swagger.createPathParamsMeta(params);
     Swagger.setParams([...metadata, ...pathParamsMeta], this.targetProto[name]);
   }
 

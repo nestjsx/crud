@@ -212,13 +212,14 @@ export class Swagger {
     }
   }
 
-  static createPathParasmMeta(options: ParamsOptions): any[] {
+  static createPathParamsMeta(options: ParamsOptions): any[] {
     return swaggerConst
       ? objKeys(options).map((param) => ({
           name: param,
           required: true,
           in: 'path',
           type: options[param].type === 'number' ? Number : String,
+          enum: options[param].enum ? Object.values(options[param].enum) : undefined,
         }))
       : /* istanbul ignore next */ [];
   }
