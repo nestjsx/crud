@@ -42,7 +42,7 @@ export class Seeds1544303473346 implements MigrationInterface {
       ('Project20', 'description20', false, 10);
     `);
 
-    // users-profiles
+    // user-profiles
     await queryRunner.query(`
       INSERT INTO public.user_profiles ("name") VALUES
       ('User1'),
@@ -69,27 +69,56 @@ export class Seeds1544303473346 implements MigrationInterface {
 
     // users
     await queryRunner.query(`
-      INSERT INTO public.users ("email", "isActive", "companyId", "profileId") VALUES
-      ('1@email.com', true, 1, 1),
-      ('2@email.com', true, 1, 2),
-      ('3@email.com', true, 1, 3),
-      ('4@email.com', true, 1, 4),
-      ('5@email.com', true, 1, 5),
-      ('6@email.com', true, 1, 6),
-      ('7@email.com', false, 1, 7),
-      ('8@email.com', false, 1, 8),
-      ('9@email.com', false, 1, 9),
-      ('10@email.com', true, 1, 10),
-      ('11@email.com', true, 2, 11),
-      ('12@email.com', true, 2, 12),
-      ('13@email.com', true, 2, 13),
-      ('14@email.com', true, 2, 14),
-      ('15@email.com', true, 2, 15),
-      ('16@email.com', true, 2, 16),
-      ('17@email.com', false, 2, 17),
-      ('18@email.com', false, 2, 18),
-      ('19@email.com', false, 2, 19),
-      ('20@email.com', false, 2, 20);
+      INSERT INTO public.users ("email", "isActive", "companyId", "profileId", "nameFirst", "nameLast") VALUES
+      ('1@email.com', true, 1, 1, 'firstname1', 'lastname1'),
+      ('2@email.com', true, 1, 2, NULL, NULL),
+      ('3@email.com', true, 1, 3, NULL, NULL),
+      ('4@email.com', true, 1, 4, NULL, NULL),
+      ('5@email.com', true, 1, 5, NULL, NULL),
+      ('6@email.com', true, 1, 6, NULL, NULL),
+      ('7@email.com', false, 1, 7, NULL, NULL),
+      ('8@email.com', false, 1, 8, NULL, NULL),
+      ('9@email.com', false, 1, 9, NULL, NULL),
+      ('10@email.com', true, 1, 10, NULL, NULL),
+      ('11@email.com', true, 2, 11, NULL, NULL),
+      ('12@email.com', true, 2, 12, NULL, NULL),
+      ('13@email.com', true, 2, 13, NULL, NULL),
+      ('14@email.com', true, 2, 14, NULL, NULL),
+      ('15@email.com', true, 2, 15, NULL, NULL),
+      ('16@email.com', true, 2, 16, NULL, NULL),
+      ('17@email.com', false, 2, 17, NULL, NULL),
+      ('18@email.com', false, 2, 18, NULL, NULL),
+      ('19@email.com', false, 2, 19, NULL, NULL),
+      ('20@email.com', false, 2, 20, NULL, NULL),
+      ('21@email.com', false, 2, NULL, NULL, NULL);
+    `);
+
+    // licenses
+    await queryRunner.query(`
+      INSERT INTO public.licenses ("name") VALUES
+      ('License1'),
+      ('License2'),
+      ('License3'),
+      ('License4'),
+      ('License5');
+    `);
+
+    // user-licenses
+    await queryRunner.query(`
+      INSERT INTO public.user_licenses ("userId", "licenseId", "yearsActive") VALUES
+      (1, 1, 3),
+      (1, 2, 5),
+      (1, 4, 7),
+      (2, 5, 1);
+    `);
+
+    // user-projects
+    await queryRunner.query(`
+      INSERT INTO public.user_projects ("projectId", "userId", "review") VALUES
+      (1, 1, 'User project 1 1'),
+      (1, 2, 'User project 1 2'),
+      (2, 2, 'User project 2 2'),
+      (3, 3, 'User project 3 3');
     `);
   }
 

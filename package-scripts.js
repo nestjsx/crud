@@ -15,7 +15,7 @@ const getCleanCmd = (pkg) => {
 };
 
 const getTestCmd = (pkg, coverage) =>
-  `npx jest -c=jest.config.js packages/${pkg ? pkg + '/' : ''} ${
+  `npx jest --runInBand -c=jest.config.js packages/${pkg ? pkg + '/' : ''} ${
     coverage ? '--coverage' : ''
   } --verbose`;
 

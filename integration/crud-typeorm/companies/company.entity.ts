@@ -1,7 +1,7 @@
+import { CrudValidationGroups } from '@nestjsx/crud';
 import { Entity, Column, OneToMany } from 'typeorm';
 import { IsOptional, IsString, MaxLength, IsNotEmpty } from 'class-validator';
 import { Type } from 'class-transformer';
-import { CrudValidationGroups } from '@nestjsx/crud';
 
 import { BaseEntity } from '../base-entity';
 import { User } from '../users/user.entity';

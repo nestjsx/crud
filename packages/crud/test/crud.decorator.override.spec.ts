@@ -9,8 +9,8 @@ import { CrudController, CrudRequest, CreateManyDto } from '../src/interfaces';
 import { R, Swagger } from '../src/crud';
 import { CrudActions } from '../src/enums';
 import { HttpExceptionFilter } from './__fixture__/exception.filter';
-import { TestModel } from './__fixture__/test.model';
-import { TestService } from './__fixture__/test.service';
+import { TestModel } from './__fixture__/models';
+import { TestService } from './__fixture__/services';
 
 describe('#crud', () => {
   describe('#override methods', () => {
@@ -79,9 +79,9 @@ describe('#crud', () => {
         return request(server)
           .get('/test')
           .query(query)
-          .expect(500)
           .end((_, res) => {
             const expected = { statusCode: 400, message: 'Invalid filter value' };
+            expect(res.status).toEqual(400);
             expect(res.body).toMatchObject(expected);
             done();
           });
@@ -102,7 +102,16 @@ describe('#crud', () => {
       });
       it('should return swagger response ok', () => {
         const response = Swagger.getResponseOk(TestController.prototype.getMany);
-        const expected = { '200': { type: TestModel, isArray: true, description: '' } };
+        const expected = {
+          '200': {
+            schema: {
+              oneOf: [
+                { $ref: '#/components/schemas/GetManyTestModelResponseDto' },
+                { items: { $ref: '#/components/schemas/TestModel' }, type: 'array' },
+              ],
+            },
+          },
+        };
         expect(response).toMatchObject(expected);
       });
     });
@@ -115,9 +124,8 @@ describe('#crud', () => {
         return request(server)
           .post('/test/bulk')
           .send(send)
-          .expect(400)
           .end((_, res) => {
-            expect(res.body.message[0].property).toBe('bulk');
+            expect(res.status).toEqual(400);
             done();
           });
       });

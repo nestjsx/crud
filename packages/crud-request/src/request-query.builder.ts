@@ -43,7 +43,7 @@ export class RequestQueryBuilder {
       or: 'or',
       join: 'join',
       sort: 'sort',
-      limit: ['per_page', 'limit'],
+      limit: ['limit', 'per_page'],
       offset: 'offset',
       page: 'page',
       cache: 'cache',
