@@ -540,6 +540,23 @@ describe('#crud-typeorm', () => {
           res.body[0].company.projects[0].id,
         );
       });
+
+      it('should throw 400 if SQL injection has been detected', (done) => {
+        const query = qb
+          .sortBy({
+            field: ' ASC; SELECT CAST( version() AS INTEGER); --',
+            order: 'DESC',
+          })
+          .query();
+
+        return request(server)
+          .get('/companies')
+          .query(query)
+          .end((_, res) => {
+            expect(res.status).toBe(400);
+            done();
+          });
+      });
     });
 
     describe('#search', () => {
