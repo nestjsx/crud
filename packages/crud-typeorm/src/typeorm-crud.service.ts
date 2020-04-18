@@ -45,6 +45,12 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
   protected entityPrimaryColumns: string[];
   protected entityColumnsHash: ObjectLiteral = {};
   protected entityRelationsHash: ObjectLiteral = {};
+  protected sqlInjectionRegEx: RegExp[] = [
+    /(%27)|(\')|(--)|(%23)|(#)/gi,
+    /((%3D)|(=))[^\n]*((%27)|(\')|(--)|(%3B)|(;))/gi,
+    /w*((%27)|(\'))((%6F)|o|(%4F))((%72)|r|(%52))/gi,
+    /((%27)|(\'))union/gi,
+  ];
 
   constructor(protected repo: Repository<T>) {
     super();
@@ -791,7 +797,9 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     const params: ObjectLiteral = {};
 
     for (let i = 0; i < sort.length; i++) {
-      params[this.getFieldWithAlias(sort[i].field)] = sort[i].order;
+      const field = this.getFieldWithAlias(sort[i].field);
+      const checkedFiled = this.checkSqlInjection(field);
+      params[checkedFiled] = sort[i].order;
     }
 
     return params;
@@ -946,5 +954,19 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     ) {
       this.throwBadRequestException(`Invalid column '${cond.field}' value`);
     }
+  }
+
+  private checkSqlInjection(field: string): string {
+    /* istanbul ignore else */
+    if (this.sqlInjectionRegEx.length) {
+      for (let i = 0; i < this.sqlInjectionRegEx.length; i++) {
+        /* istanbul ignore else */
+        if (this.sqlInjectionRegEx[0].test(field)) {
+          this.throwBadRequestException(`SQL injection detected: "${field}"`);
+        }
+      }
+    }
+
+    return field;
   }
 }
