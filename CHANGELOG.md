@@ -1,3 +1,9 @@
+## [4.4.4] - 2020-04-18
+
+### Deps
+
+- **dev** fixted lerna
+
 ## [4.4.3] - 2020-04-18
 
 ### Bug Fixes
@@ -125,6 +131,7 @@
 
 - several fixes
 
+[4.4.4]: https://github.com/nestjsx/crud/compare/v4.4.3...v4.4.4
 [4.4.3]: https://github.com/nestjsx/crud/compare/v4.4.2...v4.4.3
 [4.4.2]: https://github.com/nestjsx/crud/compare/v4.4.1...v4.4.2
 [4.4.1]: https://github.com/nestjsx/crud/compare/v4.4.0...v4.4.1

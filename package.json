@@ -26,7 +26,8 @@
     "format": "npx pretty-quick --pattern \"packages/**/!(*.d).ts\"",
     "lint": "npx tslint 'packages/**/*.ts'",
     "cm": "npx git-cz",
-    "postinstall": "npx opencollective"
+    "postinstall": "npx opencollective",
+    "pub": "npx lerna publish --force-publish --no-verify-access"
   },
   "config": {
     "commitizen": {
