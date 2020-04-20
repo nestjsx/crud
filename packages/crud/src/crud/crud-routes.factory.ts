@@ -10,6 +10,7 @@ import {
   isEqual,
   getOwnPropNames,
   isNil,
+  isUndefined,
 } from '@nestjsx/util';
 import * as deepmerge from 'deepmerge';
 
@@ -73,8 +74,9 @@ export class CrudRoutesFactory {
     // merge auth config
     const authOptions = R.getCrudAuthOptions(this.target);
     this.options.auth = isObjectFull(authOptions) ? authOptions : {};
-    this.options.auth.property =
-      this.options.auth.property || CrudConfigService.config.auth.property;
+    if (isUndefined(this.options.auth.property)) {
+      this.options.auth.property = CrudConfigService.config.auth.property;
+    }
 
     // merge query config
     const query = isObjectFull(this.options.query) ? this.options.query : {};
