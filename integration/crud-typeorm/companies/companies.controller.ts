@@ -11,7 +11,7 @@ import { serialize } from './response';
   model: {
     type: Company,
   },
-  dto,
+  // dto,
   serialize,
   routes: {
     deleteOneBase: {
