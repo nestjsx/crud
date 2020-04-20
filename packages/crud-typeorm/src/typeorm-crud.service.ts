@@ -780,12 +780,15 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
       : {};
   }
 
-  protected getFieldWithAlias(field: string) {
+  protected getFieldWithAlias(field: string, sort: boolean = false) {
     const cols = field.split('.');
     // relation is alias
     switch (cols.length) {
       case 1:
-        return `${this.alias}.${field}`;
+        if (sort || this.alias[0] === '"') {
+          return `${this.alias}.${field}`;
+        }
+        return `"${this.alias}"."${field}"`;
       case 2:
         return field;
       default:
@@ -797,7 +800,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     const params: ObjectLiteral = {};
 
     for (let i = 0; i < sort.length; i++) {
-      const field = this.getFieldWithAlias(sort[i].field);
+      const field = this.getFieldWithAlias(sort[i].field, true);
       const checkedFiled = this.checkSqlInjection(field);
       params[checkedFiled] = sort[i].order;
     }
