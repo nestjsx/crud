@@ -1,34 +1,180 @@
 import { Controller, INestApplication } from '@nestjs/common';
 import { APP_FILTER } from '@nestjs/core';
 import { Test } from '@nestjs/testing';
+import { SequelizeModule } from '@nestjs/sequelize';
 
 import { Crud } from '@nestjsx/crud';
 import { RequestQueryBuilder } from '@nestjsx/crud-request';
 import * as request from 'supertest';
-import { CompanyDto } from '../../../integration/crud-sequelize/companies';
-import { DatabaseModule } from '../../../integration/crud-sequelize/database/database.module';
-import { UserDto } from '../../../integration/crud-sequelize/users';
+import { Company } from '../../../integration/crud-sequelize/companies/company.model';
+import { Device } from '../../../integration/crud-sequelize/devices/device.model';
+import { config } from '../../../integration/crud-sequelize/sequelize.config';
+import { Project } from '../../../integration/crud-sequelize/projects/project.model';
+import { User } from '../../../integration/crud-sequelize/users/user.model';
+import { UserProfile } from '../../../integration/crud-sequelize/users-profiles/userprofile.model';
 import { HttpExceptionFilter } from '../../../integration/shared/https-exception.filter';
 import { CompaniesService } from './__fixture__/companies.service';
-import { DatabaseService } from './__fixture__/database.service';
-import {
-  companiesProviders,
-  projectsProviders,
-  usersProviders,
-} from './__fixture__/providers';
 import { UsersService } from './__fixture__/users.service';
+import { DevicesService } from './__fixture__/devices.service';
+import { Helper } from './helper';
+import { Sequelize } from 'sequelize';
 
 // tslint:disable:max-classes-per-file no-shadowed-variable
 describe('#crud-sequelize', () => {
+  const helper: Helper = new Helper(new Sequelize(config));
+  beforeEach(async () => {
+    await helper.down();
+    await helper.up();
+  });
+
+  describe('#basic crud using alwaysPaginate default respects global limit', () => {
+    let app: INestApplication;
+    let server: any;
+    let qb: RequestQueryBuilder;
+    let service: CompaniesService;
+
+    @Crud({
+      model: { type: Company },
+      query: {
+        alwaysPaginate: true,
+        limit: 3,
+      },
+    })
+    @Controller('companies')
+    class CompaniesController {
+      constructor(public service: CompaniesService) {}
+    }
+
+    beforeAll(async () => {
+      const fixture = await Test.createTestingModule({
+        imports: [SequelizeModule.forRoot(config), SequelizeModule.forFeature([Company])],
+        controllers: [CompaniesController],
+        providers: [
+          { provide: APP_FILTER, useClass: HttpExceptionFilter },
+          CompaniesService,
+        ],
+      }).compile();
+
+      app = fixture.createNestApplication();
+      service = app.get<CompaniesService>(CompaniesService);
+
+      await app.init();
+      server = app.getHttpServer();
+    });
+
+    beforeEach(() => {
+      qb = RequestQueryBuilder.create();
+    });
+
+    afterAll(async () => {
+      await app.close();
+    });
+
+    describe('#getAllBase', () => {
+      it('should return an array of all entities', (done) => {
+        return request(server)
+          .get('/companies')
+          .end((_, res) => {
+            expect(res.status).toBe(200);
+            expect(res.body.data.length).toBe(3);
+            expect(res.body.page).toBe(1);
+            done();
+          });
+      });
+    });
+  });
+
+  describe('#basic crud using alwaysPaginate default', () => {
+    let app: INestApplication;
+    let server: any;
+    let qb: RequestQueryBuilder;
+    let service: CompaniesService;
+
+    @Crud({
+      model: { type: Company },
+      query: { alwaysPaginate: true },
+    })
+    @Controller('companies')
+    class CompaniesController {
+      constructor(public service: CompaniesService) {}
+    }
+
+    beforeAll(async () => {
+      const fixture = await Test.createTestingModule({
+        imports: [SequelizeModule.forRoot(config), SequelizeModule.forFeature([Company])],
+        controllers: [CompaniesController],
+        providers: [
+          { provide: APP_FILTER, useClass: HttpExceptionFilter },
+          CompaniesService,
+        ],
+      }).compile();
+
+      app = fixture.createNestApplication();
+      service = app.get<CompaniesService>(CompaniesService);
+
+      await app.init();
+      server = app.getHttpServer();
+    });
+
+    beforeEach(() => {
+      qb = RequestQueryBuilder.create();
+    });
+
+    afterAll(async () => {
+      await app.close();
+    });
+
+    describe('#getAllBase', () => {
+      it('should return an array of all entities', (done) => {
+        return request(server)
+          .get('/companies')
+          .end((_, res) => {
+            expect(res.status).toBe(200);
+            expect(res.body.data.length).toBe(10);
+            expect(res.body.page).toBe(1);
+            done();
+          });
+      });
+      it('should return an entities with limit', (done) => {
+        const query = qb.setLimit(5).query();
+        return request(server)
+          .get('/companies')
+          .query(query)
+          .end((_, res) => {
+            expect(res.status).toBe(200);
+            expect(res.body.data.length).toBe(5);
+            expect(res.body.page).toBe(1);
+            done();
+          });
+      });
+      it('should return an entities with limit and page', (done) => {
+        const query = qb
+          .setLimit(3)
+          .setPage(1)
+          .sortBy({ field: 'id', order: 'DESC' })
+          .query();
+        return request(server)
+          .get('/companies')
+          .query(query)
+          .end((_, res) => {
+            expect(res.status).toBe(200);
+            expect(res.body.data.length).toBe(3);
+            expect(res.body.count).toBe(3);
+            expect(res.body.page).toBe(1);
+            done();
+          });
+      });
+    });
+  });
+
   describe('#basic crud', () => {
     let app: INestApplication;
     let server: any;
     let qb: RequestQueryBuilder;
     let service: CompaniesService;
-    let dbService: DatabaseService;
 
     @Crud({
-      model: { type: CompanyDto },
+      model: { type: Company },
     })
     @Controller('companies')
     class CompaniesController {
@@ -36,7 +182,7 @@ describe('#crud-sequelize', () => {
     }
 
     @Crud({
-      model: { type: UserDto },
+      model: { type: User },
       params: {
         companyId: {
           field: 'companyId',
@@ -66,18 +212,75 @@ describe('#crud-sequelize', () => {
       constructor(public service: UsersService) {}
     }
 
+    @Crud({
+      model: { type: User },
+      query: {
+        join: {
+          profile: {
+            eager: true,
+            required: true,
+          },
+        },
+      },
+    })
+    @Controller('/users2')
+    class UsersController2 {
+      constructor(public service: UsersService) {}
+    }
+
+    @Crud({
+      model: { type: User },
+      query: {
+        join: {
+          profile: {
+            eager: true,
+          },
+        },
+      },
+    })
+    @Controller('/users3')
+    class UsersController3 {
+      constructor(public service: UsersService) {}
+    }
+
+    @Crud({
+      model: { type: Device },
+      params: {
+        deviceKey: {
+          field: 'deviceKey',
+          type: 'uuid',
+          primary: true,
+        },
+      },
+      routes: {
+        createOneBase: {
+          returnShallow: true,
+        },
+      },
+    })
+    @Controller('devices')
+    class DevicesController {
+      constructor(public service: DevicesService) {}
+    }
+
     beforeAll(async () => {
       const fixture = await Test.createTestingModule({
-        imports: [DatabaseModule],
-        controllers: [CompaniesController, UsersController],
+        imports: [
+          SequelizeModule.forRoot({ ...config, logging: false }),
+          SequelizeModule.forFeature([Company, Project, User, UserProfile, Device]),
+        ],
+        controllers: [
+          CompaniesController,
+          UsersController,
+          UsersController2,
+          UsersController3,
+          DevicesController,
+        ],
         providers: [
           { provide: APP_FILTER, useClass: HttpExceptionFilter },
           CompaniesService,
           UsersService,
-          ...companiesProviders,
-          ...projectsProviders,
-          ...usersProviders,
-          DatabaseService,
+          DevicesService,
         ],
       }).compile();
 
@@ -86,7 +289,6 @@ describe('#crud-sequelize', () => {
 
       await app.init();
       server = app.getHttpServer();
-      dbService = app.get<DatabaseService>(DatabaseService);
     });
 
     beforeEach(() => {
@@ -94,7 +296,6 @@ describe('#crud-sequelize', () => {
     });
 
     afterAll(async () => {
-      await dbService.closeConnection();
       await app.close();
     });
 
@@ -212,6 +413,18 @@ describe('#crud-sequelize', () => {
             done();
           });
       });
+
+      it('should return an entity with its embedded entity properties', (done) => {
+        return request(server)
+          .get('/companies/1/users/1')
+          .end((_, res) => {
+            expect(res.status).toBe(200);
+            expect(res.body.id).toBe(1);
+            expect(res.body.name.first).toBe('firstname1');
+            expect(res.body.name.last).toBe('lastname1');
+            done();
+          });
+      });
     });
 
     describe('#createOneBase', () => {
@@ -239,9 +452,13 @@ describe('#crud-sequelize', () => {
           });
       });
       it('should return saved entity with param', (done) => {
-        const dto: UserDto = {
+        const dto: any = {
           email: 'test@test.com',
           isActive: true,
+          name: {
+            first: 'test',
+            last: 'last',
+          },
           profile: {
             name: 'testName',
           },
@@ -253,6 +470,18 @@ describe('#crud-sequelize', () => {
             expect(res.status).toBe(201);
             expect(res.body.id).toBeTruthy();
             expect(res.body.companyId).toBe(1);
+            done();
+          });
+      });
+      it('should return with `returnShallow`', (done) => {
+        const dto: any = { description: 'returnShallow is true' };
+        return request(server)
+          .post('/devices')
+          .send(dto)
+          .end((_, res) => {
+            expect(res.status).toBe(201);
+            expect(res.body.deviceKey).toBeTruthy();
+            expect(res.body.description).toBeTruthy();
             done();
           });
       });
@@ -319,7 +548,7 @@ describe('#crud-sequelize', () => {
       it('should return updated entity, 2', (done) => {
         const dto = { isActive: false, companyId: 5 };
         return request(server)
-          .patch('/companies/1/users/21')
+          .patch('/companies/1/users/22')
           .send(dto)
           .end((_, res) => {
             expect(res.status).toBe(200);
@@ -366,13 +595,28 @@ describe('#crud-sequelize', () => {
       });
       it('should return deleted entity', (done) => {
         return request(server)
-          .delete('/companies/1/users/21')
+          .delete('/companies/1/users/22')
           .end((_, res) => {
             expect(res.status).toBe(200);
-            expect(res.body.id).toBe(21);
+            expect(res.body.id).toBe(22);
             expect(res.body.companyId).toBe(1);
             done();
           });
+      });
+    });
+
+    describe('join options: required', () => {
+      const users2 = () => request(server).get('/users2/21');
+      const users3 = () => request(server).get('/users3/21');
+
+      it('should return status 404', async () => {
+        await users2().expect(404);
+      });
+
+      it('should return status 200', async () => {
+        const res = await users3().expect(200);
+        expect(res.body.id).toBe(21);
+        expect(res.body.profile).toBe(null);
       });
     });
   });

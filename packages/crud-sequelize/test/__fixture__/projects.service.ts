@@ -1,14 +1,12 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import { InjectModel } from '@nestjs/sequelize';
 
-import Project from '../../../../integration/crud-sequelize/projects/project.model';
 import { SequelizeCrudService } from '../../src';
+import { Project } from '../../../../integration/crud-sequelize/projects/project.model';
 
 @Injectable()
 export class ProjectsService extends SequelizeCrudService<Project> {
-  constructor(
-    @Inject('ProjectsRepository')
-    private readonly repo: Project & typeof Project,
-  ) {
-    super(repo);
+  constructor(@InjectModel(Project) project) {
+    super(project);
   }
 }
