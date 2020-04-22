@@ -18,7 +18,7 @@
     "test": "yarn s test",
     "pretest:coveralls": "yarn pretest",
     "test:coveralls": "yarn s test.coveralls",
-    "start:typeorm": "npx nodemon -w ./integration/crud-typeorm -e ts node_modules/.bin/ts-node integration/crud-typeorm/main.ts",
+    "start:typeorm": "npx nodemon -w ./integration/crud-typeorm -e ts node_modules/ts-node/dist/bin.js integration/crud-typeorm/main.ts",
     "db:sync:typeorm": "cd ./integration/crud-typeorm && npx ts-node -r tsconfig-paths/register ../../node_modules/typeorm/cli.js schema:sync -f=orm",
     "db:drop:typeorm": "cd ./integration/crud-typeorm && npx ts-node -r tsconfig-paths/register ../../node_modules/typeorm/cli.js schema:drop -f=orm",
     "db:seeds:typeorm": "cd ./integration/crud-typeorm && npx ts-node -r tsconfig-paths/register ../../node_modules/typeorm/cli.js migration:run -f=orm",
@@ -30,7 +30,8 @@
     "format": "npx pretty-quick --pattern \"packages/**/!(*.d).ts\"",
     "lint": "npx tslint 'packages/**/*.ts'",
     "cm": "npx git-cz",
-    "postinstall": "npx opencollective"
+    "postinstall": "npx opencollective",
+    "pub": "npx lerna publish --force-publish --no-verify-access"
   },
   "config": {
     "commitizen": {
