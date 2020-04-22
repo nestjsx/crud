@@ -16,15 +16,21 @@ import { HttpExceptionFilter } from '../../../integration/shared/https-exception
 import { CompaniesService } from './__fixture__/companies.service';
 import { UsersService } from './__fixture__/users.service';
 import { DevicesService } from './__fixture__/devices.service';
-import { Helper } from './helper';
+import { MigrationHelper } from './migration-helper';
 import { Sequelize } from 'sequelize';
 
 // tslint:disable:max-classes-per-file no-shadowed-variable
 describe('#crud-sequelize', () => {
-  const helper: Helper = new Helper(new Sequelize(config));
   beforeEach(async () => {
-    await helper.down();
-    await helper.up();
+    const helper = new MigrationHelper(
+      new Sequelize({ ...config, logging: !!process.env.SQL_LOG ? console.log : false }),
+    );
+    try {
+      await helper.down();
+      await helper.up();
+    } finally {
+      await helper.close();
+    }
   });
 
   describe('#basic crud using alwaysPaginate default respects global limit', () => {
@@ -71,14 +77,13 @@ describe('#crud-sequelize', () => {
     });
 
     describe('#getAllBase', () => {
-      it('should return an array of all entities', (done) => {
+      it('should return an array of all entities', async () => {
         return request(server)
           .get('/companies')
-          .end((_, res) => {
+          .expect((res) => {
             expect(res.status).toBe(200);
             expect(res.body.data.length).toBe(3);
             expect(res.body.page).toBe(1);
-            done();
           });
       });
     });
@@ -125,29 +130,27 @@ describe('#crud-sequelize', () => {
     });
 
     describe('#getAllBase', () => {
-      it('should return an array of all entities', (done) => {
+      it('should return an array of all entities', () => {
         return request(server)
           .get('/companies')
-          .end((_, res) => {
+          .expect((res) => {
             expect(res.status).toBe(200);
             expect(res.body.data.length).toBe(10);
             expect(res.body.page).toBe(1);
-            done();
           });
       });
-      it('should return an entities with limit', (done) => {
+      it('should return an entities with limit', () => {
         const query = qb.setLimit(5).query();
         return request(server)
           .get('/companies')
           .query(query)
-          .end((_, res) => {
+          .expect((res) => {
             expect(res.status).toBe(200);
             expect(res.body.data.length).toBe(5);
             expect(res.body.page).toBe(1);
-            done();
           });
       });
-      it('should return an entities with limit and page', (done) => {
+      it('should return an entities with limit and page', () => {
         const query = qb
           .setLimit(3)
           .setPage(1)
@@ -156,12 +159,11 @@ describe('#crud-sequelize', () => {
         return request(server)
           .get('/companies')
           .query(query)
-          .end((_, res) => {
+          .expect((res) => {
             expect(res.status).toBe(200);
             expect(res.body.data.length).toBe(3);
             expect(res.body.count).toBe(3);
             expect(res.body.page).toBe(1);
-            done();
           });
       });
     });
@@ -308,7 +310,7 @@ describe('#crud-sequelize', () => {
 
     describe('#findOne', () => {
       it('should return one entity', async () => {
-        const data = await service.findOne(1);
+        const data = await service.findOne({ where: { id: 1 } });
         expect(data.id).toBe(1);
       });
     });
@@ -321,123 +323,114 @@ describe('#crud-sequelize', () => {
     });
 
     describe('#getAllBase', () => {
-      it('should return an array of all entities', (done) => {
-        return request(server)
+      it('should return an array of all entities', async () => {
+        await request(server)
           .get('/companies')
-          .end((_, res) => {
+          .expect((res) => {
             expect(res.status).toBe(200);
             expect(res.body.length).toBe(10);
-            done();
           });
       });
-      it('should return an entities with limit', (done) => {
+      it('should return an entities with limit', async () => {
         const query = qb.setLimit(5).query();
-        return request(server)
+        await request(server)
           .get('/companies')
           .query(query)
-          .end((_, res) => {
+          .expect((res) => {
             expect(res.status).toBe(200);
             expect(res.body.length).toBe(5);
-            done();
           });
       });
-      it('should return an entities with limit and page', (done) => {
+      it('should return an entities with limit and page', async () => {
         const query = qb
           .setLimit(3)
           .setPage(1)
           .sortBy({ field: 'id', order: 'DESC' })
           .query();
-        return request(server)
+        await request(server)
           .get('/companies')
           .query(query)
-          .end((_, res) => {
+          .expect((res) => {
             expect(res.status).toBe(200);
             expect(res.body.data.length).toBe(3);
             expect(res.body.count).toBe(3);
             expect(res.body.total).toBe(10);
             expect(res.body.page).toBe(1);
             expect(res.body.pageCount).toBe(4);
-            done();
           });
       });
-      it('should return an entities with offset', (done) => {
+      it('should return an entities with offset', async () => {
         const query = qb.setOffset(3).query();
-        return request(server)
+        await request(server)
           .get('/companies')
           .query(query)
-          .end((_, res) => {
+          .expect((res) => {
             expect(res.status).toBe(200);
             expect(res.body.length).toBe(7);
-            done();
           });
       });
     });
 
     describe('#getOneBase', () => {
-      it('should return status 404', (done) => {
-        return request(server)
+      it('should return status 404', async () => {
+        await request(server)
           .get('/companies/333')
-          .end((_, res) => {
+          .expect((res) => {
             expect(res.status).toBe(404);
-            done();
           });
       });
-      it('should return an entity, 1', (done) => {
+      it('should return an entity, 1', () => {
         return request(server)
           .get('/companies/1')
-          .end((_, res) => {
+          .expect((res) => {
             expect(res.status).toBe(200);
             expect(res.body.id).toBe(1);
-            done();
           });
       });
-      it('should return an entity, 2', (done) => {
+      it('should return an entity, 2', () => {
         const query = qb.select(['domain']).query();
         return request(server)
           .get('/companies/1')
           .query(query)
-          .end((_, res) => {
+          .expect((res) => {
             expect(res.status).toBe(200);
             expect(res.body.id).toBe(1);
             expect(res.body.domain).toBeTruthy();
-            done();
           });
       });
-      it('should return an entity with and set cache', (done) => {
+      it('should return an entity with and set cache', () => {
         return request(server)
           .get('/companies/1/users/1')
-          .end((_, res) => {
+          .expect((res) => {
             expect(res.status).toBe(200);
             expect(res.body.id).toBe(1);
             expect(res.body.companyId).toBe(1);
-            done();
           });
       });
 
-      it('should return an entity with its embedded entity properties', (done) => {
+      // No embedded entity properties in sequelize
+      /*it('should return an entity with its embedded entity properties', () => {
         return request(server)
           .get('/companies/1/users/1')
-          .end((_, res) => {
+          .expect((res) => {
             expect(res.status).toBe(200);
             expect(res.body.id).toBe(1);
             expect(res.body.name.first).toBe('firstname1');
             expect(res.body.name.last).toBe('lastname1');
-            done();
           });
-      });
+      });*/
     });
 
     describe('#createOneBase', () => {
-      it('should return status 400', (done) => {
+      it('should return status 400', () => {
         return request(server)
           .post('/companies')
           .send('')
-          .end((_, res) => {
+          .expect((res) => {
             expect(res.status).toBe(400);
-            done();
           });
       });
-      it('should return saved entity', (done) => {
+      it('should return saved entity', () => {
         const dto = {
           name: 'test0',
           domain: 'test0',
@@ -445,13 +438,12 @@ describe('#crud-sequelize', () => {
         return request(server)
           .post('/companies')
           .send(dto)
-          .end((_, res) => {
+          .expect((res) => {
             expect(res.status).toBe(201);
             expect(res.body.id).toBeTruthy();
-            done();
           });
       });
-      it('should return saved entity with param', (done) => {
+      it('should return saved entity with param', () => {
         const dto: any = {
           email: 'test@test.com',
           isActive: true,
@@ -466,39 +458,36 @@ describe('#crud-sequelize', () => {
         return request(server)
           .post('/companies/1/users')
           .send(dto)
-          .end((_, res) => {
+          .expect((res) => {
             expect(res.status).toBe(201);
             expect(res.body.id).toBeTruthy();
             expect(res.body.companyId).toBe(1);
-            done();
           });
       });
-      it('should return with `returnShallow`', (done) => {
+      it('should return with `returnShallow`', () => {
         const dto: any = { description: 'returnShallow is true' };
         return request(server)
           .post('/devices')
           .send(dto)
-          .end((_, res) => {
+          .expect((res) => {
             expect(res.status).toBe(201);
             expect(res.body.deviceKey).toBeTruthy();
             expect(res.body.description).toBeTruthy();
-            done();
           });
       });
     });
 
     describe('#createManyBase', () => {
-      it('should return status 400', (done) => {
+      it('should return status 400', () => {
         const dto = { bulk: [] };
         return request(server)
           .post('/companies/bulk')
           .send(dto)
-          .end((_, res) => {
+          .expect((res) => {
             expect(res.status).toBe(400);
-            done();
           });
       });
-      it('should return created entities', (done) => {
+      it('should return created entities', () => {
         const dto = {
           bulk: [
             {
@@ -514,93 +503,85 @@ describe('#crud-sequelize', () => {
         return request(server)
           .post('/companies/bulk')
           .send(dto)
-          .end((_, res) => {
+          .expect((res) => {
             expect(res.status).toBe(201);
             expect(res.body[0].id).toBeTruthy();
             expect(res.body[1].id).toBeTruthy();
-            done();
           });
       });
     });
 
     describe('#updateOneBase', () => {
-      it('should return status 404', (done) => {
+      it('should return status 404', () => {
         const dto = { name: 'updated0' };
         return request(server)
           .patch('/companies/333')
           .send(dto)
-          .end((_, res) => {
+          .expect((res) => {
             expect(res.status).toBe(404);
-            done();
           });
       });
-      it('should return updated entity, 1', (done) => {
+      it('should return updated entity, 1', () => {
         const dto = { name: 'updated0' };
         return request(server)
           .patch('/companies/1')
           .send(dto)
-          .end((_, res) => {
+          .expect((res) => {
             expect(res.status).toBe(200);
             expect(res.body.name).toBe('updated0');
-            done();
           });
       });
-      it('should return updated entity, 2', (done) => {
+      it('should return updated entity, 2', () => {
         const dto = { isActive: false, companyId: 5 };
         return request(server)
-          .patch('/companies/1/users/22')
+          .patch('/companies/2/users/20')
           .send(dto)
-          .end((_, res) => {
+          .expect((res) => {
             expect(res.status).toBe(200);
             expect(res.body.isActive).toBe(false);
-            expect(res.body.companyId).toBe(1);
-            done();
+            expect(res.body.companyId).toBe(2);
           });
       });
     });
 
     describe('#replaceOneBase', () => {
-      it('should create entity', (done) => {
+      it('should create entity', () => {
         const dto = { name: 'updated0', domain: 'domain0' };
         return request(server)
           .put('/companies/333')
           .send(dto)
-          .end((_, res) => {
+          .expect((res) => {
             expect(res.status).toBe(200);
             expect(res.body.name).toBe('updated0');
-            done();
           });
       });
-      it('should return updated entity, 1', (done) => {
+      it('should return updated entity, 1', () => {
         const dto = { name: 'updated0' };
         return request(server)
           .put('/companies/1')
           .send(dto)
-          .end((_, res) => {
+          .expect((res) => {
             expect(res.status).toBe(200);
             expect(res.body.name).toBe('updated0');
-            done();
           });
       });
     });
 
     describe('#deleteOneBase', () => {
-      it('should return status 404', (done) => {
+      it('should return status 404', () => {
         return request(server)
           .delete('/companies/333')
-          .end((_, res) => {
+          .expect((res) => {
             expect(res.status).toBe(404);
-            done();
           });
       });
-      it('should return deleted entity', (done) => {
+      it('should return deleted entity', () => {
         return request(server)
-          .delete('/companies/1/users/22')
-          .end((_, res) => {
+          .delete('/companies/2/users/21')
+          .expect((res) => {
             expect(res.status).toBe(200);
-            expect(res.body.id).toBe(22);
-            expect(res.body.companyId).toBe(1);
-            done();
+            expect(res.body.id).toBe(21);
+            expect(res.body.companyId).toBe(2);
           });
       });
     });

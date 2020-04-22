@@ -13,16 +13,21 @@ import { UserProfile } from '../../../integration/crud-sequelize/users-profiles/
 import { HttpExceptionFilter } from '../../../integration/shared/https-exception.filter';
 import { Crud } from '../../crud/src/decorators/crud.decorator';
 import { UsersService } from './__fixture__/users.service';
-import { UserDto } from '../../../integration/crud-sequelize/users/user.dto';
-import { Helper } from './helper';
+import { MigrationHelper } from './migration-helper';
 import { Sequelize } from 'sequelize';
 
 // tslint:disable:max-classes-per-file
 describe('#crud-sequelize', () => {
-  const helper: Helper = new Helper(new Sequelize(config));
   beforeEach(async () => {
-    await helper.down();
-    await helper.up();
+    const helper = new MigrationHelper(
+      new Sequelize({ ...config, logging: !!process.env.SQL_LOG ? console.log : false }),
+    );
+    try {
+      await helper.down();
+      await helper.up();
+    } finally {
+      await helper.close();
+    }
   });
 
   describe('#params options', () => {
@@ -30,7 +35,7 @@ describe('#crud-sequelize', () => {
     let server: any;
 
     @Crud({
-      model: { type: UserDto },
+      model: { type: User },
       params: {
         companyId: {
           field: 'companyId',
@@ -124,15 +129,15 @@ describe('#crud-sequelize', () => {
       it('should return full entity', async () => {
         const dto = { isActive: false };
         const res = await request(server)
-          .patch('/companiesB/2/users/2')
+          .patch('/companiesB/1/users/2')
           .send(dto)
           .expect(200);
-        expect(res.body.company.id).toBe(2);
+        expect(res.body.company.id).toBe(1);
       });
       it('should return shallow entity', async () => {
         const dto = { isActive: false };
         const res = await request(server)
-          .patch('/companiesA/2/users/2')
+          .patch('/companiesA/1/users/2')
           .send(dto)
           .expect(200);
         expect(res.body.company).toBeUndefined();
@@ -149,25 +154,25 @@ describe('#crud-sequelize', () => {
         expect(res.body.companyId).toBe(2);
       });
       it('should not override params', async () => {
-        const dto = { isActive: false, companyId: 1 };
+        const dto = { isActive: false, companyId: 2 };
         const res = await request(server)
-          .put('/companiesB/2/users/4')
+          .put('/companiesB/1/users/4')
           .send(dto)
           .expect(200);
-        expect(res.body.companyId).toBe(2);
+        expect(res.body.companyId).toBe(1);
       });
       it('should return full entity', async () => {
         const dto = { isActive: false };
         const res = await request(server)
-          .put('/companiesB/2/users/4')
+          .put('/companiesB/1/users/4')
           .send(dto)
           .expect(200);
-        expect(res.body.company.id).toBe(2);
+        expect(res.body.company.id).toBe(1);
       });
       it('should return shallow entity', async () => {
         const dto = { isActive: false };
         const res = await request(server)
-          .put('/companiesA/2/users/4')
+          .put('/companiesA/1/users/4')
           .send(dto)
           .expect(200);
         expect(res.body.company).toBeUndefined();

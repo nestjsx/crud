@@ -18,14 +18,20 @@ import { Project } from '../../../integration/crud-sequelize/projects/project.mo
 import { HttpExceptionFilter } from '../../../integration/shared/https-exception.filter';
 import { UsersService } from './__fixture__/users.service';
 import { ProjectsService } from './__fixture__/projects.service';
-import { Helper } from './helper';
+import { MigrationHelper } from './migration-helper';
 import { Sequelize } from 'sequelize';
 
 describe('#crud-sequelize', () => {
-  const helper: Helper = new Helper(new Sequelize(config));
   beforeEach(async () => {
-    await helper.down();
-    await helper.up();
+    const helper = new MigrationHelper(
+      new Sequelize({ ...config, logging: !!process.env.SQL_LOG ? console.log : false }),
+    );
+    try {
+      await helper.down();
+      await helper.up();
+    } finally {
+      await helper.close();
+    }
   });
 
   describe('#CrudAuth', () => {
@@ -39,7 +45,7 @@ describe('#crud-sequelize', () => {
 
       async canActivate(ctx: ExecutionContext): Promise<boolean> {
         const req = ctx.switchToHttp().getRequest();
-        req[USER_REQUEST_KEY] = await this.usersService.findOne(1);
+        req[USER_REQUEST_KEY] = await this.usersService.findOne({ where: { id: 1 } });
         return true;
       }
     }
@@ -103,7 +109,7 @@ describe('#crud-sequelize', () => {
         controllers: [MeController, ProjectsController],
         providers: [
           { provide: APP_GUARD, useClass: AuthGuard },
-          //{ provide: APP_FILTER, useClass: HttpExceptionFilter },
+          { provide: APP_FILTER, useClass: HttpExceptionFilter },
           UsersService,
           ProjectsService,
         ],
@@ -134,22 +140,26 @@ describe('#crud-sequelize', () => {
             email: 'some@dot.com',
             isActive: false,
           })
-          .expect(200);
-        expect(res.body.id).toBe(1);
-        expect(res.body.email).toBe('1@email.com');
-        expect(res.body.isActive).toBe(false);
+          .expect((res) => {
+            expect(res.status).toBe(200);
+            expect(res.body.id).toBe(1);
+            expect(res.body.email).toBe('1@email.com');
+            expect(res.body.isActive).toBe(false);
+          });
       });
-      it('should update user with auth persist, 1', async () => {
+      it('should update user with auth persist, 2', async () => {
         const res = await server
           .patch('/me')
           .send({
             email: 'some@dot.com',
             isActive: true,
           })
-          .expect(200);
-        expect(res.body.id).toBe(1);
-        expect(res.body.email).toBe('1@email.com');
-        expect(res.body.isActive).toBe(true);
+          .expect((res) => {
+            expect(res.status).toBe(200);
+            expect(res.body.id).toBe(1);
+            expect(res.body.email).toBe('1@email.com');
+            expect(res.body.isActive).toBe(true);
+          });
       });
     });
 
@@ -170,10 +180,13 @@ describe('#crud-sequelize', () => {
 
     describe('#deleteOneBase', () => {
       it('should delete an entity with auth filter', async () => {
-        const res = await server.delete('/projects/21').expect(200);
+        await server.delete('/projects/1').expect(200);
       });
-      it('should throw an error with auth filter', async () => {
-        const res = await server.delete('/projects/20').expect(404);
+      it('should throw a 404 error with nonexisting project', async () => {
+        await server.delete('/projects/21').expect(404);
+      });
+      it('should throw a 404 error with company project not associated with user', async () => {
+        await server.delete('/projects/20').expect(404);
       });
     });
   });

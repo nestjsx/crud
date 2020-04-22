@@ -4,26 +4,42 @@ import {
   CrudRequestOptions,
   CrudService,
   GetManyDefaultResponse,
+  JoinOptions,
   QueryOptions,
 } from '@nestjsx/crud';
-import { ParsedRequestParams, QueryFilter } from '@nestjsx/crud-request';
+import {
+  ParsedRequestParams,
+  QueryFilter,
+  ComparisonOperator,
+} from '@nestjsx/crud-request';
 import {
   hasLength,
   isArrayFull,
-  isNil,
   isObject,
   isUndefined,
   objKeys,
+  isNil,
 } from '@nestjsx/util';
-import * as _ from 'lodash';
-import { Op } from 'sequelize';
+import { oO } from '@zmotivat0r/o0';
 import { Model } from 'sequelize-typescript';
+import * as Sequelize from 'sequelize';
+import * as _ from 'lodash';
+import { isArray } from 'util';
+import { classToPlain } from 'class-transformer';
 
-export class SequelizeCrudService<T extends Model<T>> extends CrudService<T> {
-  private entityColumns: string[];
-  private entityPrimaryColumns: string[];
-  private entityColumnsHash = {};
-  private entityRelationsHash = {};
+interface Relation {
+  type: string;
+  columns: string[];
+  referencedColumn: string;
+  name: string;
+  modelName: string;
+}
+
+export class SequelizeCrudService<T extends Model> extends CrudService<T> {
+  protected entityColumns: string[];
+  protected entityPrimaryColumns: string[];
+  protected entityColumnsHash: Record<string, any> = {};
+  protected entityRelationsHash: Record<string, Relation> = {};
 
   constructor(protected model: T & typeof Model) {
     super();
@@ -42,65 +58,12 @@ export class SequelizeCrudService<T extends Model<T>> extends CrudService<T> {
   public get count() {
     return this.model.count.bind(this.model);
   }
-  /**
-   * Create many
-   * @param req
-   * @param dto
-   */
-  public async createMany(req: CrudRequest, dto: CreateManyDto<T>): Promise<T[]> {
-    /* istanbul ignore if */
-    if (!isObject(dto) || !isArrayFull(dto.bulk)) {
-      this.throwBadRequestException(`Empty data. Nothing to save.`);
-    }
-
-    const bulk = dto.bulk
-      .map((one) => this.prepareEntityBeforeSave(one, req.parsed.paramsFilter))
-      .filter((d) => !isUndefined(d));
-
-    /* istanbul ignore if */
-    if (!hasLength(bulk)) {
-      this.throwBadRequestException(`Empty data. Nothing to save.`);
-    }
-
-    const created = await this.model.bulkCreate(bulk, { returning: true });
-    return created as T[];
-  }
-
-  async createOne(req: CrudRequest, dto: T): Promise<T> {
-    const entity = this.prepareEntityBeforeSave(dto, req.parsed.paramsFilter);
-    const obj = await this.model.create(entity);
-    return obj as T;
-  }
 
   /**
-   * Delete one
+   * Get many
    * @param req
    */
-  public async deleteOne(req: CrudRequest): Promise<void | T> {
-    const found = await this.getOneOrFail(req);
-    await this.model.destroy({
-      where: {
-        id: found.id,
-      },
-    });
-
-    /* istanbul ignore else */
-    if (req.options.routes.deleteOneBase.returnDeleted) {
-      return found;
-    }
-  }
-
-  public decidePagination(
-    parsed: ParsedRequestParams,
-    options: CrudRequestOptions,
-  ): boolean {
-    return (
-      (Number.isFinite(parsed.page) || Number.isFinite(parsed.offset)) &&
-      !!this.getTake(parsed, options.query)
-    );
-  }
-
-  async getMany(req: CrudRequest): Promise<GetManyDefaultResponse<T> | T[]> {
+  public async getMany(req: CrudRequest): Promise<GetManyDefaultResponse<T> | T[]> {
     const { parsed, options } = req;
     const query = this.createBuilder(parsed, options);
 
@@ -109,7 +72,7 @@ export class SequelizeCrudService<T extends Model<T>> extends CrudService<T> {
       return this.createPageInfo(
         data as T[],
         total,
-        this.getTake(query, options),
+        this.getTake(parsed, options.query),
         query.offset,
       );
     }
@@ -125,26 +88,59 @@ export class SequelizeCrudService<T extends Model<T>> extends CrudService<T> {
     return this.getOneOrFail(req);
   }
 
-  async replaceOne(req: CrudRequest, dto: T): Promise<T> {
-    /* istanbul ignore else */
-    if (
-      hasLength(req.parsed.paramsFilter) &&
-      !req.options.routes.updateOneBase.allowParamsOverride
-    ) {
-      for (const filter of req.parsed.paramsFilter) {
-        dto[filter.field] = filter.value;
+  /**
+   * Create one
+   * @param req
+   * @param dto
+   */
+  public async createOne(req: CrudRequest, dto: T): Promise<T> {
+    const { returnShallow } = req.options.routes.createOneBase;
+    const entity = this.prepareEntityBeforeSave(dto, req.parsed);
+
+    /* istanbul ignore if */
+    if (!entity) {
+      this.throwBadRequestException(`Empty data. Nothing to save.`);
+    }
+
+    const saved = await this.model.create(entity);
+
+    if (returnShallow) {
+      return saved as T;
+    } else {
+      const primaryParam = this.getPrimaryParam(req.options);
+
+      /* istanbul ignore if */
+      if (!primaryParam && /* istanbul ignore next */ isNil(saved[primaryParam])) {
+        return saved as T;
+      } else {
+        req.parsed.search = { [primaryParam]: saved[primaryParam] };
+        return this.getOneOrFail(req);
       }
     }
-    const found = await this.model.findByPk(dto.id);
-    if (found) {
-      found.set(dto);
-      return (await found.save()) as T;
-    } else {
-      // don't set id if this record is not found, let the db set it
-      delete dto.id;
-      const obj = this.model.build(dto);
-      return (await obj.save()) as T;
+  }
+
+  /**
+   * Create many
+   * @param req
+   * @param dto
+   */
+  public async createMany(req: CrudRequest, dto: CreateManyDto<T>): Promise<T[]> {
+    /* istanbul ignore if */
+    if (!isObject(dto) || !isArrayFull(dto.bulk)) {
+      this.throwBadRequestException(`Empty data. Nothing to save.`);
     }
+
+    const bulk = dto.bulk
+      .map((one) => this.prepareEntityBeforeSave(one, req.parsed))
+      .filter((d) => !isUndefined(d));
+
+    /* istanbul ignore if */
+    if (!hasLength(bulk)) {
+      this.throwBadRequestException(`Empty data. Nothing to save.`);
+    }
+
+    const created = await this.model.bulkCreate(bulk, { returning: true });
+    return created as T[];
   }
 
   /**
@@ -153,73 +149,108 @@ export class SequelizeCrudService<T extends Model<T>> extends CrudService<T> {
    * @param dto
    */
   public async updateOne(req: CrudRequest, dto: T): Promise<T> {
-    const found = await this.getOneOrFail(req);
-    /* istanbul ignore else */
-    if (
-      hasLength(req.parsed.paramsFilter) &&
-      !req.options.routes.updateOneBase.allowParamsOverride
-    ) {
-      for (const filter of req.parsed.paramsFilter) {
-        dto[filter.field] = filter.value;
-      }
+    const { allowParamsOverride, returnShallow } = req.options.routes.updateOneBase;
+    let tdto = this.transformDto(dto) as T;
+    const paramsFilters = this.getParamFilters(req.parsed);
+    const found = await this.getOneOrFail(req, returnShallow);
+    let toSave = !allowParamsOverride
+      ? { ...tdto, ...paramsFilters, ...req.parsed.authPersist }
+      : { ...tdto, ...req.parsed.authPersist };
+
+    // remove undefined fields
+    found.set(toSave);
+    const updated = await found.save();
+
+    if (returnShallow) {
+      return updated;
+    } else {
+      req.parsed.paramsFilter.forEach((filter) => {
+        filter.value = updated[filter.field];
+      });
+
+      return this.getOneOrFail(req);
     }
-    found.set(dto);
-    return found.save();
-  }
-
-  private async getOneOrFail(req: CrudRequest): Promise<T> {
-    const { parsed, options } = req;
-    const query = this.createBuilder(parsed, options);
-    const found = await this.model.findOne(query);
-    if (!found) {
-      this.throwNotFoundException(this.model.name);
-    }
-    return found as T;
-  }
-
-  private hasColumn(column: string): boolean {
-    return this.entityColumnsHash[column];
-  }
-
-  private hasRelation(column: string): boolean {
-    return this.entityRelationsHash[column];
-  }
-
-  private onInitMapEntityColumns() {
-    const columns = Object.keys(this.model.rawAttributes).map(
-      (key) => this.model.rawAttributes[key],
-    );
-    this.entityColumns = Object.keys(this.model.rawAttributes).map((column) => {
-      this.entityColumnsHash[column] = true;
-      return column;
-    });
-    this.entityPrimaryColumns = columns
-      .filter((column) => column.primaryKey)
-      .map((column) => column.field);
-  }
-
-  private prepareEntityBeforeSave(dto: T, paramsFilter: QueryFilter[]): T {
-    /* istanbul ignore if */
-    if (!isObject(dto)) {
-      return undefined;
-    }
-
-    if (hasLength(paramsFilter)) {
-      for (const filter of paramsFilter) {
-        dto[filter.field] = filter.value;
-      }
-    }
-
-    /* istanbul ignore if */
-    if (!hasLength(objKeys(dto))) {
-      return undefined;
-    }
-
-    return dto;
   }
 
   /**
-   * Create TypeOrm QueryBuilder
+   * Replace one
+   * @param req
+   * @param dto
+   */
+  public async replaceOne(req: CrudRequest, dto: T): Promise<T> {
+    const { allowParamsOverride, returnShallow } = req.options.routes.replaceOneBase;
+    let tdto = this.transformDto(dto) as T;
+    const paramsFilters = this.getParamFilters(req.parsed);
+    const [, found] = await oO(this.getOneOrFail(req, returnShallow));
+    let toSave = !allowParamsOverride
+      ? { ...tdto, ...paramsFilters, ...req.parsed.authPersist }
+      : { ...paramsFilters, ...tdto, ...req.parsed.authPersist };
+
+    let replaced: Model<T>;
+    if (found) {
+      found.set(toSave);
+      replaced = await found.save();
+    } else {
+      // don't set id if this record is not found, let the db set it
+      delete toSave.id;
+      const obj = this.model.build(toSave);
+      replaced = await obj.save();
+    }
+
+    if (returnShallow) {
+      return replaced as T;
+    } else {
+      const primaryParam = this.getPrimaryParam(req.options);
+
+      /* istanbul ignore if */
+      if (!primaryParam) {
+        return replaced as T;
+      }
+
+      req.parsed.search = { [primaryParam]: replaced[primaryParam] };
+      return this.getOneOrFail(req);
+    }
+  }
+
+  /**
+   * Delete one
+   * @param req
+   */
+  public async deleteOne(req: CrudRequest): Promise<void | T> {
+    const { returnDeleted } = req.options.routes.deleteOneBase;
+    const found = await this.getOneOrFail(req, returnDeleted);
+    const toReturn = returnDeleted ? found : undefined;
+    await found.destroy();
+
+    return toReturn;
+  }
+
+  public getParamFilters(parsed: CrudRequest['parsed']): Record<string, any> {
+    let filters = {};
+
+    /* istanbul ignore else */
+    if (hasLength(parsed.paramsFilter)) {
+      for (const filter of parsed.paramsFilter) {
+        filters[filter.field] = filter.value;
+      }
+    }
+
+    return filters;
+  }
+
+  public decidePagination(
+    parsed: ParsedRequestParams,
+    options: CrudRequestOptions,
+  ): boolean {
+    return (
+      options.query.alwaysPaginate ||
+      ((Number.isFinite(parsed.page) || Number.isFinite(parsed.offset)) &&
+        !!this.getTake(parsed, options.query))
+    );
+  }
+
+  /**
+   * Create Sequelize Query builder
    * @param parsed
    * @param options
    * @param many
@@ -228,13 +259,12 @@ export class SequelizeCrudService<T extends Model<T>> extends CrudService<T> {
     parsed: ParsedRequestParams,
     options: CrudRequestOptions,
     many = true,
-  ) {
+  ): Sequelize.FindOptions {
     // create query builder
-    const query = {
+    const query: Sequelize.FindOptions = {
       subQuery: false,
       where: {},
       attributes: [],
-      exclude: [],
       include: [],
       order: [],
       limit: null,
@@ -243,84 +273,83 @@ export class SequelizeCrudService<T extends Model<T>> extends CrudService<T> {
     // get select fields
     query.attributes = this.getSelect(parsed, options.query);
 
-    parsed.join.every((j) => this.validateJoin(j.field.split('.'), '', this.model));
+    // set joins
+    const joinOptions: JoinOptions = options.query.join || {};
+    const allowedJoins = objKeys(joinOptions);
 
-    query.include = this.createJoinObject(
-      this.mainJoins(
-        parsed.join
-          .map((j) => j.field)
-          .filter((j) => this.entityRelationsHash[j] !== null),
-      ),
-      '',
-      parsed.join,
-    );
+    let joinsArray: Sequelize.IncludeOptions[] = [];
+    if (hasLength(allowedJoins)) {
+      const eagerJoins: any = {};
 
-    if (isNil(parsed.search)) {
-      query.where = this.getDefaultSearchCondition(options, parsed);
-      const filters = [...parsed.filter];
-      const hasFilter = isArrayFull(filters);
-      const hasOr = isArrayFull(parsed.or);
-      const whereFilter = {
-        and: [],
-        or: [],
-      };
-      if (hasFilter && hasOr) {
-        whereFilter.and = filters.map((filter) => {
-          const { field, obj } = this.setAndWhere(filter);
-          return { [field]: obj };
-        });
-        whereFilter.or = parsed.or.map((filter) => {
-          const { field, obj } = this.setAndWhere(filter);
-          return { [field]: obj };
-        });
-        query.where[Op.or] = [
-          whereFilter.and.reduce((acc, item) => {
-            Object.keys(item).forEach((k) => {
-              // tslint:disable-next-line:prefer-conditional-expression
-              if (acc[k]) {
-                acc[k] = { ...acc[k], ...item[k] };
-              } else {
-                acc[k] = item[k];
-              }
+      for (let i = 0; i < allowedJoins.length; i++) {
+        /* istanbul ignore else */
+        if (joinOptions[allowedJoins[i]].eager) {
+          const cond = parsed.join.find((j) => j && j.field === allowedJoins[i]) || {
+            field: allowedJoins[i],
+          };
+          const associationName = cond.field;
+          const join = joinOptions[associationName];
+          const relation = this.findRelation(associationName);
+          if (relation) {
+            joinsArray.push({
+              association: associationName,
+              attributes:
+                !join || !isArrayFull(join.allow)
+                  ? Object.keys(relation.target.rawAttributes)
+                  : _.difference(join.allow, join.exclude),
+              ...(!join || !join.required ? {} : { required: true }),
+              ...(!join || !join.alias ? {} : { as: join.alias }),
             });
-            return acc;
-          }, {}),
-          whereFilter.or.reduce((acc, item) => {
-            Object.keys(item).forEach((k) => {
-              // tslint:disable-next-line:prefer-conditional-expression
-              if (acc[k]) {
-                acc[k] = { ...acc[k], ...item[k] };
-              } else {
-                acc[k] = item[k];
-              }
-            });
-            return acc;
-          }, {}),
-        ];
-      } else if (hasFilter) {
-        // tslint:disable-next-line:prefer-for-of
-        whereFilter.and = filters.map((filter) => {
-          const { field, obj } = this.setAndWhere(filter);
-          return { [field]: obj };
-        });
-        query.where[Op.and] = whereFilter.and;
-      } else if (hasOr) {
-        whereFilter.or = parsed.or.map((filter) => {
-          const { field, obj } = this.setAndWhere(filter);
-          return { [field]: obj };
-        });
-        query.where[Op.or] = whereFilter.or;
+          }
+          eagerJoins[allowedJoins[i]] = true;
+        }
       }
-    } else {
-      const defaultSearch = this.getDefaultSearchCondition(options, parsed);
-      query.where = Object.keys(defaultSearch).length
-        ? { ...defaultSearch, ...this.mapSearchObjectNullOperators(parsed.search) }
-        : this.mapSearchObjectNullOperators(parsed.search);
+
+      if (isArrayFull(parsed.join)) {
+        for (let i = 0; i < parsed.join.length; i++) {
+          /* istanbul ignore else */
+          if (!eagerJoins[parsed.join[i].field]) {
+            const associationName = parsed.join[i].field;
+            const join = joinOptions[associationName];
+            const relation = this.findRelation(associationName);
+            if (relation) {
+              joinsArray.push({
+                association: associationName,
+                attributes:
+                  !join || !isArrayFull(join.allow)
+                    ? Object.keys(relation.target.rawAttributes)
+                    : _.difference(join.allow, join.exclude),
+                ...(!join || !join.required ? {} : { required: true }),
+                ...(!join || !join.alias ? {} : { as: join.alias }),
+              });
+            }
+          }
+        }
+      }
     }
-    /* istanbul ignore else */
+
+    // parsed.join.every((j) => this.validateJoin(j.field.split('.'), '', this.model));
+
+    if (isArrayFull(joinsArray)) {
+      // convert nested joins
+      query.include = this.convertNestedInclusions(joinsArray);
+    }
+
+    // search
+    // populate the alias map
+    const aliases = {};
+    if (options && options.query && options.query.join) {
+      _.forEach(options.query.join, (join, association) => {
+        if (join.alias) {
+          aliases[join.alias] = association;
+        }
+      });
+    }
+    query.where = this.buildWhere(parsed.search, aliases);
+
     if (many) {
       // set sort (order by)
-      query.order = this.mapSort(parsed.sort, parsed.join.map((j) => j.field));
+      query.order = this.mapSort(parsed.sort, joinsArray.map((join) => join.association));
       // set take
       const take = this.getTake(parsed, options.query);
       /* istanbul ignore else */
@@ -338,92 +367,123 @@ export class SequelizeCrudService<T extends Model<T>> extends CrudService<T> {
     return query;
   }
 
-  private validateJoin(join, path, currentTarget) {
-    if (!join || !join.length || !currentTarget) {
-      return true;
-    }
-    const parent = join[0];
-    const newPath = path.length ? path + '.' + parent : parent;
-    const tmpTarget = currentTarget.associations[parent];
-    if (!this.entityRelationsHash[newPath]) {
-      this.entityRelationsHash[newPath] = tmpTarget
-        ? {
-            name: parent,
-            type: tmpTarget.associationType,
-            columns: Object.keys(tmpTarget.target.rawAttributes),
-            referencedColumn: tmpTarget.foreignKey,
-            modelName: tmpTarget.target.name,
-          }
-        : null;
-    }
-    join.shift();
-    return this.validateJoin(join, newPath, (tmpTarget || {}).target);
-  }
-
-  private mainJoins(basicJoins) {
-    if (!basicJoins.length) {
-      return basicJoins;
-    }
-    const groupedJoins = _.groupBy(
-      basicJoins.map((join) => join.split('.')),
-      (join) => join[0],
+  /**
+   * Convert a flat include array into array with nested includes
+   * @param include
+   */
+  protected convertNestedInclusions(
+    include: Sequelize.IncludeOptions[],
+  ): Sequelize.IncludeOptions[] {
+    let nestedInclusions = include.filter(
+      (item: Sequelize.IncludeOptions) => (item.association as string).indexOf('.') > -1,
     );
-    Object.keys(groupedJoins).map((key) => {
-      const value = groupedJoins[key]
-        .map((arr) => _.remove(arr, (join) => join !== key))
-        .filter((arr) => arr.length);
-      if (!value.length) {
-        groupedJoins[key] = [];
-        return [];
-      }
-      const preparedValue = _.concat(_.flatten(value.map((arr) => arr.join('.'))));
-      /* istanbul ignore next */
-      groupedJoins[key] = this.mainJoins(preparedValue) || [];
-    });
-    return groupedJoins;
-  }
-
-  private createJoinObject(joinObject, path, selects) {
-    return Object.keys(joinObject).map((key) => {
-      const newPath = `${path.length ? path + '.' : path}${key}`;
-      /* istanbul ignore next */
-      const tempSelect = _.find(selects, (s) => s.field === newPath) || [];
-      const temp = {
-        association: key,
-        include: [],
-        /* istanbul ignore next */
-        select: !_.isEmpty(tempSelect)
-          ? tempSelect.select
-          : /* istanbul ignore next */ [],
+    nestedInclusions = _.sortBy(
+      nestedInclusions,
+      (item) => (item.association as string).split('.').length,
+    );
+    const convertedInclusions: Sequelize.IncludeOptions[] = include.filter(
+      (item: Sequelize.IncludeOptions) =>
+        (item.association as string).indexOf('.') === -1,
+    );
+    nestedInclusions.forEach((include) => {
+      const names = (include.association as string).split('.');
+      // traverse the include chain to find the right inclusion
+      let parentInclude: Sequelize.IncludeOptions = {
+        include: convertedInclusions,
+        association: 'root',
       };
-      /* istanbul ignore else */
-      if (!Array.isArray(joinObject[key])) {
-        temp.include = this.createJoinObject(joinObject[key], newPath, selects);
+      let childInclude: Sequelize.IncludeOptions;
+      // ensure the include objects exist
+      for (let i = 0; i < names.length - 1; ++i) {
+        childInclude = parentInclude.include.find(
+          (item: Sequelize.IncludeOptions) => item.association === names[i],
+        ) as Sequelize.IncludeOptions;
+        if (!childInclude) {
+          // the parent entity of the nested include was not joined, ignore the nested include
+          parentInclude = null;
+          break;
+        }
+        if (!childInclude.include) {
+          childInclude.include = [];
+        }
+        parentInclude = childInclude;
       }
-      return temp;
+      if (parentInclude) {
+        parentInclude.include.push({
+          ...include,
+          association: _.last(names),
+        });
+      }
     });
+    return convertedInclusions;
   }
 
-  mapSort(sorts, joinsArray) {
-    const params = [];
+  protected buildWhere(
+    search: any,
+    aliases: Record<string, string>,
+    field = '',
+  ): Record<string, any> {
+    let where: any;
+    if (isArray(search)) {
+      where = search.map((item) => this.buildWhere(item, aliases));
+    } else if (isObject(search)) {
+      const keys = Object.keys(search);
+      const objects = keys.map((key) => {
+        if (this.isOperator(key)) {
+          const { obj } = this.mapOperatorsToQuery({
+            field,
+            operator: key as ComparisonOperator,
+            value: this.buildWhere(search[key], aliases, field),
+          });
+          return obj;
+        } else if (key === '$and') {
+          return { [Sequelize.Op.and]: this.buildWhere(search[key], aliases) };
+        } else if (key === '$or') {
+          return { [Sequelize.Op.or]: this.buildWhere(search[key], aliases) };
+        } else {
+          if (key.indexOf('.') > -1) {
+            // a key from a joined table
+            const normalized = key
+              .split('.')
+              .map((name) => aliases[name] || name)
+              .join('.');
+            return {
+              [`$${normalized}$`]: this.buildWhere(search[key], aliases, normalized),
+            };
+          }
+          return { [key]: this.buildWhere(search[key], aliases, key) };
+        }
+      });
+      where = Object.assign({}, ...objects);
+    } else {
+      // search is a value, just return it
+      where = search;
+    }
+    return where;
+  }
+
+  mapSort(sorts: { field: string; order: string }[], joinsArray) {
+    const params: any[] = [];
     sorts.forEach((sort) => {
       this.validateHasColumn(sort.field);
       if (sort.field.indexOf('.') === -1) {
         params.push([sort.field, sort.order]);
       } else {
-        const column = sort.field.split('.').pop();
-        const relation = sort.field.substr(0, sort.field.lastIndexOf('.'));
-        const entity = this.entityRelationsHash[relation];
+        const column: string = sort.field.split('.').pop();
+        const associationName = sort.field.substr(0, sort.field.lastIndexOf('.'));
+        const relation = this.findRelation(associationName);
         /* istanbul ignore else */
-        if (entity && joinsArray.indexOf(relation) !== -1) {
-          params.push([
-            ...relation.split('.').map((k) => ({
-              model: this.model.sequelize.models[this.entityRelationsHash[k].modelName],
-              as: this.entityRelationsHash[k].name,
-            })),
-            column,
-            sort.order,
-          ]);
+        if (relation && joinsArray.indexOf(associationName) !== -1) {
+          let names = [];
+          const modelList = associationName.split('.').map((k) => {
+            names.push(k);
+            const relation = this.findRelation(names.join('.'));
+            return {
+              model: relation.target,
+              as: relation.as,
+            };
+          });
+          params.push([...modelList, column, sort.order]);
         }
       }
     });
@@ -459,25 +519,17 @@ export class SequelizeCrudService<T extends Model<T>> extends CrudService<T> {
         );
   }
 
-  private setAndWhere(cond: QueryFilter) {
-    this.validateHasColumn(cond.field);
-    if (cond.field.indexOf('.') !== -1) {
-      cond.field = `$${cond.field}$`;
-    }
-    const { field, obj } = this.mapOperatorsToQuery(cond);
-    return { field, obj };
-  }
-
   private validateHasColumn(column: string) {
     if (column.indexOf('.') !== -1) {
       const nests = column.split('.');
-      let relation;
       column = nests[nests.length - 1];
-      relation = nests.slice(0, nests.length - 1).join('.');
-      if (!this.hasRelation(relation)) {
+      const associationName = nests.slice(0, nests.length - 1).join('.');
+
+      const relation = this.findRelation(associationName);
+      if (!relation) {
         this.throwBadRequestException(`Invalid relation name '${relation}'`);
       }
-      const noColumn = !this.entityRelationsHash[relation].columns.find(
+      const noColumn = !Object.keys(relation.target.rawAttributes).find(
         (o) => o === column,
       );
       if (noColumn) {
@@ -490,6 +542,72 @@ export class SequelizeCrudService<T extends Model<T>> extends CrudService<T> {
         this.throwBadRequestException(`Invalid column name '${column}'`);
       }
     }
+  }
+
+  protected async getOneOrFail(req: CrudRequest, shallow = false): Promise<T> {
+    const { parsed, options } = req;
+    const query = this.createBuilder(parsed, options);
+    if (shallow) {
+      query.include = undefined;
+    }
+    const found = await this.model.findOne(query);
+
+    if (!found) {
+      this.throwNotFoundException(this.model.name);
+    }
+
+    return found as T;
+  }
+
+  private hasColumn(column: string): boolean {
+    return !!this.model.rawAttributes[column];
+  }
+
+  findRelation(path) {
+    const names = path.split('.');
+    let association: Sequelize.Association;
+    let model: any = this.model;
+    for (let i = 0; i < names.length; ++i) {
+      if (model) {
+        association = model.associations[names[i]];
+        model = association ? association.target : undefined;
+      }
+    }
+
+    return association;
+  }
+
+  private onInitMapEntityColumns() {
+    const columns = Object.keys(this.model.rawAttributes).map(
+      (key) => this.model.rawAttributes[key],
+    );
+    this.entityColumns = Object.keys(this.model.rawAttributes).map((column) => {
+      this.entityColumnsHash[column] = true;
+      return column;
+    });
+    this.entityPrimaryColumns = columns
+      .filter((column) => column.primaryKey)
+      .map((column) => column.field);
+  }
+
+  protected prepareEntityBeforeSave(dto: T, parsed: CrudRequest['parsed']): T {
+    let obj = JSON.parse(JSON.stringify(dto));
+    /* istanbul ignore if */
+    if (!isObject(obj)) {
+      return undefined;
+    }
+
+    if (hasLength(parsed.paramsFilter)) {
+      for (const filter of parsed.paramsFilter) {
+        obj[filter.field] = filter.value;
+      }
+    }
+
+    /* istanbul ignore if */
+    if (!hasLength(objKeys(obj))) {
+      return undefined;
+    }
+    return Object.assign(obj, parsed.authPersist);
   }
 
   private onInitMapRelations() {
@@ -506,181 +624,258 @@ export class SequelizeCrudService<T extends Model<T>> extends CrudService<T> {
     this.entityRelationsHash = result;
   }
 
-  private mapOperatorsToQuery(cond: QueryFilter) {
+  get operators() {
+    return {
+      eq: true,
+      ne: true,
+      gt: true,
+      lt: true,
+      gte: true,
+      lte: true,
+      starts: true,
+      ends: true,
+      cont: true,
+      excl: true,
+      in: true,
+      notin: true,
+      isnull: true,
+      notnull: true,
+      between: true,
+      eqL: true,
+      neL: true,
+      gtL: true,
+      ltL: true,
+      gteL: true,
+      lteL: true,
+      startsL: true,
+      endsL: true,
+      contL: true,
+      exclL: true,
+      inL: true,
+      notinL: true,
+      isnullL: true,
+      notnullL: true,
+      betweenL: true,
+    };
+  }
+
+  isOperator(str: string): boolean {
+    return this.operators[str.replace('$', '')];
+  }
+
+  protected mapOperatorsToQuery(cond: QueryFilter) {
     let obj: {};
-    switch (cond.operator) {
+    let opKey = cond.operator.replace('$', '') as string;
+    switch (opKey) {
       case 'eq':
         obj = {
-          [Op.eq]: cond.value,
+          [Sequelize.Op.eq]: cond.value,
         };
         break;
 
       /* istanbul ignore next */
       case 'ne':
         obj = {
-          [Op.ne]: cond.value,
+          [Sequelize.Op.ne]: cond.value,
         };
         break;
 
       case 'gt':
         obj = {
-          [Op.gt]: cond.value,
+          [Sequelize.Op.gt]: cond.value,
         };
         break;
 
       case 'lt':
         obj = {
-          [Op.lt]: cond.value,
+          [Sequelize.Op.lt]: cond.value,
         };
         break;
 
       case 'gte':
         obj = {
-          [Op.gte]: cond.value,
+          [Sequelize.Op.gte]: cond.value,
         };
         break;
 
       case 'lte':
         obj = {
-          [Op.lte]: cond.value,
+          [Sequelize.Op.lte]: cond.value,
         };
         break;
 
       case 'starts':
         obj = {
-          [Op.like]: `${cond.value}%`,
+          [Sequelize.Op.like]: `${cond.value}%`,
         };
         break;
 
       case 'ends':
         obj = {
-          [Op.like]: `%${cond.value}`,
+          [Sequelize.Op.like]: `%${cond.value}`,
         };
         break;
 
       case 'cont':
         obj = {
-          [Op.like]: `%${cond.value}%`,
+          [Sequelize.Op.like]: `%${cond.value}%`,
         };
         break;
 
       case 'excl':
         obj = {
-          [Op.notLike]: `%${cond.value}%`,
+          [Sequelize.Op.notLike]: `%${cond.value}%`,
         };
         break;
 
       case 'in':
-        /* istanbul ignore if */
-        if (!Array.isArray(cond.value) || !cond.value.length) {
-          this.throwBadRequestException(`Invalid column '${cond.field}' value`);
-        }
+        this.checkFilterIsArray(cond);
         obj = {
-          [Op.in]: cond.value,
+          [Sequelize.Op.in]: cond.value,
         };
         break;
 
       case 'notin':
-        /* istanbul ignore if */
-        if (!Array.isArray(cond.value) || !cond.value.length) {
-          this.throwBadRequestException(`Invalid column '${cond.field}' value`);
-        }
+        this.checkFilterIsArray(cond);
         obj = {
-          [Op.notIn]: cond.value,
+          [Sequelize.Op.notIn]: cond.value,
         };
         break;
 
       case 'isnull':
         obj = {
-          [Op.is]: null,
+          [Sequelize.Op.is]: null,
         };
         break;
 
       case 'notnull':
         obj = {
-          [Op.not]: null,
+          [Sequelize.Op.not]: null,
         };
         break;
 
       case 'between':
-        /* istanbul ignore if */
-        if (!Array.isArray(cond.value) || !cond.value.length || cond.value.length !== 2) {
-          this.throwBadRequestException(`Invalid column '${cond.field}' value`);
-        }
+        this.checkFilterIsArray(cond);
         obj = {
-          [Op.between]: cond.value,
+          [Sequelize.Op.between]: cond.value,
+        };
+        break;
+      // case insensitive
+      case 'eqL':
+        obj = {
+          [Sequelize.Op.and]: [
+            Sequelize.where(
+              Sequelize.fn('lower', Sequelize.col(cond.field)),
+              Sequelize.fn('lower', cond.value),
+            ),
+          ],
+        };
+        break;
+
+      case 'neL':
+        obj = {
+          [Sequelize.Op.and]: [
+            Sequelize.where(
+              Sequelize.fn('lower', Sequelize.col(cond.field)),
+              '!=',
+              Sequelize.fn('lower', cond.value),
+            ),
+          ],
+        };
+        break;
+
+      case 'startsL':
+        obj = {
+          [Sequelize.Op.and]: [
+            Sequelize.where(
+              Sequelize.fn('lower', Sequelize.col(cond.field)),
+              'like',
+              Sequelize.fn('lower', `${cond.value}%`),
+            ),
+          ],
+        };
+        break;
+
+      case 'endsL':
+        obj = {
+          [Sequelize.Op.and]: [
+            Sequelize.where(
+              Sequelize.fn('lower', Sequelize.col(cond.field)),
+              'like',
+              Sequelize.fn('lower', `%${cond.value}`),
+            ),
+          ],
+        };
+        break;
+
+      case 'contL':
+        obj = {
+          [Sequelize.Op.and]: [
+            Sequelize.where(
+              Sequelize.fn('lower', Sequelize.col(cond.field)),
+              'like',
+              Sequelize.fn('lower', `%${cond.value}%`),
+            ),
+          ],
+        };
+        break;
+
+      case 'exclL':
+        obj = {
+          [Sequelize.Op.and]: [
+            Sequelize.where(
+              Sequelize.fn('lower', Sequelize.col(cond.field)),
+              'not like',
+              Sequelize.fn('lower', `%${cond.value}%`),
+            ),
+          ],
+        };
+        break;
+
+      case 'inL':
+        this.checkFilterIsArray(cond);
+        obj = {
+          [Sequelize.Op.and]: [
+            Sequelize.where(Sequelize.fn('lower', Sequelize.col(cond.field)), 'in', {
+              [Sequelize.Op.in]: cond.value.map((value) => value.toLowerCase()),
+            }),
+          ],
+        };
+        break;
+
+      case 'notinL':
+        this.checkFilterIsArray(cond);
+        obj = {
+          [Sequelize.Op.and]: [
+            Sequelize.where(Sequelize.fn('lower', Sequelize.col(cond.field)), 'not in', {
+              [Sequelize.Op.notIn]: cond.value.map((value) => value.toLowerCase()),
+            }),
+          ],
         };
         break;
 
       /* istanbul ignore next */
       default:
         obj = {
-          [Op.eq]: cond.value,
+          [Sequelize.Op.eq]: cond.value,
         };
         break;
     }
     return { field: cond.field, obj };
   }
 
-  getSkip(query, take) {
-    return query.page && take
-      ? take * (query.page - 1)
-      : query.offset
-      ? query.offset
-      : null;
-  }
-
-  getTake(query, options) {
-    if (query.limit) {
-      return options.maxLimit
-        ? query.limit <= options.maxLimit
-          ? query.limit
-          : options.maxLimit
-        : query.limit;
-    }
-    if (options.limit) {
-      return options.maxLimit
-        ? /* istanbul ignore next */
-          options.limit <= options.maxLimit
-          ? options.limit
-          : options.maxLimit
-        : options.limit;
-    }
-    return options.maxLimit ? options.maxLimit : null;
-  }
-
-  private getDefaultSearchCondition(
-    options: CrudRequestOptions,
-    parsed: ParsedRequestParams,
-  ): any[] {
-    const filter = this.queryFilterToSearch(options.query.filter as QueryFilter[]);
-    const paramsFilter = this.queryFilterToSearch(parsed.paramsFilter);
-
-    return { ...filter, ...paramsFilter };
-  }
-
-  private queryFilterToSearch(filter: QueryFilter[]): any {
-    const query = {};
-    if (isArrayFull(filter)) {
-      filter.forEach((item) => {
-        query[item.field] = { [Op[item.operator]]: item.value };
-      });
-      return query;
-    } else if (isObject(filter)) {
-      return filter;
-    } else {
-      return {};
+  private checkFilterIsArray(cond: QueryFilter, withLength?: boolean) {
+    /* istanbul ignore if */
+    if (
+      !Array.isArray(cond.value) ||
+      !cond.value.length ||
+      (!isNil(withLength) ? withLength : false)
+    ) {
+      this.throwBadRequestException(`Invalid column '${cond.field}' value`);
     }
   }
 
-  private mapSearchObjectNullOperators(search) {
-    let searchString = JSON.stringify(search);
-    searchString = this.replaceAll(searchString, '"$isnull":true', '"$is":null');
-    searchString = this.replaceAll(searchString, '"$notnull":true', '"$ne":null');
-    return JSON.parse(searchString);
-  }
-
-  private replaceAll(target, search, replacement) {
-    return target.split(search).join(replacement);
+  private transformDto(dto: T) {
+    return JSON.parse(JSON.stringify(dto instanceof Model ? classToPlain(dto) : dto));
   }
 }

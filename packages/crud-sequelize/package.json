@@ -31,20 +31,34 @@
     "backend",
     "frameworks"
   ],
-  "authors": [{
-    "name": "Hisham J. Shikha",
-    "email": "hishamshikha96@gmail.com"
-  }, {
-    "name": "Hani Ghazi",
-    "email": "hani1993ghazi@gmail.com"
-  }, {
-    "name": "Sami Sammour",
-    "email": "samisammour@gmail.com"
-  }],
+  "authors": [
+    {
+      "name": "Hisham J. Shikha",
+      "email": "hishamshikha96@gmail.com"
+    },
+    {
+      "name": "Hani Ghazi",
+      "email": "hani1993ghazi@gmail.com"
+    },
+    {
+      "name": "Sami Sammour",
+      "email": "samisammour@gmail.com"
+    }
+  ],
   "scripts": {
     "build": "npx tsc -b"
   },
   "dependencies": {
-    "lodash": "^4.17.15"
+    "@nestjs/sequelize": "^0.1.0",
+    "@types/sequelize": "^4.28.4",
+    "jest": "^25.4.0",
+    "lodash": "^4.17.15",
+    "sequelize": "^5.21.5",
+    "sequelize-typescript": "^1.1.0"
+  },
+  "devDependencies": {
+    "@types/umzug": "^2.2.3",
+    "sequelize-cli": "^5.5.1",
+    "umzug": "^2.3.0"
   }
 }

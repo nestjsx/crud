@@ -1,23 +1,32 @@
 import { Controller } from '@nestjs/common';
-import { ApiUseTags } from '@nestjs/swagger';
+import { ApiTags } from '@nestjs/swagger';
 import { Crud } from '@nestjsx/crud';
 
 import { CompaniesService } from './companies.service';
-import { CompanyDto } from './company.dto';
+import { dto } from './dto';
+import { serialize } from './response';
+import { Company } from './company.model';
 
 @Crud({
   model: {
-    type: CompanyDto,
+    type: Company,
+  },
+  dto,
+  serialize,
+  routes: {
+    deleteOneBase: {
+      returnDeleted: false,
+    },
   },
   query: {
+    alwaysPaginate: true,
     join: {
       users: {},
       projects: {},
     },
   },
-  validation: false
 })
-@ApiUseTags('companies')
+@ApiTags('companies')
 @Controller('companies')
 export class CompaniesController {
   constructor(public service: CompaniesService) {}

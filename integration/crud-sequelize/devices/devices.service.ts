@@ -2,11 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { SequelizeCrudService } from '@nestjsx/crud-sequelize';
 
-import { Project } from './project.model';
+import { Device } from './device.model';
 
 @Injectable()
-export class ProjectsService extends SequelizeCrudService<Project> {
-  constructor(@InjectModel(Project) repo) {
+export class DevicesService extends SequelizeCrudService<Device> {
+  constructor(@InjectModel(Device) repo) {
     super(repo);
   }
 }

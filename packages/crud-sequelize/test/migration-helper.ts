@@ -1,6 +1,6 @@
 import Umzug = require('umzug');
 import { Sequelize } from 'sequelize';
-export class Helper {
+export class MigrationHelper {
   umzug: Umzug.Umzug;
   constructor(private readonly sequelize: Sequelize) {
     this.umzug = new Umzug({
@@ -38,5 +38,9 @@ export class Helper {
   async down(): Promise<Umzug.Migration[]> {
     const migrations = await this.umzug.down({ to: 0 });
     return migrations;
+  }
+
+  close() {
+    return this.sequelize.close();
   }
 }
