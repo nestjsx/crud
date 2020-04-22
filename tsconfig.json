@@ -8,6 +8,7 @@
     "noLib": false,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
+    "esModuleInterop": true,
     "target": "es2018",
     "sourceMap": true,
     "allowJs": false,
@@ -26,12 +27,5 @@
       "@nestjsx/crud-sequelize/*": ["crud-sequelize/src/*"],
       "@nestjsx/util/*": ["util/src/*"]
     }
-  },
-  "references": [
-    { "path": "crud" },
-    { "path": "crud-typeorm" },
-    { "path": "crud-request" },
-    { "path": "crud-sequelize" },
-    { "path": "util" }
-  ]
+  }
 }
