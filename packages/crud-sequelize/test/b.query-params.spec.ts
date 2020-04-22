@@ -69,6 +69,7 @@ describe('#crud-sequelize', () => {
           company: {
             eager: true,
             persist: ['id'],
+            allow: ['id'],
             exclude: ['updatedAt', 'createdAt'],
           },
           users: {},
@@ -144,6 +145,19 @@ describe('#crud-sequelize', () => {
       constructor(public service: UsersService) {}
     }
 
+    @Crud({
+      model: { type: User },
+      query: {
+        join: {
+          profile: { required: true },
+        },
+      },
+    })
+    @Controller('users3')
+    class UsersController3 {
+      constructor(public service: UsersService) {}
+    }
+
     beforeAll(async () => {
       const fixture = await Test.createTestingModule({
         imports: [
@@ -158,6 +172,7 @@ describe('#crud-sequelize', () => {
           ProjectsController4,
           UsersController,
           UsersController2,
+          UsersController3,
         ],
         providers: [
           { provide: APP_FILTER, useClass: HttpExceptionFilter },
@@ -328,6 +343,23 @@ describe('#crud-sequelize', () => {
             expect(res.body.users).toBeDefined();
             expect(res.body.users.length).not.toBe(0);
           });
+      });
+      it('should return 200 for non-eager required join', () => {
+        const query = qb.setJoin({ field: 'profile' }).query();
+        return request(server)
+          .get('/users3/20')
+          .query(query)
+          .expect((res) => {
+            expect(res.body.profile).toBeDefined();
+          })
+          .expect(200);
+      });
+      it('should return 404 for non-eager required join', () => {
+        const query = qb.setJoin({ field: 'profile' }).query();
+        return request(server)
+          .get('/users3/21')
+          .query(query)
+          .expect(404);
       });
     });
 
@@ -571,6 +603,69 @@ describe('#crud-sequelize', () => {
         expect(res.body[0].company.projects[1].id).toBeLessThan(
           res.body[0].company.projects[0].id,
         );
+      });
+
+      it('should throw 400 if SQL injection has been detected', () => {
+        const query = qb
+          .sortBy({
+            field: ' ASC; SELECT CAST( version() AS INTEGER); --',
+            order: 'DESC',
+          })
+          .query();
+
+        return request(server)
+          .get('/companies')
+          .query(query)
+          .expect((res) => {
+            expect(res.status).toBe(400);
+          });
+      });
+
+      it('should throw 400 if column is not found, 1', () => {
+        const query = qb
+          .sortBy({
+            field: 'nonexistingfield',
+            order: 'DESC',
+          })
+          .query();
+
+        return request(server)
+          .get('/companies')
+          .query(query)
+          .expect((res) => {
+            expect(res.status).toBe(400);
+          });
+      });
+      it('should throw 400 if column is not found, 2', () => {
+        const query = qb
+          .sortBy({
+            field: 'nonexistingtrelation.nonexistingfield',
+            order: 'DESC',
+          })
+          .query();
+
+        return request(server)
+          .get('/companies')
+          .query(query)
+          .expect((res) => {
+            expect(res.status).toBe(400);
+          });
+      });
+      it('should throw 400 if column is not found, 3', () => {
+        const query = qb
+          .sortBy({
+            field: 'users.nonexistingfield',
+            order: 'DESC',
+          })
+          .setJoin({ field: 'users' })
+          .query();
+
+        return request(server)
+          .get('/companies')
+          .query(query)
+          .expect((res) => {
+            expect(res.status).toBe(400);
+          });
       });
     });
 

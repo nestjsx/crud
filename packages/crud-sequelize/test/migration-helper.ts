@@ -10,10 +10,10 @@ export class MigrationHelper {
         params: [
           this.sequelize.getQueryInterface(),
           this.sequelize.constructor, // DataTypes
-          // eslint-disable-next-line func-names
+          /* istanbul ignore next */
           function() {
             throw new Error(
-              'Migration tried to use old style "done" callback. Please upgrade to "umzug" and return a promise instead.',
+              'Migration tried to use old style "done" callback. Please return a promise instead.',
             );
           },
         ],
@@ -22,7 +22,9 @@ export class MigrationHelper {
           `${__dirname}/../../../integration/crud-sequelize/migrations`,
         pattern: /\.js$/,
       },
-      logging: !!process.env.SQL_LOG ? console.log : false,
+      logging: !!process.env.SQL_LOG
+        ? /* istanbul ignore next */ console.log
+        : /* istanbul ignore next */ false,
     });
     /*this.umzug.on('migrating', (name) => console.log('migrating', name));
     this.umzug.on('migrated', (name) => console.log('migrated', name));

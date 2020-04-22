@@ -11,6 +11,7 @@ import {
   ParsedRequestParams,
   QueryFilter,
   ComparisonOperator,
+  QueryJoin,
 } from '@nestjsx/crud-request';
 import {
   hasLength,
@@ -287,19 +288,10 @@ export class SequelizeCrudService<T extends Model> extends CrudService<T> {
           const cond = parsed.join.find((j) => j && j.field === allowedJoins[i]) || {
             field: allowedJoins[i],
           };
-          const associationName = cond.field;
-          const join = joinOptions[associationName];
-          const relation = this.findRelation(associationName);
-          if (relation) {
-            joinsArray.push({
-              association: associationName,
-              attributes:
-                !join || !isArrayFull(join.allow)
-                  ? Object.keys(relation.target.rawAttributes)
-                  : _.difference(join.allow, join.exclude),
-              ...(!join || !join.required ? {} : { required: true }),
-              ...(!join || !join.alias ? {} : { as: join.alias }),
-            });
+          const include = this.createInclude(cond, joinOptions);
+          /* istanbul ignore else */
+          if (include) {
+            joinsArray.push(include);
           }
           eagerJoins[allowedJoins[i]] = true;
         }
@@ -309,26 +301,14 @@ export class SequelizeCrudService<T extends Model> extends CrudService<T> {
         for (let i = 0; i < parsed.join.length; i++) {
           /* istanbul ignore else */
           if (!eagerJoins[parsed.join[i].field]) {
-            const associationName = parsed.join[i].field;
-            const join = joinOptions[associationName];
-            const relation = this.findRelation(associationName);
-            if (relation) {
-              joinsArray.push({
-                association: associationName,
-                attributes:
-                  !join || !isArrayFull(join.allow)
-                    ? Object.keys(relation.target.rawAttributes)
-                    : _.difference(join.allow, join.exclude),
-                ...(!join || !join.required ? {} : { required: true }),
-                ...(!join || !join.alias ? {} : { as: join.alias }),
-              });
+            const include = this.createInclude(parsed.join[i], joinOptions);
+            if (include) {
+              joinsArray.push(include);
             }
           }
         }
       }
     }
-
-    // parsed.join.every((j) => this.validateJoin(j.field.split('.'), '', this.model));
 
     if (isArrayFull(joinsArray)) {
       // convert nested joins
@@ -347,6 +327,7 @@ export class SequelizeCrudService<T extends Model> extends CrudService<T> {
     }
     query.where = this.buildWhere(parsed.search, aliases);
 
+    /* istanbul ignore else */
     if (many) {
       // set sort (order by)
       query.order = this.mapSort(parsed.sort, joinsArray.map((join) => join.association));
@@ -398,16 +379,19 @@ export class SequelizeCrudService<T extends Model> extends CrudService<T> {
         childInclude = parentInclude.include.find(
           (item: Sequelize.IncludeOptions) => item.association === names[i],
         ) as Sequelize.IncludeOptions;
+        /* istanbul ignore if */
         if (!childInclude) {
           // the parent entity of the nested include was not joined, ignore the nested include
           parentInclude = null;
           break;
         }
+        /* istanbul ignore else */
         if (!childInclude.include) {
           childInclude.include = [];
         }
         parentInclude = childInclude;
       }
+      /* istanbul ignore else */
       if (parentInclude) {
         parentInclude.include.push({
           ...include,
@@ -519,6 +503,51 @@ export class SequelizeCrudService<T extends Model> extends CrudService<T> {
         );
   }
 
+  protected createInclude(
+    cond: QueryJoin,
+    joinOptions: JoinOptions,
+  ): Sequelize.IncludeOptions | undefined {
+    /* istanbul ignore else */
+    if (cond.field && joinOptions[cond.field]) {
+      const relation = this.findRelation(cond.field);
+      /* istanbul ignore if */
+      if (!relation) {
+        return;
+      }
+      const options = joinOptions[cond.field];
+      const allowed = this.getAllowedColumns(
+        Object.keys(relation.target.rawAttributes),
+        options,
+      );
+
+      /* istanbul ignore if */
+      if (!allowed.length) {
+        return;
+      }
+
+      const columns =
+        !cond.select || !cond.select.length
+          ? allowed
+          : cond.select.filter((col) => allowed.some((a) => a === col));
+
+      const attributes = [
+        ..._.map(relation.target.rawAttributes, (v) => v)
+          .filter((column) => column.primaryKey)
+          .map((column) => column.field),
+        ...(options.persist && options.persist.length ? options.persist : []),
+        ...columns,
+      ];
+      return {
+        association: cond.field,
+        attributes,
+        ...(!options || !options.required ? {} : { required: true }),
+        ...(!options || !options.alias ? {} : { as: options.alias }),
+      };
+    }
+
+    return;
+  }
+
   private validateHasColumn(column: string) {
     if (column.indexOf('.') !== -1) {
       const nests = column.split('.');
@@ -568,6 +597,7 @@ export class SequelizeCrudService<T extends Model> extends CrudService<T> {
     let association: Sequelize.Association;
     let model: any = this.model;
     for (let i = 0; i < names.length; ++i) {
+      /* istanbul ignore else */
       if (model) {
         association = model.associations[names[i]];
         model = association ? association.target : undefined;
@@ -869,7 +899,7 @@ export class SequelizeCrudService<T extends Model> extends CrudService<T> {
     if (
       !Array.isArray(cond.value) ||
       !cond.value.length ||
-      (!isNil(withLength) ? withLength : false)
+      (!isNil(withLength) ? /* istanbul ignore next */ withLength : false)
     ) {
       this.throwBadRequestException(`Invalid column '${cond.field}' value`);
     }
