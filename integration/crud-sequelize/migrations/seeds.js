@@ -15,7 +15,7 @@ module.exports = {
         { name: 'Name8', domain: 'Domain8', created_at: new Date(), updated_at: new Date() },
         { name: 'Name9', domain: 'Domain9', created_at: new Date(), updated_at: new Date() },
         { name: 'Name10', domain: 'Domain10', created_at: new Date(), updated_at: new Date() }
-      ]);
+      ], { transaction });
       await queryInterface.bulkInsert('projects', [
         { name: 'Project1', description: 'Description1', is_active: true, company_id: 1, created_at: new Date(), updated_at: new Date() },
         { name: 'Project2', description: 'Description2', is_active: true, company_id: 1, created_at: new Date(), updated_at: new Date() },
