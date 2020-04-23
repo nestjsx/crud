@@ -23,8 +23,8 @@ import {
 } from '@nestjsx/util';
 import { oO } from '@zmotivat0r/o0';
 import { Model } from 'sequelize-typescript';
-import * as Sequelize from 'sequelize';
-import * as _ from 'lodash';
+import Sequelize from 'sequelize';
+import _ from 'lodash';
 import { isArray } from 'util';
 import { classToPlain } from 'class-transformer';
 

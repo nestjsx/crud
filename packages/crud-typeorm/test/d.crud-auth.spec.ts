@@ -10,7 +10,7 @@ import { Test } from '@nestjs/testing';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { Crud, CrudAuth } from '@nestjsx/crud';
-import * as request from 'supertest';
+import request from 'supertest';
 import { withCache } from '../../../integration/crud-typeorm/orm.config';
 import { User } from '../../../integration/crud-typeorm/users';
 import { UserProfile } from '../../../integration/crud-typeorm/users-profiles';
