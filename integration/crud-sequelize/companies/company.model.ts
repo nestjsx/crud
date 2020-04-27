@@ -1,30 +1,40 @@
-import {
-  AllowNull,
-  Column,
-  HasMany,
-  Model,
-  Table,
-  Unique
-} from 'sequelize-typescript';
-import Project from '../projects/project.model';
-import User from '../users/user.model';
+import { CrudValidationGroups } from '@nestjsx/crud';
+import { Table, Column, AllowNull, Length, DataType, Unique, HasMany } from 'sequelize-typescript';
 
+import { BaseEntity } from '../base-entity';
+import { User } from '../users/user.model';
+import { Project } from '../projects/project.model';
+import { Exclude, Expose } from 'class-transformer';
+
+@Exclude()
 @Table({})
-export default class Company extends Model<Company> {
+export class Company extends BaseEntity {
+  @Expose()
   @AllowNull(false)
-  @Column
+  @Length({ min: 1, max: 100 })
+  @Column({ type: DataType.STRING })
   name: string;
 
+  @Expose()
+  @AllowNull(false)
+  @Length({ min: 1, max: 100 })
   @Unique
-  @Column
+  @Column({ type: DataType.STRING })
   domain: string;
 
-  @Column
+  @Expose()
+  @AllowNull(true)
+  @Column({ type: DataType.TEXT, defaultValue: null })
   description: string;
 
-  @HasMany(() => User, 'companyId')
+  /**
+   * Relations
+   */
+  @Expose()
+  @HasMany(() => User, { foreignKey: 'companyId', onDelete: 'CASCADE' })
   users: User[];
 
-  @HasMany(() => Project, 'companyId')
+  @Expose()
+  @HasMany(() => Project, { foreignKey: 'companyId', onDelete: 'CASCADE' })
   projects: Project[];
 }

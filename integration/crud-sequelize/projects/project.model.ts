@@ -1,24 +1,46 @@
-import { AllowNull, BelongsTo, BelongsToMany, Column, Model, Table, Unique } from 'sequelize-typescript';
-import Company from '../companies/company.model';
-import UserProject from '../users/user-project.model';
-import User from '../users/user.model';
+import { CrudValidationGroups } from '@nestjsx/crud';
 
+import { BaseEntity } from '../base-entity';
+import { Company } from '../companies/company.model';
+import { User } from '../users/user.model';
+import { UserProject } from './userproject.model';
+import { Table, Column, DataType, AllowNull, HasMany, BelongsToMany, BelongsTo } from 'sequelize-typescript';
+import { Expose, Exclude } from 'class-transformer';
+
+@Exclude()
 @Table({})
-export default class Project extends Model<Project> {
-  @Unique
-  @AllowNull(false)
-  @Column
-  name?: string;
+export class Project extends BaseEntity {
+  @Expose()
+  @Column({ type: DataType.STRING, unique: true })
+  name: string;
 
-  @Column
-  description?: string;
+  @Expose()
+  @AllowNull(true)
+  @Column({ type: DataType.TEXT })
+  description: string;
 
-  @Column
-  isActive?: boolean;
+  @Expose()
+  @Column({ type: DataType.BOOLEAN, defaultValue: true })
+  isActive: boolean;
 
+  @Expose()
+  @AllowNull(true)
+  @Column({ type: DataType.INTEGER })
+  companyId: number;
+
+  /**
+   * Relations
+   */
+
+  @Expose()
   @BelongsTo(() => Company, 'companyId')
   company: Company;
 
+  @Expose()
   @BelongsToMany(() => User, () => UserProject)
   users: User[];
+
+  @Expose()
+  @HasMany(() => UserProject, { foreignKey: 'projectId', onDelete: 'CASCADE' } )
+  userProjects: UserProject[];
 }

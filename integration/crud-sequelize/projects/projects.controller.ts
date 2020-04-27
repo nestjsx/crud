@@ -1,13 +1,13 @@
 import { Controller } from '@nestjs/common';
-import { ApiUseTags } from '@nestjs/swagger';
+import { ApiTags } from '@nestjs/swagger';
 import { Crud } from '@nestjsx/crud';
 
-import { ProjectDto } from './project.dto';
+import { Project } from './project.model';
 import { ProjectsService } from './projects.service';
 
 @Crud({
   model: {
-    type: ProjectDto,
+    type: Project,
   },
   params: {
     companyId: {
@@ -25,9 +25,8 @@ import { ProjectsService } from './projects.service';
       users: {},
     },
   },
-  validation: false
 })
-@ApiUseTags('projects')
+@ApiTags('projects')
 @Controller('/companies/:companyId/projects')
 export class ProjectsController {
   constructor(public service: ProjectsService) {}

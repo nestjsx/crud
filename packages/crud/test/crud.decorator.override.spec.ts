@@ -1,4 +1,4 @@
-import * as request from 'supertest';
+import request from 'supertest';
 import { Test } from '@nestjs/testing';
 import { Controller, INestApplication } from '@nestjs/common';
 import { APP_FILTER } from '@nestjs/core';
@@ -9,8 +9,8 @@ import { CrudController, CrudRequest, CreateManyDto } from '../src/interfaces';
 import { R, Swagger } from '../src/crud';
 import { CrudActions } from '../src/enums';
 import { HttpExceptionFilter } from './__fixture__/exception.filter';
-import { TestModel } from './__fixture__/test.model';
-import { TestService } from './__fixture__/test.service';
+import { TestModel } from './__fixture__/models';
+import { TestService } from './__fixture__/services';
 
 describe('#crud', () => {
   describe('#override methods', () => {
@@ -18,8 +18,19 @@ describe('#crud', () => {
     let server: any;
     let qb: RequestQueryBuilder;
 
+    enum Field {
+      ONE = 'one',
+    }
+
     @Crud({
       model: { type: TestModel },
+      params: {
+        enumField: {
+          field: 'enum_field',
+          type: 'string',
+          enum: Field,
+        },
+      },
     })
     @Controller('test')
     class TestController implements CrudController<TestModel> {
@@ -79,9 +90,9 @@ describe('#crud', () => {
         return request(server)
           .get('/test')
           .query(query)
-          .expect(500)
           .end((_, res) => {
             const expected = { statusCode: 400, message: 'Invalid filter value' };
+            expect(res.status).toEqual(400);
             expect(res.body).toMatchObject(expected);
             done();
           });
@@ -99,10 +110,23 @@ describe('#crud', () => {
         const params = Swagger.getParams(TestController.prototype.getMany);
         expect(Array.isArray(params)).toBe(true);
         expect(params.length > 0).toBe(true);
+
+        const enumParam = params.find((param) => param.name === 'enumField');
+        expect(enumParam).toBeDefined();
+        expect(enumParam.enum).toEqual(['one']);
       });
       it('should return swagger response ok', () => {
         const response = Swagger.getResponseOk(TestController.prototype.getMany);
-        const expected = { '200': { type: TestModel, isArray: true, description: '' } };
+        const expected = {
+          '200': {
+            schema: {
+              oneOf: [
+                { $ref: '#/components/schemas/GetManyTestModelResponseDto' },
+                { items: { $ref: '#/components/schemas/TestModel' }, type: 'array' },
+              ],
+            },
+          },
+        };
         expect(response).toMatchObject(expected);
       });
     });
@@ -115,9 +139,8 @@ describe('#crud', () => {
         return request(server)
           .post('/test/bulk')
           .send(send)
-          .expect(400)
           .end((_, res) => {
-            expect(res.body.message[0].property).toBe('bulk');
+            expect(res.status).toEqual(400);
             done();
           });
       });

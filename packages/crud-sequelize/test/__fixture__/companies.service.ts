@@ -1,14 +1,12 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import { InjectModel } from '@nestjs/sequelize';
 
-import Company from '../../../../integration/crud-sequelize/companies/company.model';
-import { SequelizeCrudService } from '../../src';
+import { SequelizeCrudService } from '../../../crud-sequelize/src/sequelize-crud.service';
+import { Company } from '../../../../integration/crud-sequelize/companies/company.model';
 
 @Injectable()
 export class CompaniesService extends SequelizeCrudService<Company> {
-  constructor(
-    @Inject('CompaniesRepository')
-    private readonly repo: Company & typeof Company,
-  ) {
-    super(repo);
+  constructor(@InjectModel(Company) company) {
+    super(company);
   }
 }

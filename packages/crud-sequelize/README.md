@@ -1,5 +1,5 @@
 <div align="center">
-  <h1>CRUD (@nestjsx/crud-typeorm)</h1>
+  <h1>CRUD (@nestjsx/crud-sequelize)</h1>
 </div>
 <div align="center">
   <strong>for RESTful APIs built with NestJs</strong>
@@ -90,7 +90,7 @@ npm i @nestjsx/crud-typeorm @nestjs/typeorm typeorm
 ```
 To use it with sequelize:
 ```shell
-npm i @nestjsx/crud-sequelize sequelize sequelize-typescript @types/sequelize
+npm i @nestjsx/crud-sequelize @nestjs/sequelize sequelize sequelize-typescript @types/sequelize
 ```
 ##### Note on using sequelize:
 `class-transcforment` doesn't work well with `sequelize` classes so in order to user validations you have to supply a `ClassDTO` to the `Crud` decorator, or you can set `validations: false` and use `sequelize-typescript` validators or even your own.

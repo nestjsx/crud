@@ -1,4 +1,4 @@
-import * as request from 'supertest';
+import request from 'supertest';
 import { Test } from '@nestjs/testing';
 import { Controller, INestApplication } from '@nestjs/common';
 import { APP_FILTER } from '@nestjs/core';
@@ -6,8 +6,8 @@ import { APP_FILTER } from '@nestjs/core';
 import { Crud } from '../src/decorators';
 import { CrudOptions } from '../src/interfaces';
 import { HttpExceptionFilter } from './__fixture__/exception.filter';
-import { TestModel } from './__fixture__/test.model';
-import { TestService } from './__fixture__/test.service';
+import { TestModel } from './__fixture__/models';
+import { TestService } from './__fixture__/services';
 
 describe('#crud', () => {
   describe('#options', () => {

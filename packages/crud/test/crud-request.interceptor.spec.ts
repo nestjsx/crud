@@ -9,12 +9,12 @@ import {
 import { NestApplication } from '@nestjs/core';
 import { Test } from '@nestjs/testing';
 import { RequestQueryBuilder } from '@nestjsx/crud-request';
-import * as supertest from 'supertest';
-import { Crud, ParsedRequest } from '../src/decorators';
+import supertest from 'supertest';
+import { Crud, ParsedRequest, CrudAuth, Override } from '../src/decorators';
 import { CrudRequestInterceptor } from '../src/interceptors';
 import { CrudRequest } from '../src/interfaces';
-import { TestModel } from './__fixture__/test.model';
-import { TestService } from './__fixture__/test.service';
+import { TestModel } from './__fixture__/models';
+import { TestService } from './__fixture__/services';
 
 // tslint:disable:max-classes-per-file
 describe('#crud', () => {
@@ -69,13 +69,55 @@ describe('#crud', () => {
     }
   }
 
+  @Crud({
+    model: { type: TestModel },
+    query: {
+      filter: () => ({ name: 'persist' }),
+    },
+  })
+  @CrudAuth({
+    property: 'user',
+    filter: (user) => ({ user: 'test', buz: 1 }),
+    persist: () => ({ bar: false }),
+  })
+  @Controller('test3')
+  class Test3Controller {
+    constructor(public service: TestService<TestModel>) {}
+
+    @Override('getManyBase')
+    get(@ParsedRequest() req: CrudRequest) {
+      return req;
+    }
+
+    @Override('createOneBase')
+    post(@ParsedRequest() req: CrudRequest) {
+      return req;
+    }
+  }
+
+  @Crud({
+    model: { type: TestModel },
+  })
+  @CrudAuth({
+    or: () => ({ id: 1 }),
+  })
+  @Controller('test4')
+  class Test4Controller {
+    constructor(public service: TestService<TestModel>) {}
+
+    @Override('getManyBase')
+    get(@ParsedRequest() req: CrudRequest) {
+      return req;
+    }
+  }
+
   let $: supertest.SuperTest<supertest.Test>;
   let app: NestApplication;
 
   beforeAll(async () => {
     const module = await Test.createTestingModule({
       providers: [TestService],
-      controllers: [TestController, Test2Controller],
+      controllers: [TestController, Test2Controller, Test3Controller, Test4Controller],
     }).compile();
     app = module.createNestApplication();
     await app.init();
@@ -158,6 +200,38 @@ describe('#crud', () => {
       expect(res.body.filter).toHaveLength(1);
       expect(res.body.filter[0].field).toBe('id');
       expect(res.body.filter[0].value).toBe(0);
+    });
+
+    it('should handle authorized request, 1', async () => {
+      const res = await $.post('/test3')
+        .send({})
+        .expect(201);
+      const authPersist = { bar: false };
+      const { parsed } = res.body;
+      expect(parsed.authPersist).toMatchObject(authPersist);
+    });
+
+    it('should handle authorized request, 2', async () => {
+      const res = await $.get('/test3').expect(200);
+      const search = { $and: [{ user: 'test', buz: 1 }, {}] };
+      expect(res.body.parsed.search).toMatchObject(search);
+    });
+
+    it('should handle authorized request, 3', async () => {
+      const query = qb.search({ name: 'test' }).query();
+      const res = await $.get('/test4')
+        .query(query)
+        .expect(200);
+      const search = { $or: [{ id: 1 }, { $and: [{}, { name: 'test' }] }] };
+      expect(res.body.parsed.search).toMatchObject(search);
+    });
+    it('should handle authorized request, 4', async () => {
+      const query = qb.search({ name: 'test' }).query();
+      const res = await $.get('/test3')
+        .query(query)
+        .expect(200);
+      const search = { $and: [{ user: 'test', buz: 1 }, { name: 'persist' }] };
+      expect(res.body.parsed.search).toMatchObject(search);
     });
   });
 });

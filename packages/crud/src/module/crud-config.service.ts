@@ -1,28 +1,35 @@
 import { RequestQueryBuilder } from '@nestjsx/crud-request';
 import { isObjectFull } from '@nestjsx/util';
-import * as deepmerge from 'deepmerge';
+import deepmerge from 'deepmerge';
 
 import { CrudGlobalConfig } from '../interfaces';
 
 export class CrudConfigService {
   static config: CrudGlobalConfig = {
-    query: {},
+    auth: {},
+    query: {
+      alwaysPaginate: false,
+    },
     routes: {
       getManyBase: { interceptors: [], decorators: [] },
       getOneBase: { interceptors: [], decorators: [] },
-      createOneBase: { interceptors: [], decorators: [] },
+      createOneBase: { interceptors: [], decorators: [], returnShallow: false },
       createManyBase: { interceptors: [], decorators: [] },
-      updateOneBase: { interceptors: [], decorators: [], allowParamsOverride: false },
-      replaceOneBase: { interceptors: [], decorators: [], allowParamsOverride: false },
+      updateOneBase: {
+        interceptors: [],
+        decorators: [],
+        allowParamsOverride: false,
+        returnShallow: false,
+      },
+      replaceOneBase: {
+        interceptors: [],
+        decorators: [],
+        allowParamsOverride: false,
+        returnShallow: false,
+      },
       deleteOneBase: { interceptors: [], decorators: [], returnDeleted: false },
     },
-    params: {
-      id: {
-        field: 'id',
-        type: 'number',
-        primary: true,
-      },
-    },
+    params: {},
   };
 
   static load(config: CrudGlobalConfig = {}) {
@@ -30,13 +37,15 @@ export class CrudConfigService {
       RequestQueryBuilder.setOptions(config.queryParser);
     }
 
+    const auth = isObjectFull(config.auth) ? config.auth : {};
     const query = isObjectFull(config.query) ? config.query : {};
     const routes = isObjectFull(config.routes) ? config.routes : {};
     const params = isObjectFull(config.params) ? config.params : {};
+    const serialize = isObjectFull(config.serialize) ? config.serialize : {};
 
     CrudConfigService.config = deepmerge(
       CrudConfigService.config,
-      { query, routes, params },
+      { auth, query, routes, params, serialize },
       { arrayMerge: (a, b, c) => b },
     );
   }

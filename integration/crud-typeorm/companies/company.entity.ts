@@ -1,7 +1,14 @@
-import { Entity, Column, OneToMany } from 'typeorm';
-import { IsOptional, IsString, MaxLength, IsNotEmpty } from 'class-validator';
-import { Type } from 'class-transformer';
 import { CrudValidationGroups } from '@nestjsx/crud';
+import { Entity, Column, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  IsOptional,
+  IsString,
+  MaxLength,
+  IsNotEmpty,
+  IsNumber,
+  IsEmpty,
+} from 'class-validator';
+import { Type } from 'class-transformer';
 
 import { BaseEntity } from '../base-entity';
 import { User } from '../users/user.entity';
@@ -11,6 +18,12 @@ const { CREATE, UPDATE } = CrudValidationGroups;
 
 @Entity('companies')
 export class Company extends BaseEntity {
+  @IsOptional({ groups: [UPDATE] })
+  @IsEmpty({ groups: [CREATE] })
+  @IsNumber({}, { groups: [UPDATE] })
+  @PrimaryGeneratedColumn()
+  id?: number;
+
   @IsOptional({ groups: [UPDATE] })
   @IsNotEmpty({ groups: [CREATE] })
   @IsString({ always: true })

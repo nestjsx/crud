@@ -37,6 +37,9 @@ describe('#crud', () => {
     });
     it('should set query, routes, params', () => {
       const conf: CrudGlobalConfig = {
+        auth: {
+          property: 'user',
+        },
         query: {
           limit: 10,
         },
@@ -50,17 +53,20 @@ describe('#crud', () => {
         routes: {
           updateOneBase: {
             allowParamsOverride: true,
+            returnShallow: true,
           },
           replaceOneBase: {
             allowParamsOverride: true,
           },
           getManyBase: {
-            interceptors: [() => {
-            }],
+            interceptors: [() => {}],
           },
         },
       };
       const expected = {
+        auth: {
+          property: 'user',
+        },
         query: {
           limit: 10,
         },
@@ -73,21 +79,23 @@ describe('#crud', () => {
         },
         routes: {
           getManyBase: {
-            interceptors: [() => {
-            }], decorators: [],
+            interceptors: [() => {}],
+            decorators: [],
           },
           getOneBase: { interceptors: [], decorators: [] },
-          createOneBase: { interceptors: [], decorators: [] },
+          createOneBase: { interceptors: [], decorators: [], returnShallow: false },
           createManyBase: { interceptors: [], decorators: [] },
           updateOneBase: {
             interceptors: [],
             decorators: [],
             allowParamsOverride: true,
+            returnShallow: true,
           },
           replaceOneBase: {
             interceptors: [],
             decorators: [],
             allowParamsOverride: true,
+            returnShallow: false,
           },
           deleteOneBase: { interceptors: [], decorators: [], returnDeleted: false },
         },
