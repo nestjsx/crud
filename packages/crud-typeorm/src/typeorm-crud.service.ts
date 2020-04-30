@@ -786,9 +786,8 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     switch (cols.length) {
       case 1:
         if (sort || this.alias[0] === '"') {
-          return `${this.alias}.${field}`;
+          return `"${this.alias}"."${field}"`;
         }
-        return `"${this.alias}"."${field}"`;
       case 2:
         return field;
       default:
