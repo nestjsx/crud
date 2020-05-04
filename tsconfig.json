@@ -8,7 +8,6 @@
     "noLib": false,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
-    "esModuleInterop": true,
     "target": "es2018",
     "sourceMap": true,
     "allowJs": false,

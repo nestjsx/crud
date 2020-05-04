@@ -10,7 +10,7 @@ import { Test } from '@nestjs/testing';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { Crud, CrudAuth } from '@nestjsx/crud';
-import request from 'supertest';
+import * as request from 'supertest';
 import { withCache } from '../../../integration/crud-typeorm/orm.config';
 import { User } from '../../../integration/crud-typeorm/users';
 import { UserProfile } from '../../../integration/crud-typeorm/users-profiles';
@@ -31,7 +31,7 @@ describe('#crud-typeorm', () => {
 
       async canActivate(ctx: ExecutionContext): Promise<boolean> {
         const req = ctx.switchToHttp().getRequest();
-        req[USER_REQUEST_KEY] = await this.usersService.findOne({ where: { id: 1 } });
+        req[USER_REQUEST_KEY] = await this.usersService.findOne(1);
 
         return true;
       }

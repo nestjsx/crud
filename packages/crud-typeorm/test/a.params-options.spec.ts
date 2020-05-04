@@ -3,7 +3,7 @@ import { Controller, INestApplication } from '@nestjs/common';
 import { APP_FILTER } from '@nestjs/core';
 import { Test } from '@nestjs/testing';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import request from 'supertest';
+import * as request from 'supertest';
 
 import { Company } from '../../../integration/crud-typeorm/companies';
 import { withCache } from '../../../integration/crud-typeorm/orm.config';

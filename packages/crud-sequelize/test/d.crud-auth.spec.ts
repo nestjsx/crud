@@ -10,7 +10,7 @@ import { Test } from '@nestjs/testing';
 import { SequelizeModule } from '@nestjs/sequelize';
 
 import { Crud, CrudAuth } from '@nestjsx/crud';
-import request from 'supertest';
+import * as request from 'supertest';
 import { config } from '../../../integration/crud-sequelize/sequelize.config';
 import { User } from '../../../integration/crud-sequelize/users/user.model';
 import { UserProfile } from '../../../integration/crud-sequelize/users-profiles/userprofile.model';
