@@ -1,7 +1,7 @@
 {
   "name": "@nestjsx/crud-sequelize",
   "description": "NestJs CRUD for RESTful APIs - Sequelize",
-  "version": "4.4.6-alpha.1",
+  "version": "4.5.0",
   "license": "MIT",
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
@@ -58,7 +58,6 @@
   },
   "devDependencies": {
     "@types/umzug": "^2.2.3",
-    "jest": "^25.4.0",
     "sequelize-cli": "^5.5.1",
     "umzug": "^2.3.0"
   }
