@@ -435,11 +435,10 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     entityMetadata: EntityMetadata,
   ): { columns: string[]; primaryColumns: string[] } {
     const columns =
-      entityMetadata.columns.map((prop) =>
-        prop.embeddedMetadata ? prop.propertyPath : prop.propertyName,
-      ) || /* istanbul ignore next */ [];
+      entityMetadata.columns.map((prop) => prop.propertyPath) ||
+      /* istanbul ignore next */ [];
     const primaryColumns =
-      entityMetadata.primaryColumns.map((prop) => prop.propertyName) ||
+      entityMetadata.primaryColumns.map((prop) => prop.propertyPath) ||
       /* istanbul ignore next */ [];
 
     return { columns, primaryColumns };
