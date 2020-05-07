@@ -8,8 +8,8 @@ export const withCache: TypeOrmModuleOptions = {
   type,
   host: '127.0.0.1',
   port: type === 'postgres' ? 5455 : 3316,
-  username: 'root',
-  password: 'root',
+  username: type === 'mysql' ? 'nestjsx_crud' : 'root',
+  password: type === 'mysql' ? 'nestjsx_crud' : 'root',
   database: 'nestjsx_crud',
   synchronize: false,
   logging: !isNil(process.env.TYPEORM_LOGGING)

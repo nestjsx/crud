@@ -14,8 +14,8 @@ mysql:
   type: mysql
   host: 127.0.0.1
   port: 3316
-  username: root
-  password: root
+  username: nestjsx_crud
+  password: nestjsx_crud
   database: nestjsx_crud
   entities:
     - ./**/*.entity.ts
