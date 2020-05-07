@@ -23,10 +23,11 @@ export interface JoinOptions {
 }
 
 export interface JoinOption {
+  alias?: string;
   allow?: QueryFields;
+  eager?: boolean;
   exclude?: QueryFields;
   persist?: QueryFields;
-  eager?: boolean;
+  select?: false;
   required?: boolean;
-  alias?: string;
 }

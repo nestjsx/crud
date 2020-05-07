@@ -2,10 +2,12 @@ import { join } from 'path';
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { isNil } from '@nestjsx/util';
 
+const type = (process.env.TYPEORM_CONNECTION as any) || 'postgres';
+
 export const withCache: TypeOrmModuleOptions = {
-  type: 'postgres',
+  type,
   host: '127.0.0.1',
-  port: 5455,
+  port: type === 'postgres' ? 5455 : 3316,
   username: 'root',
   password: 'root',
   database: 'nestjsx_crud',
