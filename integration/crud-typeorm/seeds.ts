@@ -5,6 +5,7 @@ import { Project, UserProject } from './projects';
 import { Name, User } from './users';
 import { License, UserLicense } from './users-licenses';
 import { UserProfile } from './users-profiles';
+import { Note } from './notes';
 
 export class Seeds1544303473346 implements MigrationInterface {
   private save<T>(repo: Repository<T>, type: any, data: Partial<T>[]): Promise<T[]> {
@@ -25,6 +26,7 @@ export class Seeds1544303473346 implements MigrationInterface {
     const licensesRepo = connection.getRepository(License);
     const usersLincesesRepo = connection.getRepository(UserLicense);
     const usersProjectsRepo = connection.getRepository(UserProject);
+    const notesRepo = connection.getRepository(Note);
 
     // companies
     await this.save(companiesRepo, Company, [
@@ -138,6 +140,16 @@ export class Seeds1544303473346 implements MigrationInterface {
       { projectId: 1, userId: 2, review: 'User project 1 2' },
       { projectId: 2, userId: 2, review: 'User project 2 2' },
       { projectId: 3, userId: 3, review: 'User project 3 3' },
+    ]);
+
+    // notes
+    await this.save(notesRepo, Note, [
+      { revisionId: 1 },
+      { revisionId: 1 },
+      { revisionId: 2 },
+      { revisionId: 2 },
+      { revisionId: 3 },
+      { revisionId: 3 },
     ]);
   }
 
