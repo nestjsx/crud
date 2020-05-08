@@ -1,3 +1,9 @@
+## [4.6.1] - 2020-05-08
+
+### Bug Fixes
+
+- **typeorm** - fixed query generation when a column display name differs from its name in db [#401](https://github.com/nestjsx/crud/issues/401)). Kudos to @farhad2161 for finding this bug
+
 ## [4.6.0] - 2020-05-07
 
 ### Features
@@ -159,6 +165,7 @@
 
 - several fixes
 
+[4.6.1]: https://github.com/nestjsx/crud/compare/v4.6.0...v4.6.1
 [4.6.0]: https://github.com/nestjsx/crud/compare/v4.5.0...v4.6.0
 [4.5.0]: https://github.com/nestjsx/crud/compare/v4.4.5...v4.5.0
 [4.4.5]: https://github.com/nestjsx/crud/compare/v4.4.4...v4.4.5
