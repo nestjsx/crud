@@ -1,5 +1,6 @@
 import { plainToClass } from 'class-transformer';
 import { MigrationInterface, Repository, QueryRunner } from 'typeorm';
+import { ClassType } from 'class-transformer/ClassTransformer';
 import { Company } from './companies';
 import { Project, UserProject } from './projects';
 import { Name, User } from './users';
@@ -8,10 +9,12 @@ import { UserProfile } from './users-profiles';
 import { Note } from './notes';
 
 export class Seeds1544303473346 implements MigrationInterface {
-  private save<T>(repo: Repository<T>, type: any, data: Partial<T>[]): Promise<T[]> {
+  private save<T>(repo: Repository<T>, data: Partial<T>[]): Promise<T[]> {
     return repo.save(
       data.map((partial: Partial<T>) =>
-        plainToClass<any, any>(type, partial, { ignoreDecorators: true }),
+        plainToClass<any, any>(repo.target as ClassType<T>, partial, {
+          ignoreDecorators: true,
+        }),
       ),
     );
   }
@@ -29,7 +32,7 @@ export class Seeds1544303473346 implements MigrationInterface {
     const notesRepo = connection.getRepository(Note);
 
     // companies
-    await this.save(companiesRepo, Company, [
+    await this.save(companiesRepo, [
       { name: 'Name1', domain: 'Domain1' },
       { name: 'Name2', domain: 'Domain2' },
       { name: 'Name3', domain: 'Domain3' },
@@ -43,7 +46,7 @@ export class Seeds1544303473346 implements MigrationInterface {
     ]);
 
     // projects
-    await this.save(projectsRepo, Project, [
+    await this.save(projectsRepo, [
       { name: 'Project1', description: 'description1', isActive: true, companyId: 1 },
       { name: 'Project2', description: 'description2', isActive: true, companyId: 1 },
       { name: 'Project3', description: 'description3', isActive: true, companyId: 2 },
@@ -67,7 +70,7 @@ export class Seeds1544303473346 implements MigrationInterface {
     ]);
 
     // user-profiles
-    await this.save(usersProfilesRepo, UserProfile, [
+    await this.save(usersProfilesRepo, [
       { name: 'User1' },
       { name: 'User2' },
       { name: 'User3' },
@@ -93,7 +96,7 @@ export class Seeds1544303473346 implements MigrationInterface {
     // users
     const name: Name = { first: null, last: null };
     const name1: Name = { first: 'firstname1', last: 'lastname1' };
-    await this.save(usersRepo, User, [
+    await this.save(usersRepo, [
       { email: '1@email.com', isActive: true, companyId: 1, profileId: 1, name: name1 },
       { email: '2@email.com', isActive: true, companyId: 1, profileId: 2, name },
       { email: '3@email.com', isActive: true, companyId: 1, profileId: 3, name },
@@ -118,7 +121,7 @@ export class Seeds1544303473346 implements MigrationInterface {
     ]);
 
     // licenses
-    await this.save(licensesRepo, License, [
+    await this.save(licensesRepo, [
       { name: 'License1' },
       { name: 'License2' },
       { name: 'License3' },
@@ -127,7 +130,7 @@ export class Seeds1544303473346 implements MigrationInterface {
     ]);
 
     // user-licenses
-    await this.save(usersLincesesRepo, UserLicense, [
+    await this.save(usersLincesesRepo, [
       { userId: 1, licenseId: 1, yearsActive: 3 },
       { userId: 1, licenseId: 2, yearsActive: 5 },
       { userId: 1, licenseId: 4, yearsActive: 7 },
@@ -135,7 +138,7 @@ export class Seeds1544303473346 implements MigrationInterface {
     ]);
 
     // user-projects
-    await this.save(usersProjectsRepo, UserProject, [
+    await this.save(usersProjectsRepo, [
       { projectId: 1, userId: 1, review: 'User project 1 1' },
       { projectId: 1, userId: 2, review: 'User project 1 2' },
       { projectId: 2, userId: 2, review: 'User project 2 2' },
@@ -143,7 +146,7 @@ export class Seeds1544303473346 implements MigrationInterface {
     ]);
 
     // notes
-    await this.save(notesRepo, Note, [
+    await this.save(notesRepo, [
       { revisionId: 1 },
       { revisionId: 1 },
       { revisionId: 2 },
