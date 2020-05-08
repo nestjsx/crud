@@ -361,10 +361,10 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     this.entityColumns = this.repo.metadata.columns.map((prop) => {
       // In case column is an embedded, use the propertyPath to get complete path
       if (prop.embeddedMetadata) {
-        this.entityColumnsHash[prop.propertyPath] = true;
+        this.entityColumnsHash[prop.propertyPath] = prop.databasePath;
         return prop.propertyPath;
       }
-      this.entityColumnsHash[prop.propertyName] = true;
+      this.entityColumnsHash[prop.propertyName] = prop.databasePath;
       return prop.propertyName;
     });
     this.entityPrimaryColumns = this.repo.metadata.columns
@@ -838,7 +838,11 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
         if (sort) {
           return `${this.alias}.${field}`;
         }
-        return `${i}${this.alias}${i}.${i}${field}${i}`;
+
+        const dbColName =
+          this.entityColumnsHash[field] !== field ? this.entityColumnsHash[field] : field;
+
+        return `${i}${this.alias}${i}.${i}${dbColName}${i}`;
       case 2:
         return field;
       default:
