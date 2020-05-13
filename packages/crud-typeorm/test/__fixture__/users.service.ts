@@ -10,3 +10,10 @@ export class UsersService extends TypeOrmCrudService<User> {
     super(repo);
   }
 }
+
+@Injectable()
+export class UsersService2 extends TypeOrmCrudService<User> {
+  constructor(@InjectRepository(User) repo) {
+    super(repo);
+  }
+}

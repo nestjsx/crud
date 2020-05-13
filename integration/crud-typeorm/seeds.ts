@@ -1,125 +1,159 @@
-import { MigrationInterface, QueryRunner } from 'typeorm';
+import { plainToClass } from 'class-transformer';
+import { MigrationInterface, Repository, QueryRunner } from 'typeorm';
+import { ClassType } from 'class-transformer/ClassTransformer';
+import { Company } from './companies';
+import { Project, UserProject } from './projects';
+import { Name, User } from './users';
+import { License, UserLicense } from './users-licenses';
+import { UserProfile } from './users-profiles';
+import { Note } from './notes';
 
 export class Seeds1544303473346 implements MigrationInterface {
+  private save<T>(repo: Repository<T>, data: Partial<T>[]): Promise<T[]> {
+    return repo.save(
+      data.map((partial: Partial<T>) =>
+        plainToClass<any, any>(repo.target as ClassType<T>, partial, {
+          ignoreDecorators: true,
+        }),
+      ),
+    );
+  }
+
   public async up(queryRunner: QueryRunner): Promise<any> {
+    const { connection } = queryRunner;
+
+    const companiesRepo = connection.getRepository(Company);
+    const projectsRepo = connection.getRepository(Project);
+    const usersProfilesRepo = connection.getRepository(UserProfile);
+    const usersRepo = connection.getRepository(User);
+    const licensesRepo = connection.getRepository(License);
+    const usersLincesesRepo = connection.getRepository(UserLicense);
+    const usersProjectsRepo = connection.getRepository(UserProject);
+    const notesRepo = connection.getRepository(Note);
+
     // companies
-    await queryRunner.query(`
-      INSERT INTO public.companies ("name", "domain") VALUES
-      ('Name1', 'Domain1'),
-      ('Name2', 'Domain2'),
-      ('Name3', 'Domain3'),
-      ('Name4', 'Domain4'),
-      ('Name5', 'Domain5'),
-      ('Name6', 'Domain6'),
-      ('Name7', 'Domain7'),
-      ('Name8', 'Domain8'),
-      ('Name9', 'Domain9'),
-      ('Name10', 'Domain10');
-    `);
+    await this.save(companiesRepo, [
+      { name: 'Name1', domain: 'Domain1' },
+      { name: 'Name2', domain: 'Domain2' },
+      { name: 'Name3', domain: 'Domain3' },
+      { name: 'Name4', domain: 'Domain4' },
+      { name: 'Name5', domain: 'Domain5' },
+      { name: 'Name6', domain: 'Domain6' },
+      { name: 'Name7', domain: 'Domain7' },
+      { name: 'Name8', domain: 'Domain8' },
+      { name: 'Name9', domain: 'Domain9' },
+      { name: 'Name10', domain: 'Domain10' },
+    ]);
 
     // projects
-    await queryRunner.query(`
-      INSERT INTO public.projects ("name", "description", "isActive", "companyId") VALUES
-      ('Project1', 'description1', true, 1),
-      ('Project2', 'description2', true, 1),
-      ('Project3', 'description3', true, 2),
-      ('Project4', 'description4', true, 2),
-      ('Project5', 'description5', true, 3),
-      ('Project6', 'description6', true, 3),
-      ('Project7', 'description7', true, 4),
-      ('Project8', 'description8', true, 4),
-      ('Project9', 'description9', true, 5),
-      ('Project10', 'description10', true, 5),
-      ('Project11', 'description11', false, 6),
-      ('Project12', 'description12', false, 6),
-      ('Project13', 'description13', false, 7),
-      ('Project14', 'description14', false, 7),
-      ('Project15', 'description15', false, 8),
-      ('Project16', 'description16', false, 8),
-      ('Project17', 'description17', false, 9),
-      ('Project18', 'description18', false, 9),
-      ('Project19', 'description19', false, 10),
-      ('Project20', 'description20', false, 10);
-    `);
+    await this.save(projectsRepo, [
+      { name: 'Project1', description: 'description1', isActive: true, companyId: 1 },
+      { name: 'Project2', description: 'description2', isActive: true, companyId: 1 },
+      { name: 'Project3', description: 'description3', isActive: true, companyId: 2 },
+      { name: 'Project4', description: 'description4', isActive: true, companyId: 2 },
+      { name: 'Project5', description: 'description5', isActive: true, companyId: 3 },
+      { name: 'Project6', description: 'description6', isActive: true, companyId: 3 },
+      { name: 'Project7', description: 'description7', isActive: true, companyId: 4 },
+      { name: 'Project8', description: 'description8', isActive: true, companyId: 4 },
+      { name: 'Project9', description: 'description9', isActive: true, companyId: 5 },
+      { name: 'Project10', description: 'description10', isActive: true, companyId: 5 },
+      { name: 'Project11', description: 'description11', isActive: false, companyId: 6 },
+      { name: 'Project12', description: 'description12', isActive: false, companyId: 6 },
+      { name: 'Project13', description: 'description13', isActive: false, companyId: 7 },
+      { name: 'Project14', description: 'description14', isActive: false, companyId: 7 },
+      { name: 'Project15', description: 'description15', isActive: false, companyId: 8 },
+      { name: 'Project16', description: 'description16', isActive: false, companyId: 8 },
+      { name: 'Project17', description: 'description17', isActive: false, companyId: 9 },
+      { name: 'Project18', description: 'description18', isActive: false, companyId: 9 },
+      { name: 'Project19', description: 'description19', isActive: false, companyId: 10 },
+      { name: 'Project20', description: 'description20', isActive: false, companyId: 10 },
+    ]);
 
     // user-profiles
-    await queryRunner.query(`
-      INSERT INTO public.user_profiles ("name") VALUES
-      ('User1'),
-      ('User2'),
-      ('User3'),
-      ('User4'),
-      ('User5'),
-      ('User6'),
-      ('User7'),
-      ('User8'),
-      ('User9'),
-      ('User1'),
-      ('User1'),
-      ('User1'),
-      ('User1'),
-      ('User1'),
-      ('User1'),
-      ('User1'),
-      ('User1'),
-      ('User1'),
-      ('User1'),
-      ('User2');
-    `);
+    await this.save(usersProfilesRepo, [
+      { name: 'User1' },
+      { name: 'User2' },
+      { name: 'User3' },
+      { name: 'User4' },
+      { name: 'User5' },
+      { name: 'User6' },
+      { name: 'User7' },
+      { name: 'User8' },
+      { name: 'User9' },
+      { name: 'User1' },
+      { name: 'User1' },
+      { name: 'User1' },
+      { name: 'User1' },
+      { name: 'User1' },
+      { name: 'User1' },
+      { name: 'User1' },
+      { name: 'User1' },
+      { name: 'User1' },
+      { name: 'User1' },
+      { name: 'User2' },
+    ]);
 
     // users
-    await queryRunner.query(`
-      INSERT INTO public.users ("email", "isActive", "companyId", "profileId", "nameFirst", "nameLast") VALUES
-      ('1@email.com', true, 1, 1, 'firstname1', 'lastname1'),
-      ('2@email.com', true, 1, 2, NULL, NULL),
-      ('3@email.com', true, 1, 3, NULL, NULL),
-      ('4@email.com', true, 1, 4, NULL, NULL),
-      ('5@email.com', true, 1, 5, NULL, NULL),
-      ('6@email.com', true, 1, 6, NULL, NULL),
-      ('7@email.com', false, 1, 7, NULL, NULL),
-      ('8@email.com', false, 1, 8, NULL, NULL),
-      ('9@email.com', false, 1, 9, NULL, NULL),
-      ('10@email.com', true, 1, 10, NULL, NULL),
-      ('11@email.com', true, 2, 11, NULL, NULL),
-      ('12@email.com', true, 2, 12, NULL, NULL),
-      ('13@email.com', true, 2, 13, NULL, NULL),
-      ('14@email.com', true, 2, 14, NULL, NULL),
-      ('15@email.com', true, 2, 15, NULL, NULL),
-      ('16@email.com', true, 2, 16, NULL, NULL),
-      ('17@email.com', false, 2, 17, NULL, NULL),
-      ('18@email.com', false, 2, 18, NULL, NULL),
-      ('19@email.com', false, 2, 19, NULL, NULL),
-      ('20@email.com', false, 2, 20, NULL, NULL),
-      ('21@email.com', false, 2, NULL, NULL, NULL);
-    `);
+    const name: Name = { first: null, last: null };
+    const name1: Name = { first: 'firstname1', last: 'lastname1' };
+    await this.save(usersRepo, [
+      { email: '1@email.com', isActive: true, companyId: 1, profileId: 1, name: name1 },
+      { email: '2@email.com', isActive: true, companyId: 1, profileId: 2, name },
+      { email: '3@email.com', isActive: true, companyId: 1, profileId: 3, name },
+      { email: '4@email.com', isActive: true, companyId: 1, profileId: 4, name },
+      { email: '5@email.com', isActive: true, companyId: 1, profileId: 5, name },
+      { email: '6@email.com', isActive: true, companyId: 1, profileId: 6, name },
+      { email: '7@email.com', isActive: false, companyId: 1, profileId: 7, name },
+      { email: '8@email.com', isActive: false, companyId: 1, profileId: 8, name },
+      { email: '9@email.com', isActive: false, companyId: 1, profileId: 9, name },
+      { email: '10@email.com', isActive: true, companyId: 1, profileId: 10, name },
+      { email: '11@email.com', isActive: true, companyId: 2, profileId: 11, name },
+      { email: '12@email.com', isActive: true, companyId: 2, profileId: 12, name },
+      { email: '13@email.com', isActive: true, companyId: 2, profileId: 13, name },
+      { email: '14@email.com', isActive: true, companyId: 2, profileId: 14, name },
+      { email: '15@email.com', isActive: true, companyId: 2, profileId: 15, name },
+      { email: '16@email.com', isActive: true, companyId: 2, profileId: 16, name },
+      { email: '17@email.com', isActive: false, companyId: 2, profileId: 17, name },
+      { email: '18@email.com', isActive: false, companyId: 2, profileId: 18, name },
+      { email: '19@email.com', isActive: false, companyId: 2, profileId: 19, name },
+      { email: '20@email.com', isActive: false, companyId: 2, profileId: 20, name },
+      { email: '21@email.com', isActive: false, companyId: 2, profileId: null, name },
+    ]);
 
     // licenses
-    await queryRunner.query(`
-      INSERT INTO public.licenses ("name") VALUES
-      ('License1'),
-      ('License2'),
-      ('License3'),
-      ('License4'),
-      ('License5');
-    `);
+    await this.save(licensesRepo, [
+      { name: 'License1' },
+      { name: 'License2' },
+      { name: 'License3' },
+      { name: 'License4' },
+      { name: 'License5' },
+    ]);
 
     // user-licenses
-    await queryRunner.query(`
-      INSERT INTO public.user_licenses ("userId", "licenseId", "yearsActive") VALUES
-      (1, 1, 3),
-      (1, 2, 5),
-      (1, 4, 7),
-      (2, 5, 1);
-    `);
+    await this.save(usersLincesesRepo, [
+      { userId: 1, licenseId: 1, yearsActive: 3 },
+      { userId: 1, licenseId: 2, yearsActive: 5 },
+      { userId: 1, licenseId: 4, yearsActive: 7 },
+      { userId: 2, licenseId: 5, yearsActive: 1 },
+    ]);
 
     // user-projects
-    await queryRunner.query(`
-      INSERT INTO public.user_projects ("projectId", "userId", "review") VALUES
-      (1, 1, 'User project 1 1'),
-      (1, 2, 'User project 1 2'),
-      (2, 2, 'User project 2 2'),
-      (3, 3, 'User project 3 3');
-    `);
+    await this.save(usersProjectsRepo, [
+      { projectId: 1, userId: 1, review: 'User project 1 1' },
+      { projectId: 1, userId: 2, review: 'User project 1 2' },
+      { projectId: 2, userId: 2, review: 'User project 2 2' },
+      { projectId: 3, userId: 3, review: 'User project 3 3' },
+    ]);
+
+    // notes
+    await this.save(notesRepo, [
+      { revisionId: 1 },
+      { revisionId: 1 },
+      { revisionId: 2 },
+      { revisionId: 2 },
+      { revisionId: 3 },
+      { revisionId: 3 },
+    ]);
   }
 
   public async down(queryRunner: QueryRunner): Promise<any> {}

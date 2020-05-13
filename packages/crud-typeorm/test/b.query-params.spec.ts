@@ -11,11 +11,13 @@ import { withCache } from '../../../integration/crud-typeorm/orm.config';
 import { Project } from '../../../integration/crud-typeorm/projects';
 import { User } from '../../../integration/crud-typeorm/users';
 import { UserProfile } from '../../../integration/crud-typeorm/users-profiles';
+import { Note } from '../../../integration/crud-typeorm/notes';
 import { HttpExceptionFilter } from '../../../integration/shared/https-exception.filter';
 import { Crud } from '../../crud/src/decorators';
 import { CompaniesService } from './__fixture__/companies.service';
 import { ProjectsService } from './__fixture__/projects.service';
-import { UsersService } from './__fixture__/users.service';
+import { UsersService, UsersService2 } from './__fixture__/users.service';
+import { NotesService } from './__fixture__/notes.service';
 
 // tslint:disable:max-classes-per-file
 describe('#crud-typeorm', () => {
@@ -106,6 +108,12 @@ describe('#crud-typeorm', () => {
           company: {},
           'company.projects': {},
           userLicenses: {},
+          invalid: {
+            eager: true,
+          },
+          'foo.bar': {
+            eager: true,
+          },
         },
       },
     })
@@ -130,11 +138,36 @@ describe('#crud-typeorm', () => {
       constructor(public service: UsersService) {}
     }
 
+    @Crud({
+      model: { type: User },
+      query: {
+        join: {
+          company: {
+            alias: 'userCompany',
+            eager: true,
+            select: false,
+          },
+        },
+      },
+    })
+    @Controller('myusers')
+    class UsersController3 {
+      constructor(public service: UsersService2) {}
+    }
+
+    @Crud({
+      model: { type: Note },
+    })
+    @Controller('notes')
+    class NotesController {
+      constructor(public service: NotesService) {}
+    }
+
     beforeAll(async () => {
       const fixture = await Test.createTestingModule({
         imports: [
           TypeOrmModule.forRoot({ ...withCache, logging: false }),
-          TypeOrmModule.forFeature([Company, Project, User, UserProfile]),
+          TypeOrmModule.forFeature([Company, Project, User, UserProfile, Note]),
         ],
         controllers: [
           CompaniesController,
@@ -144,12 +177,16 @@ describe('#crud-typeorm', () => {
           ProjectsController4,
           UsersController,
           UsersController2,
+          UsersController3,
+          NotesController,
         ],
         providers: [
           { provide: APP_FILTER, useClass: HttpExceptionFilter },
           CompaniesService,
           UsersService,
+          UsersService2,
           ProjectsService,
+          NotesService,
         ],
       }).compile();
 
@@ -324,6 +361,18 @@ describe('#crud-typeorm', () => {
             expect(res.status).toBe(200);
             expect(res.body.users).toBeDefined();
             expect(res.body.users.length).not.toBe(0);
+            done();
+          });
+      });
+      it('should eager join without selection', (done) => {
+        const query = qb.search({ 'userCompany.id': { $eq: 1 } }).query();
+        return request(server)
+          .get('/myusers')
+          .query(query)
+          .end((_, res) => {
+            expect(res.status).toBe(200);
+            expect(res.body.length).toBe(10);
+            expect(res.body[0].company).toBeUndefined();
             done();
           });
       });
@@ -774,12 +823,13 @@ describe('#crud-typeorm', () => {
         expect(res.body).toBeArrayOfSize(3);
       });
       it('should return with $endsL search operator', async () => {
-        const query = qb.search({ domain: { $endsL: '0' } }).query();
+        const query = qb.search({ domain: { $endsL: 'AiN10' } }).query();
         const res = await request(server)
           .get('/companies')
           .query(query)
           .expect(200);
         expect(res.body).toBeArrayOfSize(1);
+        expect(res.body[0].domain).toBe('Domain10');
       });
       it('should return with $contL search operator', async () => {
         const query = qb.search({ email: { $contL: '1@' } }).query();
@@ -813,6 +863,16 @@ describe('#crud-typeorm', () => {
           .query(query)
           .expect(200);
         expect(res.body).toBeArrayOfSize(7);
+      });
+      it('should search by display column name, but use dbName in sql query', async () => {
+        const query = qb.search({ revisionId: 2 }).query();
+        const res = await request(server)
+          .get('/notes')
+          .query(query)
+          .expect(200);
+        expect(res.body).toBeArrayOfSize(2);
+        expect(res.body[0].revisionId).toBe(2);
+        expect(res.body[1].revisionId).toBe(2);
       });
     });
 

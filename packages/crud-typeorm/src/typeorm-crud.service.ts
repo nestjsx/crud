@@ -4,6 +4,7 @@ import {
   CrudRequestOptions,
   CrudService,
   GetManyDefaultResponse,
+  JoinOption,
   JoinOptions,
   QueryOptions,
 } from '@nestjsx/crud';
@@ -36,15 +37,25 @@ import {
   DeepPartial,
   WhereExpression,
   ConnectionOptions,
+  EntityMetadata,
 } from 'typeorm';
-import { RelationMetadata } from 'typeorm/metadata/RelationMetadata';
+
+interface IAllowedRelation {
+  alias?: string;
+  nested: boolean;
+  name: string;
+  path: string;
+  columns: string[];
+  primaryColumns: string[];
+  allowedColumns: string[];
+}
 
 export class TypeOrmCrudService<T> extends CrudService<T> {
   protected dbName: ConnectionOptions['type'];
   protected entityColumns: string[];
   protected entityPrimaryColumns: string[];
   protected entityColumnsHash: ObjectLiteral = {};
-  protected entityRelationsHash: ObjectLiteral = {};
+  protected entityRelationsHash: Map<string, IAllowedRelation> = new Map();
   protected sqlInjectionRegEx: RegExp[] = [
     /(%27)|(\')|(--)|(%23)|(#)/gi,
     /((%3D)|(=))[^\n]*((%27)|(\')|(--)|(%3B)|(;))/gi,
@@ -57,7 +68,6 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
 
     this.dbName = this.repo.metadata.connection.options.type;
     this.onInitMapEntityColumns();
-    this.onInitMapRelations();
   }
 
   public get findOne(): Repository<T>['findOne'] {
@@ -242,17 +252,6 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     return filters;
   }
 
-  public decidePagination(
-    parsed: ParsedRequestParams,
-    options: CrudRequestOptions,
-  ): boolean {
-    return (
-      options.query.alwaysPaginate ||
-      ((Number.isFinite(parsed.page) || Number.isFinite(parsed.offset)) &&
-        !!this.getTake(parsed, options.query))
-    );
-  }
-
   /**
    * Create TypeOrm QueryBuilder
    * @param parsed
@@ -362,31 +361,15 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     this.entityColumns = this.repo.metadata.columns.map((prop) => {
       // In case column is an embedded, use the propertyPath to get complete path
       if (prop.embeddedMetadata) {
-        this.entityColumnsHash[prop.propertyPath] = true;
+        this.entityColumnsHash[prop.propertyPath] = prop.databasePath;
         return prop.propertyPath;
       }
-      this.entityColumnsHash[prop.propertyName] = true;
+      this.entityColumnsHash[prop.propertyName] = prop.databasePath;
       return prop.propertyName;
     });
     this.entityPrimaryColumns = this.repo.metadata.columns
       .filter((prop) => prop.isPrimary)
       .map((prop) => prop.propertyName);
-  }
-
-  protected onInitMapRelations() {
-    this.entityRelationsHash = this.repo.metadata.relations.reduce(
-      (hash, curr) => ({
-        ...hash,
-        [curr.propertyName]: {
-          name: curr.propertyName,
-          columns: curr.inverseEntityMetadata.columns.map((col) => col.propertyName),
-          primaryColumns: curr.inverseEntityMetadata.primaryColumns.map(
-            (col) => col.propertyName,
-          ),
-        },
-      }),
-      {},
-    );
   }
 
   protected async getOneOrFail(req: CrudRequest, shallow = false): Promise<T> {
@@ -448,27 +431,115 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
         );
   }
 
-  protected getRelationMetadata(field: string) {
+  protected getEntityColumns(
+    entityMetadata: EntityMetadata,
+  ): { columns: string[]; primaryColumns: string[] } {
+    const columns =
+      entityMetadata.columns.map((prop) => prop.propertyPath) ||
+      /* istanbul ignore next */ [];
+    const primaryColumns =
+      entityMetadata.primaryColumns.map((prop) => prop.propertyPath) ||
+      /* istanbul ignore next */ [];
+
+    return { columns, primaryColumns };
+  }
+
+  protected getRelationMetadata(field: string, options: JoinOption): IAllowedRelation {
     try {
-      const fields = field.split('.');
-      const target = fields[fields.length - 1];
-      const paths = fields.slice(0, fields.length - 1);
+      let allowedRelation;
+      let nested = false;
 
-      let relations = this.repo.metadata.relations;
+      if (this.entityRelationsHash.has(field)) {
+        allowedRelation = this.entityRelationsHash.get(field);
+      } else {
+        const fields = field.split('.');
+        let relationMetadata: EntityMetadata;
+        let name: string;
+        let path: string;
+        let parentPath: string;
 
-      for (const propertyName of paths) {
-        relations = relations.find((o) => o.propertyName === propertyName)
-          .inverseEntityMetadata.relations;
+        if (fields.length === 1) {
+          const found = this.repo.metadata.relations.find(
+            (one) => one.propertyName === fields[0],
+          );
+
+          if (found) {
+            name = fields[0];
+            path = `${this.alias}.${fields[0]}`;
+            relationMetadata = found.inverseEntityMetadata;
+          }
+        } else {
+          nested = true;
+          parentPath = '';
+
+          const reduced = fields.reduce(
+            (res, propertyName: string, i) => {
+              const found = res.relations.length
+                ? res.relations.find((one) => one.propertyName === propertyName)
+                : null;
+              const relationMetadata = found ? found.inverseEntityMetadata : null;
+              const relations = relationMetadata ? relationMetadata.relations : [];
+              name = propertyName;
+
+              if (i !== fields.length - 1) {
+                parentPath = !parentPath
+                  ? propertyName
+                  : /* istanbul ignore next */ `${parentPath}.${propertyName}`;
+              }
+
+              return {
+                relations,
+                relationMetadata,
+              };
+            },
+            {
+              relations: this.repo.metadata.relations,
+              relationMetadata: null,
+            },
+          );
+
+          relationMetadata = reduced.relationMetadata;
+        }
+
+        if (relationMetadata) {
+          const { columns, primaryColumns } = this.getEntityColumns(relationMetadata);
+
+          if (!path && parentPath) {
+            const parentAllowedRelation = this.entityRelationsHash.get(parentPath);
+
+            /* istanbul ignore next */
+            if (parentAllowedRelation) {
+              path = parentAllowedRelation.alias
+                ? `${parentAllowedRelation.alias}.${name}`
+                : field;
+            }
+          }
+
+          allowedRelation = {
+            alias: options.alias,
+            name,
+            path,
+            columns,
+            nested,
+            primaryColumns,
+          };
+        }
       }
 
-      const relation: RelationMetadata & { nestedRelation?: string } = relations.find(
-        (o) => o.propertyName === target,
-      );
+      if (allowedRelation) {
+        const allowedColumns = this.getAllowedColumns(allowedRelation.columns, options);
+        const toSave: IAllowedRelation = { ...allowedRelation, allowedColumns };
 
-      relation.nestedRelation = `${fields[fields.length - 2]}.${target}`;
+        this.entityRelationsHash.set(field, toSave);
 
-      return relation;
-    } catch (e) {
+        if (options.alias) {
+          this.entityRelationsHash.set(options.alias, toSave);
+        }
+
+        return toSave;
+      }
+    } catch (_) {
+      /* istanbul ignore next */
       return null;
     }
   }
@@ -478,55 +549,32 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     joinOptions: JoinOptions,
     builder: SelectQueryBuilder<T>,
   ) {
-    if (this.entityRelationsHash[cond.field] === undefined && cond.field.includes('.')) {
-      const curr = this.getRelationMetadata(cond.field);
-      if (!curr) {
-        this.entityRelationsHash[cond.field] = null;
-        return true;
-      }
+    const options = joinOptions[cond.field];
 
-      this.entityRelationsHash[cond.field] = {
-        name: curr.propertyName,
-        columns: curr.inverseEntityMetadata.columns.map((col) => col.propertyName),
-        primaryColumns: curr.inverseEntityMetadata.primaryColumns.map(
-          (col) => col.propertyName,
-        ),
-        nestedRelation: curr.nestedRelation,
-      };
+    if (!options) {
+      return true;
     }
 
-    /* istanbul ignore else */
-    if (cond.field && this.entityRelationsHash[cond.field] && joinOptions[cond.field]) {
-      const relation = this.entityRelationsHash[cond.field];
-      const options = joinOptions[cond.field];
-      const allowed = this.getAllowedColumns(relation.columns, options);
+    const allowedRelation = this.getRelationMetadata(cond.field, options);
 
-      /* istanbul ignore if */
-      if (!allowed.length) {
-        return true;
-      }
+    if (!allowedRelation) {
+      return true;
+    }
 
-      const alias = options.alias ? options.alias : relation.name;
+    const relationType = options.required ? 'innerJoin' : 'leftJoin';
+    const alias = options.alias ? options.alias : allowedRelation.name;
 
-      const columns =
-        !cond.select || !cond.select.length
-          ? allowed
-          : cond.select.filter((col) => allowed.some((a) => a === col));
+    builder[relationType](allowedRelation.path, alias);
 
+    if (options.select !== false) {
       const select = [
-        ...relation.primaryColumns,
+        ...allowedRelation.primaryColumns,
         ...(options.persist && options.persist.length ? options.persist : []),
-        ...columns,
+        ...allowedRelation.allowedColumns,
       ].map((col) => `${alias}.${col}`);
 
-      const relationPath = relation.nestedRelation || `${this.alias}.${relation.name}`;
-      const relationType = options.required ? 'innerJoin' : 'leftJoin';
-
-      builder[relationType](relationPath, alias);
       builder.addSelect(select);
     }
-
-    return true;
   }
 
   protected setAndWhere(
@@ -781,14 +829,20 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
   }
 
   protected getFieldWithAlias(field: string, sort: boolean = false) {
+    /* istanbul ignore next */
+    const i = this.dbName === 'mysql' ? '`' : '"';
     const cols = field.split('.');
-    // relation is alias
+
     switch (cols.length) {
       case 1:
-        if (sort || this.alias[0] === '"') {
+        if (sort) {
           return `${this.alias}.${field}`;
         }
-        return `"${this.alias}"."${field}"`;
+
+        const dbColName =
+          this.entityColumnsHash[field] !== field ? this.entityColumnsHash[field] : field;
+
+        return `${i}${this.alias}${i}.${i}${dbColName}${i}`;
       case 2:
         return field;
       default:
