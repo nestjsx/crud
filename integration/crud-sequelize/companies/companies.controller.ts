@@ -19,10 +19,27 @@ import { Company } from './company.model';
     },
   },
   query: {
-    alwaysPaginate: true,
+    alwaysPaginate: false,
+    allow: ['name'],
     join: {
-      users: {},
-      projects: {},
+      users: {
+        alias: 'companyUsers',
+        exclude: ['email'],
+        eager: true,
+      },
+      'users.projects': {
+        eager: true,
+        alias: 'usersProjects',
+        allow: ['name'],
+      },
+      'users.projects.company': {
+        eager: true,
+        alias: 'usersProjectsCompany',
+      },
+      projects: {
+        eager: true,
+        select: false,
+      },
     },
   },
 })

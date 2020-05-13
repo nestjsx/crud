@@ -45,7 +45,8 @@ describe('#crud-sequelize', () => {
 
       async canActivate(ctx: ExecutionContext): Promise<boolean> {
         const req = ctx.switchToHttp().getRequest();
-        req[USER_REQUEST_KEY] = await this.usersService.findOne({ where: { id: 1 } });
+        req[USER_REQUEST_KEY] = await this.usersService.findOne(1);
+
         return true;
       }
     }
@@ -108,8 +109,14 @@ describe('#crud-sequelize', () => {
         ],
         controllers: [MeController, ProjectsController],
         providers: [
-          { provide: APP_GUARD, useClass: AuthGuard },
-          { provide: APP_FILTER, useClass: HttpExceptionFilter },
+          {
+            provide: APP_GUARD,
+            useClass: AuthGuard,
+          },
+          {
+            provide: APP_FILTER,
+            useClass: HttpExceptionFilter,
+          },
           UsersService,
           ProjectsService,
         ],
@@ -140,26 +147,22 @@ describe('#crud-sequelize', () => {
             email: 'some@dot.com',
             isActive: false,
           })
-          .expect((res) => {
-            expect(res.status).toBe(200);
-            expect(res.body.id).toBe(1);
-            expect(res.body.email).toBe('1@email.com');
-            expect(res.body.isActive).toBe(false);
-          });
+          .expect(200);
+        expect(res.body.id).toBe(1);
+        expect(res.body.email).toBe('1@email.com');
+        expect(res.body.isActive).toBe(false);
       });
-      it('should update user with auth persist, 2', async () => {
+      it('should update user with auth persist, 1', async () => {
         const res = await server
           .patch('/me')
           .send({
             email: 'some@dot.com',
             isActive: true,
           })
-          .expect((res) => {
-            expect(res.status).toBe(200);
-            expect(res.body.id).toBe(1);
-            expect(res.body.email).toBe('1@email.com');
-            expect(res.body.isActive).toBe(true);
-          });
+          .expect(200);
+        expect(res.body.id).toBe(1);
+        expect(res.body.email).toBe('1@email.com');
+        expect(res.body.isActive).toBe(true);
       });
     });
 

@@ -108,6 +108,16 @@ module.exports = {
         { project_id: 2, user_id: 2, review: 'User project 2 2', created_at: new Date(), updated_at: new Date() },
         { project_id: 3, user_id: 3, review: 'User project 3 3', created_at: new Date(), updated_at: new Date() },
       ], { transaction });
+
+      // notes
+      await queryInterface.bulkInsert('notes', [
+        { revision_id: 1, created_at: new Date(), updated_at: new Date() },
+        { revision_id: 1, created_at: new Date(), updated_at: new Date() },
+        { revision_id: 2, created_at: new Date(), updated_at: new Date() },
+        { revision_id: 2, created_at: new Date(), updated_at: new Date() },
+        { revision_id: 3, created_at: new Date(), updated_at: new Date() },
+        { revision_id: 3, created_at: new Date(), updated_at: new Date() },
+      ]);
       await transaction.commit();
     }
     catch (err) {
@@ -119,20 +129,33 @@ module.exports = {
   down: async (queryInterface) => {
     const transaction = await queryInterface.sequelize.transaction();
     try {
-      await queryInterface.sequelize.query('delete from user_projects CASCADE', { transaction, type: QueryTypes.DELETE });
-      await queryInterface.sequelize.query('delete from user_profiles CASCADE', { transaction, type: QueryTypes.DELETE });
-      await queryInterface.sequelize.query('delete from user_licenses CASCADE', { transaction, type: QueryTypes.DELETE });
-      await queryInterface.sequelize.query('delete from licenses CASCADE', { transaction, type: QueryTypes.DELETE });
-      await queryInterface.sequelize.query('delete from users CASCADE', { transaction, type: QueryTypes.DELETE });
-      await queryInterface.sequelize.query('delete from projects CASCADE', { transaction, type: QueryTypes.DELETE });
-      await queryInterface.sequelize.query('delete from devices CASCADE', { transaction, type: QueryTypes.DELETE });
-      await queryInterface.sequelize.query('delete from companies CASCADE', { transaction, type: QueryTypes.DELETE });
+      await queryInterface.sequelize.query('delete from user_projects', { transaction, type: QueryTypes.DELETE });
+      await queryInterface.sequelize.query('delete from user_profiles', { transaction, type: QueryTypes.DELETE });
+      await queryInterface.sequelize.query('delete from user_licenses', { transaction, type: QueryTypes.DELETE });
+      await queryInterface.sequelize.query('delete from licenses', { transaction, type: QueryTypes.DELETE });
+      await queryInterface.sequelize.query('delete from users', { transaction, type: QueryTypes.DELETE });
+      await queryInterface.sequelize.query('delete from projects', { transaction, type: QueryTypes.DELETE });
+      await queryInterface.sequelize.query('delete from devices', { transaction, type: QueryTypes.DELETE });
+      await queryInterface.sequelize.query('delete from companies', { transaction, type: QueryTypes.DELETE });
+      await queryInterface.sequelize.query('delete from notes', { transaction, type: QueryTypes.DELETE });
 
-      await queryInterface.sequelize.query('ALTER SEQUENCE users_id_seq RESTART;UPDATE users SET id = DEFAULT', { transaction, type: QueryTypes.UPDATE });
-      await queryInterface.sequelize.query('ALTER SEQUENCE licenses_id_seq RESTART;UPDATE licenses SET id = DEFAULT', { transaction, type: QueryTypes.UPDATE });
-      await queryInterface.sequelize.query('ALTER SEQUENCE projects_id_seq RESTART;UPDATE projects SET id = DEFAULT', { transaction, type: QueryTypes.UPDATE });
-      await queryInterface.sequelize.query('ALTER SEQUENCE user_profiles_id_seq RESTART;UPDATE user_profiles SET id = DEFAULT', { transaction, type: QueryTypes.UPDATE });
-      await queryInterface.sequelize.query('ALTER SEQUENCE companies_id_seq RESTART;UPDATE companies SET id = DEFAULT', { transaction, type: QueryTypes.UPDATE });
+      if (queryInterface.sequelize.options.dialect === 'postgres') {
+        await queryInterface.sequelize.query('ALTER SEQUENCE users_id_seq RESTART;UPDATE users SET id = DEFAULT', { transaction, type: QueryTypes.UPDATE });
+        await queryInterface.sequelize.query('ALTER SEQUENCE licenses_id_seq RESTART;UPDATE licenses SET id = DEFAULT', { transaction, type: QueryTypes.UPDATE });
+        await queryInterface.sequelize.query('ALTER SEQUENCE projects_id_seq RESTART;UPDATE projects SET id = DEFAULT', { transaction, type: QueryTypes.UPDATE });
+        await queryInterface.sequelize.query('ALTER SEQUENCE user_profiles_id_seq RESTART;UPDATE user_profiles SET id = DEFAULT', { transaction, type: QueryTypes.UPDATE });
+        await queryInterface.sequelize.query('ALTER SEQUENCE companies_id_seq RESTART;UPDATE companies SET id = DEFAULT', { transaction, type: QueryTypes.UPDATE });
+        await queryInterface.sequelize.query('ALTER SEQUENCE notes_id_seq RESTART;UPDATE companies SET id = DEFAULT', { transaction, type: QueryTypes.UPDATE });
+      } else if (queryInterface.sequelize.options.dialect === 'mysql') {
+        await queryInterface.sequelize.query('ALTER TABLE users AUTO_INCREMENT = 1;', { transaction, type: QueryTypes.UPDATE });
+        await queryInterface.sequelize.query('ALTER TABLE licenses AUTO_INCREMENT = 1;', { transaction, type: QueryTypes.UPDATE });
+        await queryInterface.sequelize.query('ALTER TABLE projects AUTO_INCREMENT = 1;', { transaction, type: QueryTypes.UPDATE });
+        await queryInterface.sequelize.query('ALTER TABLE user_profiles AUTO_INCREMENT = 1;', { transaction, type: QueryTypes.UPDATE });
+        await queryInterface.sequelize.query('ALTER TABLE companies AUTO_INCREMENT = 1;', { transaction, type: QueryTypes.UPDATE });
+        await queryInterface.sequelize.query('ALTER TABLE notes AUTO_INCREMENT = 1;', { transaction, type: QueryTypes.UPDATE });
+      } else {
+        throw new Error('miograte down not implemented from ' + queryInterface.sequelize.options.dialect);
+      }
       await transaction.commit();
     }
     catch (err) {

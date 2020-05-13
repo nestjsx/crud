@@ -166,7 +166,7 @@ describe('#crud-typeorm', () => {
     beforeAll(async () => {
       const fixture = await Test.createTestingModule({
         imports: [
-          TypeOrmModule.forRoot({ ...withCache, logging: false }),
+          TypeOrmModule.forRoot({ ...withCache, logging: true }),
           TypeOrmModule.forFeature([Company, Project, User, UserProfile, Note]),
         ],
         controllers: [
