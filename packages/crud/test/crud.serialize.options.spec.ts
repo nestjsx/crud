@@ -1,4 +1,4 @@
-import request from 'supertest';
+import * as request from 'supertest';
 import { Test } from '@nestjs/testing';
 import { Controller, INestApplication, Inject } from '@nestjs/common';
 import { APP_FILTER } from '@nestjs/core';

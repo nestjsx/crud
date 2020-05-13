@@ -3,7 +3,7 @@ import { Controller, INestApplication } from '@nestjs/common';
 import { APP_FILTER } from '@nestjs/core';
 import { Test } from '@nestjs/testing';
 import { SequelizeModule } from '@nestjs/sequelize';
-import request from 'supertest';
+import * as request from 'supertest';
 
 import { Company } from '../../../integration/crud-sequelize/companies/company.model';
 import { config } from '../../../integration/crud-sequelize/sequelize.config';

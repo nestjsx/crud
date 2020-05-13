@@ -5,7 +5,7 @@ import { SequelizeModule } from '@nestjs/sequelize';
 
 import { Crud } from '@nestjsx/crud';
 import { RequestQueryBuilder } from '@nestjsx/crud-request';
-import request from 'supertest';
+import * as request from 'supertest';
 import { Company } from '../../../integration/crud-sequelize/companies/company.model';
 import { Device } from '../../../integration/crud-sequelize/devices/device.model';
 import { config } from '../../../integration/crud-sequelize/sequelize.config';

@@ -12,7 +12,7 @@ import {
   isNil,
   isUndefined,
 } from '@nestjsx/util';
-import deepmerge from 'deepmerge';
+import * as deepmerge from 'deepmerge';
 
 import { R } from './reflection.helper';
 import { SerializeHelper } from './serialize.helper';

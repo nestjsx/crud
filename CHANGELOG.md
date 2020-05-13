@@ -1,3 +1,14 @@
+## [4.5.0] - 2020-05-01
+
+### Improvements
+
+- **crud** - added enum support for params Swagger. Kudos to @tbrannam
+
+### Bug Fixes
+
+- **crud** - fixed auth property definition. Kudos to @lafeuil
+- **typeorm** - fixed request generation with aliases ([#321](https://github.com/nestjsx/crud/issues/321), [#401](https://github.com/nestjsx/crud/issues/401)). Kudos to @joennlae
+
 ## [4.4.5] - 2020-04-18
 
 ## Deps
@@ -137,6 +148,7 @@
 
 - several fixes
 
+[4.5.0]: https://github.com/nestjsx/crud/compare/v4.4.5...v4.5.0
 [4.4.5]: https://github.com/nestjsx/crud/compare/v4.4.4...v4.4.5
 [4.4.4]: https://github.com/nestjsx/crud/compare/v4.4.3...v4.4.4
 [4.4.3]: https://github.com/nestjsx/crud/compare/v4.4.2...v4.4.3

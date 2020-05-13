@@ -4,7 +4,7 @@ import { Test } from '@nestjs/testing';
 import { SequelizeModule } from '@nestjs/sequelize';
 import { RequestQueryBuilder } from '@nestjsx/crud-request';
 import 'jest-extended';
-import request from 'supertest';
+import * as request from 'supertest';
 
 import { Company } from '../../../integration/crud-sequelize/companies/company.model';
 import { config } from '../../../integration/crud-sequelize/sequelize.config';
