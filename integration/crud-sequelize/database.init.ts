@@ -1,10 +1,9 @@
 import { join } from "path";
 import { Sequelize } from 'sequelize-typescript';
-import { config } from './orm.config';
+import { config } from './sequelize.config';
 
 function sync() {
   const sequelize = new Sequelize(config);
-  sequelize.addModels([join(__dirname, './**/*.model.{ts,js}')]);
   return sequelize.sync({ force: true });
 }
 

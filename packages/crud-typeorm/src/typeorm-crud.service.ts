@@ -45,6 +45,12 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
   protected entityPrimaryColumns: string[];
   protected entityColumnsHash: ObjectLiteral = {};
   protected entityRelationsHash: ObjectLiteral = {};
+  protected sqlInjectionRegEx: RegExp[] = [
+    /(%27)|(\')|(--)|(%23)|(#)/gi,
+    /((%3D)|(=))[^\n]*((%27)|(\')|(--)|(%3B)|(;))/gi,
+    /w*((%27)|(\'))((%6F)|o|(%4F))((%72)|r|(%52))/gi,
+    /((%27)|(\'))union/gi,
+  ];
 
   constructor(protected repo: Repository<T>) {
     super();
@@ -774,12 +780,15 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
       : {};
   }
 
-  protected getFieldWithAlias(field: string) {
+  protected getFieldWithAlias(field: string, sort: boolean = false) {
     const cols = field.split('.');
     // relation is alias
     switch (cols.length) {
       case 1:
-        return `${this.alias}.${field}`;
+        if (sort || this.alias[0] === '"') {
+          return `${this.alias}.${field}`;
+        }
+        return `"${this.alias}"."${field}"`;
       case 2:
         return field;
       default:
@@ -791,7 +800,9 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     const params: ObjectLiteral = {};
 
     for (let i = 0; i < sort.length; i++) {
-      params[this.getFieldWithAlias(sort[i].field)] = sort[i].order;
+      const field = this.getFieldWithAlias(sort[i].field, true);
+      const checkedFiled = this.checkSqlInjection(field);
+      params[checkedFiled] = sort[i].order;
     }
 
     return params;
@@ -895,22 +906,22 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
         break;
 
       case '$startsL':
-        str = `${field} ${likeOperator} :${param}`;
+        str = `LOWER(${field}) ${likeOperator} :${param}`;
         params = { [param]: `${cond.value}%` };
         break;
 
       case '$endsL':
-        str = `${field} ${likeOperator} :${param}`;
+        str = `LOWER(${field}) ${likeOperator} :${param}`;
         params = { [param]: `%${cond.value}` };
         break;
 
       case '$contL':
-        str = `${field} ${likeOperator} :${param}`;
+        str = `LOWER(${field}) ${likeOperator} :${param}`;
         params = { [param]: `%${cond.value}%` };
         break;
 
       case '$exclL':
-        str = `${field} NOT ${likeOperator} :${param}`;
+        str = `LOWER(${field}) NOT ${likeOperator} :${param}`;
         params = { [param]: `%${cond.value}%` };
         break;
 
@@ -946,5 +957,19 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     ) {
       this.throwBadRequestException(`Invalid column '${cond.field}' value`);
     }
+  }
+
+  private checkSqlInjection(field: string): string {
+    /* istanbul ignore else */
+    if (this.sqlInjectionRegEx.length) {
+      for (let i = 0; i < this.sqlInjectionRegEx.length; i++) {
+        /* istanbul ignore else */
+        if (this.sqlInjectionRegEx[0].test(field)) {
+          this.throwBadRequestException(`SQL injection detected: "${field}"`);
+        }
+      }
+    }
+
+    return field;
   }
 }

@@ -1,20 +1,19 @@
 import { Controller } from '@nestjs/common';
-import { ApiUseTags } from '@nestjs/swagger';
+import { ApiTags } from '@nestjs/swagger';
 import {
   Crud,
   CrudController,
   CrudRequest,
-  Override,
   ParsedRequest,
+  Override,
 } from '@nestjsx/crud';
 
-import { UserDto } from './user.dto';
-import User from './user.model';
+import { User } from './user.model';
 import { UsersService } from './users.service';
 
 @Crud({
   model: {
-    type: UserDto,
+    type: User,
   },
   params: {
     companyId: {
@@ -32,15 +31,18 @@ import { UsersService } from './users.service';
       company: {
         exclude: ['description'],
       },
+      'company.projects': {
+        alias: 'pr',
+        exclude: ['description'],
+      },
       profile: {
         eager: true,
         exclude: ['updatedAt'],
       },
     },
   },
-  validation: false
 })
-@ApiUseTags('users')
+@ApiTags('users')
 @Controller('/companies/:companyId/users')
 export class UsersController implements CrudController<User> {
   constructor(public service: UsersService) {}

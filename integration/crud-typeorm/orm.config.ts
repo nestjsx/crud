@@ -1,5 +1,6 @@
 import { join } from 'path';
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
+import { isNil } from '@nestjsx/util';
 
 export const withCache: TypeOrmModuleOptions = {
   type: 'postgres',
@@ -9,7 +10,9 @@ export const withCache: TypeOrmModuleOptions = {
   password: 'root',
   database: 'nestjsx_crud',
   synchronize: false,
-  logging: true,
+  logging: !isNil(process.env.TYPEORM_LOGGING)
+    ? !!parseInt(process.env.TYPEORM_LOGGING, 10)
+    : true,
   cache: {
     type: 'redis',
     options: {

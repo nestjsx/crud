@@ -1,6 +1,6 @@
 import { CrudValidationGroups } from '@nestjsx/crud';
 import { IsBoolean, IsEmail, IsNotEmpty, IsOptional, IsString, MaxLength, ValidateNested } from 'class-validator';
-import { UserProfile } from '../../crud-typeorm/users-profiles';
+import { UserProfile } from '../users-profiles/userprofile.model';
 const { CREATE, UPDATE } = CrudValidationGroups;
 
 export class UserDto {

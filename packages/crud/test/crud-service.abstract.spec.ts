@@ -37,6 +37,19 @@ describe('#crud', () => {
         };
         expect(service.createPageInfo([], 100, 10, 10)).toMatchObject(expected);
       });
+
+      it('should return an object when limit and offset undefined', () => {
+        const expected = {
+          count: 0,
+          data: [],
+          page: 1,
+          pageCount: 1,
+          total: 100,
+        };
+        expect(service.createPageInfo([], 100, undefined, undefined)).toMatchObject(
+          expected,
+        );
+      });
     });
   });
 });

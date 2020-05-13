@@ -11,6 +11,7 @@ npm-debug.log
 # misc
 .DS_Store
 lerna-debug.log
+/.npmrc
 
 # tests
 /coverage

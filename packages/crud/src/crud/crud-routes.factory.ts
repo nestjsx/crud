@@ -10,6 +10,7 @@ import {
   isEqual,
   getOwnPropNames,
   isNil,
+  isUndefined,
 } from '@nestjsx/util';
 import * as deepmerge from 'deepmerge';
 
@@ -73,8 +74,9 @@ export class CrudRoutesFactory {
     // merge auth config
     const authOptions = R.getCrudAuthOptions(this.target);
     this.options.auth = isObjectFull(authOptions) ? authOptions : {};
-    this.options.auth.property =
-      this.options.auth.property || CrudConfigService.config.auth.property;
+    if (isUndefined(this.options.auth.property)) {
+      this.options.auth.property = CrudConfigService.config.auth.property;
+    }
 
     // merge query config
     const query = isObjectFull(this.options.query) ? this.options.query : {};
@@ -470,7 +472,8 @@ export class CrudRoutesFactory {
 
   private setSwaggerOperation(name: BaseRouteName) {
     const summary = Swagger.operationsMap(this.modelName)[name];
-    Swagger.setOperation({ summary }, this.targetProto[name]);
+    const operationId = name + this.targetProto.constructor.name + this.modelName;
+    Swagger.setOperation({ summary, operationId }, this.targetProto[name]);
   }
 
   private setSwaggerPathParams(name: BaseRouteName) {
@@ -487,7 +490,7 @@ export class CrudRoutesFactory {
           {},
         )
       : this.options.params;
-    const pathParamsMeta = Swagger.createPathParasmMeta(params);
+    const pathParamsMeta = Swagger.createPathParamsMeta(params);
     Swagger.setParams([...metadata, ...pathParamsMeta], this.targetProto[name]);
   }
 

@@ -91,7 +91,12 @@ export class Swagger {
 
       switch (name) {
         case 'getOneBase':
-          return { [HttpStatus.OK]: { type: swaggerModels.get } };
+          return {
+            [HttpStatus.OK]: {
+              description: 'Get one base response',
+              type: swaggerModels.get,
+            },
+          };
         case 'getManyBase':
           /* istanbul ignore if */
           if (oldVersion) {
@@ -104,8 +109,12 @@ export class Swagger {
 
           return {
             [HttpStatus.OK]: query.alwaysPaginate
-              ? { type: swaggerModels.getMany }
+              ? {
+                  description: 'Get paginated response',
+                  type: swaggerModels.getMany,
+                }
               : {
+                  description: 'Get many base response',
                   schema: {
                     oneOf: [
                       { $ref: swagger.getSchemaPath(swaggerModels.getMany.name) },
@@ -129,6 +138,7 @@ export class Swagger {
 
           return {
             [HttpStatus.CREATED]: {
+              description: 'Get create one base response',
               schema: { $ref: swagger.getSchemaPath(swaggerModels.create.name) },
             },
           };
@@ -146,9 +156,11 @@ export class Swagger {
           return {
             [HttpStatus.CREATED]: swaggerModels.createMany
               ? /* istanbul ignore next */ {
+                  description: 'Get create many base response',
                   schema: { $ref: swagger.getSchemaPath(swaggerModels.createMany.name) },
                 }
               : {
+                  description: 'Get create many base response',
                   schema: {
                     type: 'array',
                     items: { $ref: swagger.getSchemaPath(swaggerModels.create.name) },
@@ -168,8 +180,13 @@ export class Swagger {
           }
           return {
             [HttpStatus.OK]: routes.deleteOneBase.returnDeleted
-              ? { schema: { $ref: swagger.getSchemaPath(swaggerModels.delete.name) } }
-              : {},
+              ? {
+                  description: 'Delete one base response',
+                  schema: { $ref: swagger.getSchemaPath(swaggerModels.delete.name) },
+                }
+              : {
+                  description: 'Delete one base response',
+                },
           };
         default:
           const dto = swaggerModels[name.split('OneBase')[0]];
@@ -185,6 +202,7 @@ export class Swagger {
 
           return {
             [HttpStatus.OK]: {
+              description: 'Response',
               schema: { $ref: swagger.getSchemaPath(dto.name) },
             },
           };
@@ -194,13 +212,14 @@ export class Swagger {
     }
   }
 
-  static createPathParasmMeta(options: ParamsOptions): any[] {
+  static createPathParamsMeta(options: ParamsOptions): any[] {
     return swaggerConst
       ? objKeys(options).map((param) => ({
           name: param,
           required: true,
           in: 'path',
           type: options[param].type === 'number' ? Number : String,
+          enum: options[param].enum ? Object.values(options[param].enum) : undefined,
         }))
       : /* istanbul ignore next */ [];
   }
@@ -278,6 +297,7 @@ export class Swagger {
           items: {
             type: 'string',
           },
+          type: 'array',
           collectionFormat: 'multi',
         }
       : {
@@ -304,6 +324,7 @@ export class Swagger {
           items: {
             type: 'string',
           },
+          type: 'array',
           collectionFormat: 'multi',
         }
       : {
@@ -330,6 +351,7 @@ export class Swagger {
           items: {
             type: 'string',
           },
+          type: 'array',
           collectionFormat: 'multi',
         }
       : {
@@ -356,6 +378,7 @@ export class Swagger {
           items: {
             type: 'string',
           },
+          type: 'array',
           collectionFormat: 'multi',
         }
       : {
