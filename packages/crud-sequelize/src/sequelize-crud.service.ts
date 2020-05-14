@@ -599,7 +599,7 @@ export class SequelizeCrudService<T extends Model> extends CrudService<T> {
       if (allowedRelation) {
         allowedRelation.allowedColumns = this.getAllowedColumns(
           Object.keys(allowedRelation.target.rawAttributes),
-          options,
+          options || {},
         );
         allowedRelation.primaryColumns = _.map(
           allowedRelation.target.rawAttributes,
