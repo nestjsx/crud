@@ -10,3 +10,10 @@ export class UsersService extends SequelizeCrudService<User> {
     super(user);
   }
 }
+
+@Injectable()
+export class UsersService2 extends SequelizeCrudService<User> {
+  constructor(@InjectModel(User) repo) {
+    super(repo);
+  }
+}

@@ -8,16 +8,13 @@ import { UserLicense } from './users-licenses/userlicense.model';
 import { UserProfile } from './users-profiles/userprofile.model';
 import { UserProject } from './projects/userproject.model';
 import { License } from './users-licenses/license.model';
+import * as jsConfig from './config';
+import { Note } from './notes/note.model';
 
 export const config: SequelizeModuleOptions = {
-  dialect: 'postgres',
-  host: '127.0.0.1',
-  port: 5456,
-  username: 'root',
-  password: 'root',
-  database: 'nestjsx_crud_sequelize',
+  ...jsConfig.development,
   logging: !!process.env.SQL_LOG ? console.log : false,
-  models: [Company, UserProfile, User, Project, UserProject, Device, License, UserLicense],
+  models: [Company, UserProfile, User, Project, UserProject, Device, License, UserLicense, Note],
   define: {
     underscored: true,
     paranoid: false,

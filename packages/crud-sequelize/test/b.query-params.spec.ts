@@ -15,9 +15,11 @@ import { HttpExceptionFilter } from '../../../integration/shared/https-exception
 import { Crud } from '../../crud/src/decorators';
 import { CompaniesService } from './__fixture__/companies.service';
 import { ProjectsService } from './__fixture__/projects.service';
-import { UsersService } from './__fixture__/users.service';
+import { UsersService, UsersService2 } from './__fixture__/users.service';
 import { MigrationHelper } from './migration-helper';
 import { Sequelize } from 'sequelize';
+import { NotesService } from '../../../integration/crud-sequelize/notes/notes.service';
+import { Note } from '../../../integration/crud-sequelize/notes/note.model';
 
 // tslint:disable:max-classes-per-file
 describe('#crud-sequelize', () => {
@@ -69,7 +71,6 @@ describe('#crud-sequelize', () => {
           company: {
             eager: true,
             persist: ['id'],
-            allow: ['id'],
             exclude: ['updatedAt', 'createdAt'],
           },
           users: {},
@@ -121,6 +122,12 @@ describe('#crud-sequelize', () => {
           company: {},
           'company.projects': {},
           userLicenses: {},
+          invalid: {
+            eager: true,
+          },
+          'foo.bar': {
+            eager: true,
+          },
         },
       },
     })
@@ -149,20 +156,32 @@ describe('#crud-sequelize', () => {
       model: { type: User },
       query: {
         join: {
-          profile: { required: true },
+          company: {
+            alias: 'userCompany',
+            eager: true,
+            select: false,
+          },
         },
       },
     })
-    @Controller('users3')
+    @Controller('myusers')
     class UsersController3 {
-      constructor(public service: UsersService) {}
+      constructor(public service: UsersService2) {}
+    }
+
+    @Crud({
+      model: { type: Note },
+    })
+    @Controller('notes')
+    class NotesController {
+      constructor(public service: NotesService) {}
     }
 
     beforeAll(async () => {
       const fixture = await Test.createTestingModule({
         imports: [
           SequelizeModule.forRoot({ ...config, logging: false }),
-          SequelizeModule.forFeature([Company, Project, User, UserProfile]),
+          SequelizeModule.forFeature([Company, Project, User, UserProfile, Note]),
         ],
         controllers: [
           CompaniesController,
@@ -173,12 +192,15 @@ describe('#crud-sequelize', () => {
           UsersController,
           UsersController2,
           UsersController3,
+          NotesController,
         ],
         providers: [
           { provide: APP_FILTER, useClass: HttpExceptionFilter },
           CompaniesService,
           UsersService,
+          UsersService2,
           ProjectsService,
+          NotesService,
         ],
       }).compile();
 
@@ -197,42 +219,45 @@ describe('#crud-sequelize', () => {
     });
 
     describe('#select', () => {
-      it('should throw status 400', () => {
+      it('should throw status 400', (done) => {
         const query = qb.setFilter({ field: 'invalid', operator: 'isnull' }).query();
         return request(server)
           .get('/companies')
           .query(query)
-          .expect((res) => {
+          .end((_, res) => {
             expect(res.status).toBe(500);
+            done();
           });
       });
     });
 
     describe('#query filter', () => {
-      it('should return data with limit', async () => {
+      it('should return data with limit', (done) => {
         const query = qb.setLimit(4).query();
         return request(server)
           .get('/companies')
           .query(query)
-          .expect((res) => {
+          .end((_, res) => {
             expect(res.status).toBe(200);
             expect(res.body.length).toBe(4);
             res.body.forEach((e: Company) => {
               expect(e.id).not.toBe(1);
             });
+            done();
           });
       });
-      it('should return with maxLimit', async () => {
+      it('should return with maxLimit', (done) => {
         const query = qb.setLimit(7).query();
         return request(server)
           .get('/companies')
           .query(query)
-          .expect((res) => {
+          .end((_, res) => {
             expect(res.status).toBe(200);
             expect(res.body.length).toBe(5);
+            done();
           });
       });
-      it('should return with filter and or, 1', async () => {
+      it('should return with filter and or, 1', (done) => {
         const query = qb
           .setFilter({ field: 'name', operator: 'notin', value: ['Name2', 'Name3'] })
           .setOr({ field: 'domain', operator: 'cont', value: 5 })
@@ -240,12 +265,13 @@ describe('#crud-sequelize', () => {
         return request(server)
           .get('/companies')
           .query(query)
-          .expect((res) => {
+          .end((_, res) => {
             expect(res.status).toBe(200);
             expect(res.body.length).toBe(5);
+            done();
           });
       });
-      it('should return with filter and or, 2', async () => {
+      it('should return with filter and or, 2', (done) => {
         const query = qb
           .setFilter({ field: 'name', operator: 'ends', value: 'foo' })
           .setOr({ field: 'name', operator: 'starts', value: 'P' })
@@ -254,12 +280,13 @@ describe('#crud-sequelize', () => {
         return request(server)
           .get('/projects')
           .query(query)
-          .expect((res) => {
+          .end((_, res) => {
             expect(res.status).toBe(200);
             expect(res.body.length).toBe(10);
+            done();
           });
       });
-      it('should return with filter and or, 3', async () => {
+      it('should return with filter and or, 3', (done) => {
         const query = qb
           .setOr({ field: 'companyId', operator: 'gt', value: 22 })
           .setFilter({ field: 'companyId', operator: 'gte', value: 6 })
@@ -268,12 +295,13 @@ describe('#crud-sequelize', () => {
         return request(server)
           .get('/projects')
           .query(query)
-          .expect((res) => {
+          .end((_, res) => {
             expect(res.status).toBe(200);
             expect(res.body.length).toBe(8);
+            done();
           });
       });
-      it('should return with filter and or, 4', async () => {
+      it('should return with filter and or, 4', (done) => {
         const query = qb
           .setOr({ field: 'companyId', operator: 'in', value: [6, 10] })
           .setOr({ field: 'companyId', operator: 'lte', value: 10 })
@@ -283,88 +311,89 @@ describe('#crud-sequelize', () => {
         return request(server)
           .get('/projects')
           .query(query)
-          .expect((res) => {
+          .end((_, res) => {
             expect(res.status).toBe(200);
             expect(res.body.length).toBe(10);
+            done();
           });
       });
-      it('should return with filter and or, 6', async () => {
+      it('should return with filter and or, 6', (done) => {
         const query = qb.setOr({ field: 'companyId', operator: 'isnull' }).query();
         return request(server)
           .get('/projects')
           .query(query)
-          .expect((res) => {
+          .end((_, res) => {
             expect(res.status).toBe(200);
             expect(res.body.length).toBe(0);
+            done();
           });
       });
-      it('should return with filter and or, 6', async () => {
+      it('should return with filter and or, 6', (done) => {
         const query = qb
           .setOr({ field: 'companyId', operator: 'between', value: [1, 5] })
           .query();
         return request(server)
           .get('/projects')
           .query(query)
-          .expect((res) => {
+          .end((_, res) => {
             expect(res.status).toBe(200);
             expect(res.body.length).toBe(10);
+            done();
           });
       });
-      it('should return with filter, 1', async () => {
+      it('should return with filter, 1', (done) => {
         const query = qb.setOr({ field: 'companyId', operator: 'eq', value: 1 }).query();
         return request(server)
           .get('/projects')
           .query(query)
-          .expect((res) => {
+          .end((_, res) => {
             expect(res.status).toBe(200);
             expect(res.body.length).toBe(2);
+            done();
           });
       });
     });
 
     describe('#query join', () => {
-      it('should return joined entity, 1', async () => {
+      it('should return joined entity, 1', (done) => {
         const query = qb.setJoin({ field: 'company', select: ['name'] }).query();
         return request(server)
           .get('/projects/2')
           .query(query)
-          .expect((res) => {
+          .end((_, res) => {
             expect(res.status).toBe(200);
             expect(res.body.company).toBeDefined();
+            done();
           });
       });
-      it('should return joined entity, 2', async () => {
+      it('should return joined entity, 2', (done) => {
         const query = qb.setJoin({ field: 'users', select: ['name'] }).query();
         return request(server)
           .get('/companies/2')
           .query(query)
-          .expect((res) => {
+          .end((_, res) => {
             expect(res.status).toBe(200);
             expect(res.body.users).toBeDefined();
             expect(res.body.users.length).not.toBe(0);
+            done();
           });
       });
-      it('should return 200 for non-eager required join', () => {
-        const query = qb.setJoin({ field: 'profile' }).query();
+      it('should eager join without selection', (done) => {
+        const query = qb.search({ 'userCompany.id': { $eq: 1 } }).query();
         return request(server)
-          .get('/users3/20')
+          .get('/myusers')
           .query(query)
-          .expect((res) => {
-            expect(res.body.profile).toBeDefined();
-          })
-          .expect(200);
-      });
-      it('should return 404 for non-eager required join', () => {
-        const query = qb.setJoin({ field: 'profile' }).query();
-        return request(server)
-          .get('/users3/21')
-          .query(query)
-          .expect(404);
+          .end((_, res) => {
+            expect(res.status).toBe(200);
+            expect(res.body.length).toBe(10);
+            expect(res.body[0].company).toBeUndefined();
+            done();
+          });
       });
     });
 
     describe('#query nested join', () => {
-      it('should return status 400, 1', async () => {
+      it('should return status 400, 1', (done) => {
         const query = qb
           .setJoin({ field: 'company' })
           .setJoin({ field: 'company.projects' })
@@ -377,11 +406,12 @@ describe('#crud-sequelize', () => {
         return request(server)
           .get('/users/1')
           .query(query)
-          .expect((res) => {
+          .end((_, res) => {
             expect(res.status).toBe(500);
+            done();
           });
       });
-      it('should return status 400, 2', async () => {
+      it('should return status 400, 2', (done) => {
         const query = qb
           .setJoin({ field: 'company' })
           .setJoin({ field: 'company.projects' })
@@ -394,11 +424,12 @@ describe('#crud-sequelize', () => {
         return request(server)
           .get('/users/1')
           .query(query)
-          .expect((res) => {
+          .end((_, res) => {
             expect(res.status).toBe(500);
+            done();
           });
       });
-      it('should return status 400, 3', async () => {
+      it('should return status 400, 3', (done) => {
         const query = qb
           .setJoin({ field: 'company' })
           .setJoin({ field: 'company.projects' })
@@ -411,11 +442,12 @@ describe('#crud-sequelize', () => {
         return request(server)
           .get('/users/1')
           .query(query)
-          .expect((res) => {
+          .end((_, res) => {
             expect(res.status).toBe(500);
+            done();
           });
       });
-      it('should return status 200', async () => {
+      it('should return status 200', (done) => {
         const query = qb
           .setJoin({ field: 'company' })
           .setJoin({ field: 'company.projectsinvalid' })
@@ -423,11 +455,12 @@ describe('#crud-sequelize', () => {
         return request(server)
           .get('/users/1')
           .query(query)
-          .expect((res) => {
+          .end((_, res) => {
             expect(res.status).toBe(200);
+            done();
           });
       });
-      it('should return joined entity, 1', async () => {
+      it('should return joined entity, 1', (done) => {
         const query = qb
           .setFilter({ field: 'company.name', operator: 'excl', value: 'invalid' })
           .setJoin({ field: 'company' })
@@ -436,13 +469,14 @@ describe('#crud-sequelize', () => {
         return request(server)
           .get('/users/1')
           .query(query)
-          .expect((res) => {
+          .end((_, res) => {
             expect(res.status).toBe(200);
             expect(res.body.company).toBeDefined();
             expect(res.body.company.projects).toBeDefined();
+            done();
           });
       });
-      it('should return joined entity, 2', async () => {
+      it('should return joined entity, 2', (done) => {
         const query = qb
           .setFilter({ field: 'company.projects.id', operator: 'notnull' })
           .setJoin({ field: 'company' })
@@ -451,13 +485,14 @@ describe('#crud-sequelize', () => {
         return request(server)
           .get('/users/1')
           .query(query)
-          .expect((res) => {
+          .end((_, res) => {
             expect(res.status).toBe(200);
             expect(res.body.company).toBeDefined();
             expect(res.body.company.projects).toBeDefined();
+            done();
           });
       });
-      it('should return joined entity with alias', async () => {
+      it('should return joined entity with alias', (done) => {
         const query = qb
           .setFilter({ field: 'pr.id', operator: 'notnull' })
           .setJoin({ field: 'company' })
@@ -466,13 +501,14 @@ describe('#crud-sequelize', () => {
         return request(server)
           .get('/users2/1')
           .query(query)
-          .expect((res) => {
+          .end((_, res) => {
             expect(res.status).toBe(200);
             expect(res.body.company).toBeDefined();
             expect(res.body.company.projects).toBeDefined();
+            done();
           });
       });
-      it('should return joined entity with ManyToMany pivot table', async () => {
+      it('should return joined entity with ManyToMany pivot table', (done) => {
         const query = qb
           .setJoin({ field: 'users' })
           .setJoin({ field: 'userProjects' })
@@ -480,7 +516,7 @@ describe('#crud-sequelize', () => {
         return request(server)
           .get('/projects/1')
           .query(query)
-          .expect((res) => {
+          .end((_, res) => {
             expect(res.status).toBe(200);
             expect(res.body.users).toBeDefined();
             expect(res.body.users.length).toBe(2);
@@ -488,19 +524,21 @@ describe('#crud-sequelize', () => {
             expect(res.body.userProjects).toBeDefined();
             expect(res.body.userProjects.length).toBe(2);
             expect(res.body.userProjects[0].review).toBe('User project 1 1');
+            done();
           });
       });
     });
 
     describe('#query composite key join', () => {
-      it('should return joined relation', async () => {
+      it('should return joined relation', (done) => {
         const query = qb.setJoin({ field: 'userLicenses' }).query();
         return request(server)
           .get('/users/1')
           .query(query)
-          .expect((res) => {
+          .end((_, res) => {
             expect(res.status).toBe(200);
             expect(res.body.userLicenses).toBeDefined();
+            done();
           });
       });
     });
@@ -549,7 +587,8 @@ describe('#crud-sequelize', () => {
           res.body[0].company.projects[0].id,
         );
       });*/
-      it('should sort by nested field, 2', async () => {
+
+      it('should sort by nested field, 2 (alternative)', async () => {
         const query = qb
           .setFilter({ field: 'id', operator: 'eq', value: 1 })
           .setFilter({ field: 'company.id', operator: 'notnull' })
@@ -587,7 +626,7 @@ describe('#crud-sequelize', () => {
         );
       });
     });*/
-      it('should sort by nested field, 3', async () => {
+      it('should sort by nested field, 3 (alternative)', async () => {
         const query = qb
           .setFilter({ field: 'id', operator: 'eq', value: 1 })
           .setFilter({ field: 'company.id', operator: 'notnull' })
@@ -605,7 +644,7 @@ describe('#crud-sequelize', () => {
         );
       });
 
-      it('should throw 400 if SQL injection has been detected', () => {
+      it('should throw 400 if SQL injection has been detected', (done) => {
         const query = qb
           .sortBy({
             field: ' ASC; SELECT CAST( version() AS INTEGER); --',
@@ -616,55 +655,9 @@ describe('#crud-sequelize', () => {
         return request(server)
           .get('/companies')
           .query(query)
-          .expect((res) => {
+          .end((_, res) => {
             expect(res.status).toBe(400);
-          });
-      });
-
-      it('should throw 400 if column is not found, 1', () => {
-        const query = qb
-          .sortBy({
-            field: 'nonexistingfield',
-            order: 'DESC',
-          })
-          .query();
-
-        return request(server)
-          .get('/companies')
-          .query(query)
-          .expect((res) => {
-            expect(res.status).toBe(400);
-          });
-      });
-      it('should throw 400 if column is not found, 2', () => {
-        const query = qb
-          .sortBy({
-            field: 'nonexistingtrelation.nonexistingfield',
-            order: 'DESC',
-          })
-          .query();
-
-        return request(server)
-          .get('/companies')
-          .query(query)
-          .expect((res) => {
-            expect(res.status).toBe(400);
-          });
-      });
-      it('should throw 400 if column is not found, 3', () => {
-        const query = qb
-          .sortBy({
-            field: 'users.nonexistingfield',
-            order: 'DESC',
-          })
-          .setJoin({ field: 'users' })
-          .query();
-
-        return request(server)
-          .get('/companies')
-          .query(query)
-          .expect((res) => {
-            expect(res.status).toBe(400);
+            done();
           });
       });
     });
@@ -861,21 +854,21 @@ describe('#crud-sequelize', () => {
           .expect(200);
         expect(res.body).toBeArrayOfSize(0);
       });
-      it('should return with eqL search operator', async () => {
+      it('should return with $eqL search operator', async () => {
         const query = qb.search({ name: { $eqL: 'project1' } }).query();
         const res = await projects4()
           .query(query)
           .expect(200);
         expect(res.body).toBeArrayOfSize(1);
       });
-      it('should return with neL search operator', async () => {
+      it('should return with $neL search operator', async () => {
         const query = qb.search({ name: { $neL: 'project1' } }).query();
         const res = await projects4()
           .query(query)
           .expect(200);
         expect(res.body).toBeArrayOfSize(9);
       });
-      it('should return with startsL search operator', async () => {
+      it('should return with $startsL search operator', async () => {
         const query = qb.search({ email: { $startsL: '2' } }).query();
         const res = await request(server)
           .get('/users')
@@ -883,15 +876,16 @@ describe('#crud-sequelize', () => {
           .expect(200);
         expect(res.body).toBeArrayOfSize(3);
       });
-      it('should return with endsL search operator', async () => {
-        const query = qb.search({ domain: { $endsL: '2' } }).query();
+      it('should return with $endsL search operator', async () => {
+        const query = qb.search({ domain: { $endsL: 'AiN10' } }).query();
         const res = await request(server)
           .get('/companies')
           .query(query)
           .expect(200);
         expect(res.body).toBeArrayOfSize(1);
+        expect(res.body[0].domain).toBe('Domain10');
       });
-      it('should return with contL search operator', async () => {
+      it('should return with $contL search operator', async () => {
         const query = qb.search({ email: { $contL: '1@' } }).query();
         const res = await request(server)
           .get('/users')
@@ -899,7 +893,7 @@ describe('#crud-sequelize', () => {
           .expect(200);
         expect(res.body).toBeArrayOfSize(3);
       });
-      it('should return with exclL search operator', async () => {
+      it('should return with $exclL search operator', async () => {
         const query = qb.search({ email: { $exclL: '1@' } }).query();
         const res = await request(server)
           .get('/users')
@@ -907,7 +901,7 @@ describe('#crud-sequelize', () => {
           .expect(200);
         expect(res.body).toBeArrayOfSize(18);
       });
-      it('should return with inL search operator', async () => {
+      it('should return with $inL search operator', async () => {
         const query = qb.search({ name: { $inL: ['name2', 'name3'] } }).query();
         const res = await request(server)
           .get('/companies')
@@ -915,7 +909,7 @@ describe('#crud-sequelize', () => {
           .expect(200);
         expect(res.body).toBeArrayOfSize(2);
       });
-      it('should return with notinL search operator', async () => {
+      it('should return with $notinL search operator', async () => {
         const query = qb
           .search({ name: { $notinL: ['project7', 'project8', 'project9'] } })
           .query();
@@ -923,6 +917,16 @@ describe('#crud-sequelize', () => {
           .query(query)
           .expect(200);
         expect(res.body).toBeArrayOfSize(7);
+      });
+      it('should search by display column name, but use dbName in sql query', async () => {
+        const query = qb.search({ revisionId: 2 }).query();
+        const res = await request(server)
+          .get('/notes')
+          .query(query)
+          .expect(200);
+        expect(res.body).toBeArrayOfSize(2);
+        expect(res.body[0].revisionId).toBe(2);
+        expect(res.body[1].revisionId).toBe(2);
       });
     });
 

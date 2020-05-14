@@ -58,6 +58,7 @@
   },
   "devDependencies": {
     "@types/umzug": "^2.2.3",
+    "mysql2": "^2.1.0",
     "sequelize-cli": "^5.5.1",
     "umzug": "^2.3.0"
   }

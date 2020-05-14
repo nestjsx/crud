@@ -4,6 +4,7 @@ import {
   CrudRequestOptions,
   CrudService,
   GetManyDefaultResponse,
+  JoinOption,
   JoinOptions,
   QueryOptions,
 } from '@nestjsx/crud';
@@ -29,23 +30,21 @@ import { isArray } from 'util';
 import { classToPlain } from 'class-transformer';
 
 interface Relation {
-  type: string;
-  columns: string[];
-  referencedColumn: string;
-  name: string;
-  modelName: string;
+  target: typeof Model;
+  as: string;
+  allowedColumns: string[];
+  primaryColumns: string[];
 }
 
 export class SequelizeCrudService<T extends Model> extends CrudService<T> {
   protected entityColumns: string[];
   protected entityPrimaryColumns: string[];
   protected entityColumnsHash: Record<string, any> = {};
-  protected entityRelationsHash: Record<string, Relation> = {};
+  protected entityRelationsHash: Map<string, Relation> = new Map();
 
   constructor(protected model: T & typeof Model) {
     super();
     this.onInitMapEntityColumns();
-    this.onInitMapRelations();
   }
 
   public get findOne() {
@@ -239,17 +238,6 @@ export class SequelizeCrudService<T extends Model> extends CrudService<T> {
     return filters;
   }
 
-  public decidePagination(
-    parsed: ParsedRequestParams,
-    options: CrudRequestOptions,
-  ): boolean {
-    return (
-      options.query.alwaysPaginate ||
-      ((Number.isFinite(parsed.page) || Number.isFinite(parsed.offset)) &&
-        !!this.getTake(parsed, options.query))
-    );
-  }
-
   /**
    * Create Sequelize Query builder
    * @param parsed
@@ -288,7 +276,7 @@ export class SequelizeCrudService<T extends Model> extends CrudService<T> {
           const cond = parsed.join.find((j) => j && j.field === allowedJoins[i]) || {
             field: allowedJoins[i],
           };
-          const include = this.createInclude(cond, joinOptions);
+          const include = this.setJoin(cond, joinOptions);
           /* istanbul ignore else */
           if (include) {
             joinsArray.push(include);
@@ -301,7 +289,7 @@ export class SequelizeCrudService<T extends Model> extends CrudService<T> {
         for (let i = 0; i < parsed.join.length; i++) {
           /* istanbul ignore else */
           if (!eagerJoins[parsed.join[i].field]) {
-            const include = this.createInclude(parsed.join[i], joinOptions);
+            const include = this.setJoin(parsed.join[i], joinOptions);
             if (include) {
               joinsArray.push(include);
             }
@@ -330,7 +318,11 @@ export class SequelizeCrudService<T extends Model> extends CrudService<T> {
     /* istanbul ignore else */
     if (many) {
       // set sort (order by)
-      query.order = this.mapSort(parsed.sort, joinsArray.map((join) => join.association));
+      query.order = this.mapSort(
+        parsed.sort,
+        joinsArray.map((join) => join.association),
+        joinOptions,
+      );
       // set take
       const take = this.getTake(parsed, options.query);
       /* istanbul ignore else */
@@ -345,6 +337,7 @@ export class SequelizeCrudService<T extends Model> extends CrudService<T> {
         query.offset = skip;
       }
     }
+    // console.log('query', JSON.stringify(query, null, 2));
     return query;
   }
 
@@ -446,22 +439,32 @@ export class SequelizeCrudService<T extends Model> extends CrudService<T> {
     return where;
   }
 
-  mapSort(sorts: { field: string; order: string }[], joinsArray) {
+  mapSort(
+    sorts: { field: string; order: string }[],
+    joinsArray,
+    joinOptions: JoinOptions,
+  ) {
     const params: any[] = [];
     sorts.forEach((sort) => {
-      this.validateHasColumn(sort.field);
+      this.validateHasColumn(sort.field, joinOptions);
       if (sort.field.indexOf('.') === -1) {
         params.push([sort.field, sort.order]);
       } else {
         const column: string = sort.field.split('.').pop();
         const associationName = sort.field.substr(0, sort.field.lastIndexOf('.'));
-        const relation = this.findRelation(associationName);
+        const relation = this.getRelationMetadata(
+          associationName,
+          joinOptions[sort.field],
+        );
         /* istanbul ignore else */
         if (relation && joinsArray.indexOf(associationName) !== -1) {
           let names = [];
           const modelList = associationName.split('.').map((k) => {
             names.push(k);
-            const relation = this.findRelation(names.join('.'));
+            const relation = this.getRelationMetadata(
+              names.join('.'),
+              joinOptions[sort.field],
+            );
             return {
               model: relation.target,
               as: relation.as,
@@ -503,58 +506,43 @@ export class SequelizeCrudService<T extends Model> extends CrudService<T> {
         );
   }
 
-  protected createInclude(
+  protected setJoin(
     cond: QueryJoin,
     joinOptions: JoinOptions,
   ): Sequelize.IncludeOptions | undefined {
-    /* istanbul ignore else */
-    if (cond.field && joinOptions[cond.field]) {
-      const relation = this.findRelation(cond.field);
-      /* istanbul ignore if */
-      if (!relation) {
-        return;
-      }
-      const options = joinOptions[cond.field];
-      const allowed = this.getAllowedColumns(
-        Object.keys(relation.target.rawAttributes),
-        options,
-      );
+    const options = joinOptions[cond.field];
 
-      /* istanbul ignore if */
-      if (!allowed.length) {
-        return;
-      }
-
-      const columns =
-        !cond.select || !cond.select.length
-          ? allowed
-          : cond.select.filter((col) => allowed.some((a) => a === col));
-
-      const attributes = [
-        ..._.map(relation.target.rawAttributes, (v) => v)
-          .filter((column) => column.primaryKey)
-          .map((column) => column.field),
-        ...(options.persist && options.persist.length ? options.persist : []),
-        ...columns,
-      ];
-      return {
-        association: cond.field,
-        attributes,
-        ...(!options || !options.required ? {} : { required: true }),
-        ...(!options || !options.alias ? {} : { as: options.alias }),
-      };
+    if (!options) {
+      return;
     }
 
-    return;
+    const allowedRelation = this.getRelationMetadata(cond.field, options);
+
+    if (!allowedRelation) {
+      return;
+    }
+
+    const attributes = [
+      ...allowedRelation.primaryColumns,
+      ...(options.persist && options.persist.length ? options.persist : []),
+      ...allowedRelation.allowedColumns,
+    ];
+
+    return {
+      association: cond.field,
+      attributes: options.select === false ? [] : attributes,
+      ...(!options || !options.required ? {} : { required: true }),
+      ...(!options || !options.alias ? {} : { as: options.alias }),
+    };
   }
 
-  private validateHasColumn(column: string) {
+  private validateHasColumn(column: string, joinOptions: JoinOptions) {
     if (column.indexOf('.') !== -1) {
       const nests = column.split('.');
       column = nests[nests.length - 1];
       const associationName = nests.slice(0, nests.length - 1).join('.');
 
-      const relation = this.findRelation(associationName);
+      const relation = this.getRelationMetadata(associationName, joinOptions[column]);
       if (!relation) {
         this.throwBadRequestException(`Invalid relation name '${relation}'`);
       }
@@ -592,26 +580,49 @@ export class SequelizeCrudService<T extends Model> extends CrudService<T> {
     return !!this.model.rawAttributes[column];
   }
 
-  findRelation(path) {
-    const names = path.split('.');
-    let association: Sequelize.Association;
-    let model: any = this.model;
-    for (let i = 0; i < names.length; ++i) {
-      /* istanbul ignore else */
-      if (model) {
-        association = model.associations[names[i]];
-        model = association ? association.target : undefined;
+  getRelationMetadata(path, options: JoinOption) {
+    let allowedRelation: Relation;
+
+    if (this.entityRelationsHash.has(path)) {
+      allowedRelation = this.entityRelationsHash.get(path);
+    } else {
+      const names = path.split('.');
+      let model: any = this.model;
+      for (let i = 0; i < names.length; ++i) {
+        /* istanbul ignore else */
+        if (model) {
+          allowedRelation = model.associations[names[i]];
+          model = allowedRelation ? allowedRelation.target : undefined;
+        }
+      }
+
+      if (allowedRelation) {
+        allowedRelation.allowedColumns = this.getAllowedColumns(
+          Object.keys(allowedRelation.target.rawAttributes),
+          options || {},
+        );
+        allowedRelation.primaryColumns = _.map(
+          allowedRelation.target.rawAttributes,
+          (v) => v,
+        )
+          .filter((column) => column.primaryKey)
+          .map((column) => column.field);
+
+        this.entityRelationsHash.set(path, allowedRelation);
+        if (options && options.alias) {
+          this.entityRelationsHash.set(options.alias, allowedRelation);
+        }
       }
     }
 
-    return association;
+    return allowedRelation;
   }
 
   private onInitMapEntityColumns() {
-    const columns = Object.keys(this.model.rawAttributes).map(
+    const columns = Object.keys(this.model.rawAttributes || {}).map(
       (key) => this.model.rawAttributes[key],
     );
-    this.entityColumns = Object.keys(this.model.rawAttributes).map((column) => {
+    this.entityColumns = Object.keys(this.model.rawAttributes || {}).map((column) => {
       this.entityColumnsHash[column] = true;
       return column;
     });
@@ -638,20 +649,6 @@ export class SequelizeCrudService<T extends Model> extends CrudService<T> {
       return undefined;
     }
     return Object.assign(obj, parsed.authPersist);
-  }
-
-  private onInitMapRelations() {
-    const result = {};
-    Object.keys(this.model.associations).forEach((key) => {
-      result[key] = {
-        type: this.model.associations[key].associationType,
-        columns: Object.keys(this.model.associations[key].target.rawAttributes),
-        referencedColumn: this.model.associations[key].foreignKey,
-        name: key,
-        modelName: this.model.associations[key].target.name,
-      };
-    });
-    this.entityRelationsHash = result;
   }
 
   get operators() {

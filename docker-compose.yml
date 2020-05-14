@@ -27,6 +27,26 @@ services:
     networks:
       - nestjsx_crud
 
+  mysql:
+    image: mysql:5.7
+    ports:
+      - 3316:3306
+    environment:
+      MYSQL_DATABASE: nestjsx_crud
+      MYSQL_USER: nestjsx_crud
+      MYSQL_PASSWORD: nestjsx_crud
+      MYSQL_ROOT_PASSWORD: nestjsx_crud
+
+  mysql_sequelize:
+    image: mysql:5.7
+    ports:
+      - 3317:3306
+    environment:
+      MYSQL_DATABASE: nestjsx_crud_sequelize
+      MYSQL_USER: nestjsx_crud
+      MYSQL_PASSWORD: nestjsx_crud
+      MYSQL_ROOT_PASSWORD: nestjsx_crud
+
   redis:
     image: redis:alpine
     ports:
