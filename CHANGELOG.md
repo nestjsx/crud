@@ -1,3 +1,9 @@
+## [4.6.2] - 2020-05-14
+
+### Bug Fixes
+
+- **typeorm** - fixed selected fields on joins [#510](https://github.com/nestjsx/crud/issues/510)). Kudos to @jbrousseau for finding this bug
+
 ## [4.6.1] - 2020-05-08
 
 ### Bug Fixes
@@ -165,6 +171,7 @@
 
 - several fixes
 
+[4.6.2]: https://github.com/nestjsx/crud/compare/v4.6.1...v4.6.2
 [4.6.1]: https://github.com/nestjsx/crud/compare/v4.6.0...v4.6.1
 [4.6.0]: https://github.com/nestjsx/crud/compare/v4.5.0...v4.6.0
 [4.5.0]: https://github.com/nestjsx/crud/compare/v4.4.5...v4.5.0
