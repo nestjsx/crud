@@ -567,10 +567,16 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     builder[relationType](allowedRelation.path, alias);
 
     if (options.select !== false) {
+      const columns = isArrayFull(cond.select)
+        ? cond.select.filter((column) =>
+            allowedRelation.allowedColumns.some((allowed) => allowed === column),
+          )
+        : allowedRelation.allowedColumns;
+
       const select = [
         ...allowedRelation.primaryColumns,
-        ...(options.persist && options.persist.length ? options.persist : []),
-        ...allowedRelation.allowedColumns,
+        ...(isArrayFull(options.persist) ? options.persist : []),
+        ...columns,
       ].map((col) => `${alias}.${col}`);
 
       builder.addSelect(select);
