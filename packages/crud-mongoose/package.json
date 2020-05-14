@@ -1,5 +1,5 @@
 {
-  "name": "nest-crud-mongoose",
+  "name": "@nestjsx/crud-mongoose",
   "description": "NestJs CRUD for RESTful APIs - Mongoose",
   "version": "0.0.5",
   "license": "MIT",

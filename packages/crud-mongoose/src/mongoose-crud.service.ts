@@ -18,6 +18,7 @@ import {
   isArrayFull,
   isNil,
   isObject,
+  isObjectFull,
   isUndefined,
   objKeys,
 } from '@nestjsx/util';
@@ -25,6 +26,7 @@ import {
  * mongoose imports
  */
 import { Document, DocumentQuery, Model, Schema, Types } from 'mongoose';
+import { MONGOOSE_OPERATOR_MAP } from 'nest-crud-mongoose/mongoose-operator-map';
 import { DeepPartial, ObjectLiteral } from 'typeorm';
 
 /**
@@ -421,23 +423,87 @@ export class MongooseCrudService<T extends Document> extends CrudService<T> {
     options: CrudRequestOptions,
     parsed: ParsedRequestParams,
   ): any {
-    const filter = this.queryFilterToSearch(options.query.filter);
     const paramsFilter = this.queryFilterToSearch(parsed.paramsFilter);
 
-    return { ...filter, ...paramsFilter };
+    const hasSearch = isObjectFull(parsed.search);
+
+    if (hasSearch) {
+      const search = this.queryFilterToSearch(parsed.search);
+      return {
+        ...search,
+        ...paramsFilter,
+      };
+    }
+
+    const filters = parsed.filter.filter(
+      (condition) => !!condition && isObjectFull(condition),
+    );
+    const ors = parsed.or.filter((condition) => !!condition && isObjectFull(condition));
+    const filter = this.buildIndividualFilter(filters);
+    const or = this.buildIndividualFilter(ors);
+
+    if (filters.length === 0 && ors.length === 0) {
+      return {
+        ...paramsFilter,
+      };
+    } else if (filters.length === 1 && ors.length === 0) {
+      return {
+        $and: filters,
+        ...paramsFilter,
+      };
+    } else if (ors.length === 1 && filters.length === 0) {
+      return {
+        $or: ors,
+        ...paramsFilter,
+      };
+    } else if (filters.length === 1 && ors.length === 1) {
+      return {
+        $or: [...filter, ...or],
+        ...paramsFilter,
+      };
+    } else {
+      return {
+        $or: [
+          {
+            $and: ors,
+          },
+          {
+            $and: filters,
+          },
+        ],
+        ...paramsFilter,
+      };
+    }
+  }
+
+  private buildIndividualFilter(filters: any[]): any[] {
+    return filters
+      .filter((filter) => !!MONGOOSE_OPERATOR_MAP[filter.operator])
+      .map((filter) => MONGOOSE_OPERATOR_MAP[filter.operator](filter.value));
   }
 
   private queryFilterToSearch(filter: any): any {
     return isArrayFull(filter)
-      ? filter.reduce(
-          (prev, item) => ({
-            ...prev,
-            [item.field]: { [item.operator]: item.value },
-          }),
-          {},
-        )
-      : isObject(filter)
       ? filter
+          .filter((item) => !!MONGOOSE_OPERATOR_MAP[item.operator])
+          .reduce(
+            (prev, item) => ({
+              ...prev,
+              [item.field]: MONGOOSE_OPERATOR_MAP[item.operator](item.value),
+            }),
+            {},
+          )
+      : isObject(filter)
+      ? Object.keys(filter).reduce((prev, key) => {
+          const conditions = isArrayFull(filter[key])
+            ? filter[key].filter((condition) => !!condition && isObjectFull(condition))
+            : [];
+
+          return {
+            ...prev,
+            ...(conditions.length > 0 ? { [key]: conditions } : {}),
+          };
+        }, {})
       : {};
   }
 

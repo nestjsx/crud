@@ -15,6 +15,7 @@ import {
   MONGO_URI,
 } from '../../../integration/crud-mongoose/mongoose.config';
 import {
+  Post,
   PostDocument,
   postSchema,
   PostsService,
@@ -125,21 +126,21 @@ describe('#crud-typeorm', () => {
     //   });
     // });
     //
-    // describe('#query filter', () => {
-    //   it('should return data with limit', (done) => {
-    //     const query = qb.setLimit(4).query();
-    //     return request(server)
-    //       .get('/companies')
-    //       .query(query)
-    //       .end((_, res) => {
-    //         expect(res.status).toBe(200);
-    //         expect(res.body.length).toBe(4);
-    //         res.body.forEach((e: Company) => {
-    //           expect(e.id).not.toBe(1);
-    //         });
-    //         done();
-    //       });
-    //   });
+    describe('#query filter', () => {
+      it('should return one post', (done) => {
+        const query = qb
+          .setFilter({ field: 'name', operator: '$eq', value: 'john2' })
+          .query();
+        return request(server)
+          .get('/users')
+          .query(query)
+          .end((_, res) => {
+            expect(res.status).toBe(200);
+            expect(res.body.length).toBe(1);
+            done();
+          });
+      });
+    });
     //   it('should return with maxLimit', (done) => {
     //     const query = qb.setLimit(7).query();
     //     return request(server)
