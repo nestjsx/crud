@@ -140,6 +140,83 @@ describe('#crud-typeorm', () => {
             done();
           });
       });
+
+      it.only("should return all ceo's 40 and older OR cfo's less than 25", (done) => {
+        const query = qb
+          .setFilter({ field: 'title', operator: '$eq', value: 'ceo' })
+          .setFilter({ field: 'age', operator: '$gte', value: 40 })
+          .setOr({ field: 'title', operator: '$eq', value: 'coo' })
+          .setOr({ field: 'age', operator: '$lt', value: 25 })
+          .query();
+        return request(server)
+          .get('/users')
+          .query(query)
+          .end((_, res) => {
+            expect(res.status).toBe(200);
+            expect(res.body.length).toBe(4);
+            done();
+          });
+      });
+
+      it.only("should return all ceo's and coo's - filter and or", (done) => {
+        const query = qb
+          .setFilter({ field: 'title', operator: '$eq', value: 'ceo' })
+          .setOr({ field: 'title', operator: '$eq', value: 'coo' })
+          .query();
+        return request(server)
+          .get('/users')
+          .query(query)
+          .end((_, res) => {
+            expect(res.status).toBe(200);
+            expect(res.body.length).toBe(6);
+            done();
+          });
+      });
+
+      it.only("should return all ceo's and coo's - or and or", (done) => {
+        const query = qb
+          .setOr({ field: 'title', operator: '$eq', value: 'ceo' })
+          .setOr({ field: 'title', operator: '$eq', value: 'coo' })
+          .query();
+        return request(server)
+          .get('/users')
+          .query(query)
+          .end((_, res) => {
+            expect(res.status).toBe(200);
+            expect(res.body.length).toBe(6);
+            done();
+          });
+      });
+
+      it.only("should return all ceo's", (done) => {
+        const query = qb.setOr({ field: 'title', operator: '$eq', value: 'ceo' }).query();
+        return request(server)
+          .get('/users')
+          .query(query)
+          .end((_, res) => {
+            expect(res.status).toBe(200);
+            expect(res.body.length).toBe(4);
+            done();
+          });
+      });
+
+      it.only("should return all ceo's older than 40", (done) => {
+        const query = qb
+          .setFilter({ field: 'title', operator: '$eq', value: 'ceo' })
+          .setFilter({ field: 'age', operator: '$gt', value: 40 })
+          .sortBy({ field: 'age', order: 'ASC' })
+          .query();
+        return request(server)
+          .get('/users')
+          .query(query)
+          .end((_, res) => {
+            expect(res.status).toBe(200);
+            expect(res.body.length).toBe(2);
+            expect(res.body[0].name).toBe('jim');
+            expect(res.body[1].name).toBe('jim2');
+            done();
+          });
+      });
     });
     //   it('should return with maxLimit', (done) => {
     //     const query = qb.setLimit(7).query();

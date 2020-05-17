@@ -4,7 +4,9 @@ import { User } from './user.entity';
 export const userSchema: Schema = new Schema<User>({
   name: String,
   email: String,
-  password: String
+  password: String,
+  title: String,
+  age: Number
 }, {
   timestamps: true,
   toJSON: {
