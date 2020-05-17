@@ -14,20 +14,42 @@ import {
   QuerySort,
 } from '@nestjsx/crud-request';
 import {
+  DeepPartial,
   hasLength,
   isArrayFull,
   isNil,
   isObject,
   isObjectFull,
   isUndefined,
+  ObjectLiteral,
   objKeys,
 } from '@nestjsx/util';
 /**
  * mongoose imports
  */
 import { Document, DocumentQuery, Model, Schema, Types } from 'mongoose';
-import { MONGOOSE_OPERATOR_MAP } from 'nest-crud-mongoose/mongoose-operator-map';
-import { DeepPartial, ObjectLiteral } from 'typeorm';
+
+const MONGOOSE_OPERATOR_MAP: { [key: string]: (value?: any) => any } = {
+  $eq: (value) => ({
+    $eq: value,
+  }),
+  $ne: (value) => ({
+    $ne: value,
+  }),
+  $gt: (value) => ({ $gt: value }),
+  $lt: (value) => ({ $lt: value }),
+  $gte: (value) => ({ $gte: value }),
+  $lte: (value) => ({ $lte: value }),
+  $in: (value) => ({ $in: value }),
+  $notin: (value) => ({ $nin: value }),
+  $isnull: () => ({ $eq: null }),
+  $notnull: () => ({ $ne: null }),
+  $between: (value: any[]) => ({ $gt: Math.min(...value), $lt: Math.max(...value) }),
+  $starts: (value) => ({ $regex: `/^${value}.*$/` }),
+  $end: (value) => ({ $regex: `/^.*${value}$/` }),
+  $cont: (value) => ({ $regex: `/^.*${value}.*$/` }),
+  $excl: (value) => ({ $regex: `/^((?!${value}).)*$/` }),
+};
 
 /**
  * Required so that ObjectIds are serialized correctly
