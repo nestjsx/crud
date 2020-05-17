@@ -236,6 +236,8 @@ describe('#crud-mongoose', () => {
                 __v: jasmine.anything(),
                 updatedAt: jasmine.anything(),
                 createdAt: jasmine.anything(),
+                age: 40,
+                title: 'ceo',
               });
               done();
             });
