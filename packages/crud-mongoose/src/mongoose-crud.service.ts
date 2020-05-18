@@ -10,6 +10,7 @@ import {
 import {
   ParsedRequestParams,
   QueryFields,
+  QueryFilter,
   QueryJoin,
   QuerySort,
 } from '@nestjsx/crud-request';
@@ -24,32 +25,12 @@ import {
   ObjectLiteral,
   objKeys,
 } from '@nestjsx/util';
+import { ObjectId } from 'mongodb';
 /**
  * mongoose imports
  */
 import { Document, DocumentQuery, Model, Schema, Types } from 'mongoose';
-
-const MONGOOSE_OPERATOR_MAP: { [key: string]: (value?: any) => any } = {
-  $eq: (value) => ({
-    $eq: value,
-  }),
-  $ne: (value) => ({
-    $ne: value,
-  }),
-  $gt: (value) => ({ $gt: value }),
-  $lt: (value) => ({ $lt: value }),
-  $gte: (value) => ({ $gte: value }),
-  $lte: (value) => ({ $lte: value }),
-  $in: (value) => ({ $in: value }),
-  $notin: (value) => ({ $nin: value }),
-  $isnull: () => ({ $eq: null }),
-  $notnull: () => ({ $ne: null }),
-  $between: (value: any[]) => ({ $gt: Math.min(...value), $lt: Math.max(...value) }),
-  $starts: (value) => ({ $regex: `/^${value}.*$/` }),
-  $end: (value) => ({ $regex: `/^.*${value}$/` }),
-  $cont: (value) => ({ $regex: `/^.*${value}.*$/` }),
-  $excl: (value) => ({ $regex: `/^((?!${value}).)*$/` }),
-};
+import { MONGOOSE_OPERATOR_MAP } from './mongoose-operator-map';
 
 /**
  * Required so that ObjectIds are serialized correctly
@@ -271,13 +252,18 @@ export class MongooseCrudService<T extends Document> extends CrudService<T> {
     parsed: ParsedRequestParams,
     options: CrudRequestOptions,
     many = true,
-  ): Promise<{ builder: DocumentQuery<K, T>; take?: number; skip?: number }> {
+  ): Promise<{
+    builder: DocumentQuery<K, T>;
+    take?: number;
+    skip?: number;
+    search: any;
+  }> {
     // get select fields
     const select = this.getSelect(parsed, options.query);
     // default search condition
-    const defaultSearch = this.getDefaultSearchCondition(options, parsed);
+    const search = this.getDefaultSearchCondition(options, parsed);
 
-    const builder = fn(defaultSearch);
+    const builder = fn(search);
     // select fields
     builder.select(select);
 
@@ -330,10 +316,10 @@ export class MongooseCrudService<T extends Document> extends CrudService<T> {
         builder.skip(skip);
       }
 
-      return { builder, take, skip };
+      return { builder, take, skip, search };
     }
 
-    return { builder };
+    return { builder, search };
   }
 
   buildFieldSelect(include: QueryFields, excludes: QueryFields): string {
@@ -445,76 +431,42 @@ export class MongooseCrudService<T extends Document> extends CrudService<T> {
     options: CrudRequestOptions,
     parsed: ParsedRequestParams,
   ): any {
-    const paramsFilter = this.queryFilterToSearch(parsed.paramsFilter);
-
-    const hasSearch = isObjectFull(parsed.search);
-
-    if (hasSearch) {
-      const search = this.queryFilterToSearch(parsed.search);
-      return {
-        ...search,
-        ...paramsFilter,
-      };
-    }
-
-    const filters = parsed.filter.filter(
-      (condition) => !!condition && isObjectFull(condition),
-    );
-    const ors = parsed.or.filter((condition) => !!condition && isObjectFull(condition));
-    const filter = this.buildIndividualFilter(filters);
-    const or = this.buildIndividualFilter(ors);
-
-    if (filters.length === 0 && ors.length === 0) {
-      return {
-        ...paramsFilter,
-      };
-    } else if (filters.length === 1 && ors.length === 0) {
-      return {
-        $and: filters,
-        ...paramsFilter,
-      };
-    } else if (ors.length === 1 && filters.length === 0) {
-      return {
-        $or: ors,
-        ...paramsFilter,
-      };
-    } else if (filters.length === 1 && ors.length === 1) {
-      return {
-        $or: [...filter, ...or],
-        ...paramsFilter,
-      };
-    } else {
-      return {
-        $or: [
-          {
-            $and: ors,
-          },
-          {
-            $and: filters,
-          },
-        ],
-        ...paramsFilter,
-      };
-    }
-  }
-
-  private buildIndividualFilter(filters: any[]): any[] {
-    return filters
-      .filter((filter) => !!MONGOOSE_OPERATOR_MAP[filter.operator])
-      .map((filter) => MONGOOSE_OPERATOR_MAP[filter.operator](filter.value));
+    return {
+      ...Object.entries(parsed.search)
+        .filter(([key, value]) => !Array.isArray(value) || value.length > 0)
+        .reduce(
+          (prev, [key, value]) => ({
+            ...prev,
+            [key]: value,
+          }),
+          {},
+        ),
+      ...this.queryFilterToSearch(parsed.paramsFilter),
+    };
   }
 
   private queryFilterToSearch(filter: any): any {
     return isArrayFull(filter)
       ? filter
           .filter((item) => !!MONGOOSE_OPERATOR_MAP[item.operator])
-          .reduce(
-            (prev, item) => ({
+          .reduce((prev, item) => {
+            const operators: QueryFilter[] = MONGOOSE_OPERATOR_MAP[item.operator].call(
+              this,
+              item.value,
+            );
+
+            return {
               ...prev,
-              [item.field]: MONGOOSE_OPERATOR_MAP[item.operator](item.value),
-            }),
-            {},
-          )
+              [item.field]: operators.reduce(
+                (query, cur) => ({
+                  ...query,
+                  [cur.operator]:
+                    item.field === '_id' ? new ObjectId(cur.value) : cur.value,
+                }),
+                {},
+              ),
+            };
+          }, {})
       : isObject(filter)
       ? Object.keys(filter).reduce((prev, key) => {
           const conditions = isArrayFull(filter[key])
@@ -570,7 +522,7 @@ export class MongooseCrudService<T extends Document> extends CrudService<T> {
     const allowed = this.getAllowedColumns(this.entityColumns, options);
 
     const columns =
-      query.fields && query.fields.length
+      Array.isArray(query.fields) && query.fields.length
         ? query.fields.filter((field) => allowed.some((col) => field === col))
         : allowed;
 

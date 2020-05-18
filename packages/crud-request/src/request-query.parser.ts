@@ -1,19 +1,20 @@
 import {
   hasLength,
   hasValue,
-  isString,
   isArrayFull,
   isDate,
   isDateString,
-  isObject,
-  isStringFull,
-  objKeys,
   isNil,
+  isObject,
+  isString,
+  isStringFull,
   ObjectLiteral,
+  objKeys,
 } from '@nestjsx/util';
 
 import { RequestQueryException } from './exceptions';
 import {
+  OperatorMap,
   ParamsOptions,
   ParsedRequestParams,
   RequestQueryBuilderOptions,
@@ -53,17 +54,23 @@ export class RequestQueryParser implements ParsedRequestParams {
   public page: number;
   public cache: number;
 
+  private _operatorMap: OperatorMap;
+
   private _params: any;
   private _query: any;
   private _paramNames: string[];
   private _paramsOptions: ParamsOptions;
 
+  constructor(operatorMap: OperatorMap) {
+    this._operatorMap = operatorMap;
+  }
+
   private get _options(): RequestQueryBuilderOptions {
     return RequestQueryBuilder.getOptions();
   }
 
-  static create(): RequestQueryParser {
-    return new RequestQueryParser();
+  static create(operatorMap: OperatorMap): RequestQueryParser {
+    return new RequestQueryParser(operatorMap);
   }
 
   getParsed(): ParsedRequestParams {
@@ -174,11 +181,16 @@ export class RequestQueryParser implements ParsedRequestParams {
 
   private getParamValues(value: string | string[], parser: Function): string[] {
     if (isStringFull(value)) {
-      return [parser.call(this, value)];
+      const result = parser.call(this, value);
+      return Array.isArray(result) ? result : [result];
     }
 
     if (isArrayFull(value)) {
-      return (value as string[]).map((val) => parser(val));
+      return (value as string[]).reduce((prev, cur) => {
+        const result = parser(cur);
+
+        return [...prev, ...(Array.isArray(result) ? result : [result])];
+      }, []);
     }
 
     return [];
@@ -255,7 +267,7 @@ export class RequestQueryParser implements ParsedRequestParams {
     }
   }
 
-  private conditionParser(cond: 'filter' | 'or' | 'search', data: string): QueryFilter {
+  private conditionParser(cond: 'filter' | 'or' | 'search', data: string): QueryFilter[] {
     const isArrayValue = [
       'in',
       'notin',
@@ -282,10 +294,16 @@ export class RequestQueryParser implements ParsedRequestParams {
       throw new RequestQueryException(`Invalid ${cond} value`);
     }
 
-    const condition: QueryFilter = { field, operator, value };
-    validateCondition(condition, cond);
+    const conditions: QueryFilter[] = (this._operatorMap
+      ? this._operatorMap[operator].call(this, value)
+      : [{ operator, value }]
+    ).map((condition) => {
+      const conditionWithField = { ...condition, field };
+      validateCondition(conditionWithField, cond);
+      return conditionWithField;
+    });
 
-    return condition;
+    return conditions;
   }
 
   private joinParser(data: string): QueryJoin {
