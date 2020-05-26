@@ -9,12 +9,11 @@ import { TestSerializeModel, TestSerializeTransformModel } from './__fixture__/m
 
 import { TestSerializeService } from './__fixture__/services';
 
-
 describe('#crud', () => {
   describe('#transform', () => {
     let app: INestApplication;
     let server: any;
-   
+
     const SERVICE = 'TestSerializeService';
 
     @Crud({
@@ -29,17 +28,15 @@ describe('#crud', () => {
     class TestController {
       constructor(@Inject(SERVICE) public service: TestSerializeService) {}
     }
-    
+
     beforeAll(async () => {
       const fixture = await Test.createTestingModule({
-        controllers: [
-          TestController
-        ],
+        controllers: [TestController],
         providers: [
           {
             provide: SERVICE,
             useFactory: () => new TestSerializeService(TestSerializeModel),
-          }
+          },
         ],
       }).compile();
 
@@ -64,6 +61,5 @@ describe('#crud', () => {
           });
       });
     });
-
   });
 });

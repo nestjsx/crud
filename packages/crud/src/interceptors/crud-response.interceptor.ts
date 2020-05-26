@@ -43,7 +43,7 @@ export class CrudResponseInterceptor extends CrudBaseInterceptor
 
     return data instanceof dto
       ? classToPlain(data)
-      : classToPlain(classToPlainFromExist(data, new dto()));
+      : classToPlainFromExist(data, new dto());
   }
 
   protected serialize(context: ExecutionContext, data: any): any {
