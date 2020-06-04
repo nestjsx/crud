@@ -14,13 +14,13 @@ export const swaggerPkgJson = safeRequire('@nestjs/swagger/package.json');
 export class Swagger {
   static operationsMap(modelName): { [key in BaseRouteName]: string } {
     return {
-      getManyBase: `Retrieve many ${modelName}`,
-      getOneBase: `Retrieve one ${modelName}`,
-      createManyBase: `Create many ${modelName}`,
-      createOneBase: `Create one ${modelName}`,
-      updateOneBase: `Update one ${modelName}`,
-      replaceOneBase: `Replace one ${modelName}`,
-      deleteOneBase: `Delete one ${modelName}`,
+      getManyBase: `Retrieve multiple ${modelName}s`,
+      getOneBase: `Retrieve a single ${modelName}`,
+      createManyBase: `Create multiple ${modelName}s`,
+      createOneBase: `Create a single ${modelName}`,
+      updateOneBase: `Update a single ${modelName}`,
+      replaceOneBase: `Replace a single ${modelName}`,
+      deleteOneBase: `Delete a single ${modelName}`,
     };
   }
 
