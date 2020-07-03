@@ -129,11 +129,8 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     } else {
       const primaryParams = this.getPrimaryParams(req.options);
 
-      /* istanbul ignore if */
-      if (
-        !primaryParams.length &&
-        /* istanbul ignore next */ primaryParams.some((p) => isNil(saved[p]))
-      ) {
+      /* istanbul ignore next */
+      if (!primaryParams.length && primaryParams.some((p) => isNil(saved[p]))) {
         return saved;
       } else {
         req.parsed.search = primaryParams.reduce(
