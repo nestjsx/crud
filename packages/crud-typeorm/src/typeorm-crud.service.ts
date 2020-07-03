@@ -127,13 +127,19 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     if (returnShallow) {
       return saved;
     } else {
-      const primaryParam = this.getPrimaryParam(req.options);
+      const primaryParams = this.getPrimaryParams(req.options);
 
       /* istanbul ignore if */
-      if (!primaryParam && /* istanbul ignore next */ isNil(saved[primaryParam])) {
+      if (
+        !primaryParams.length &&
+        /* istanbul ignore next */ primaryParams.some((p) => isNil(saved[p]))
+      ) {
         return saved;
       } else {
-        req.parsed.search = { [primaryParam]: saved[primaryParam] };
+        req.parsed.search = primaryParams.reduce(
+          (acc, p) => ({ ...acc, [p]: saved[p] }),
+          {},
+        );
         return this.getOneOrFail(req);
       }
     }
@@ -212,14 +218,17 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     if (returnShallow) {
       return replaced;
     } else {
-      const primaryParam = this.getPrimaryParam(req.options);
+      const primaryParams = this.getPrimaryParams(req.options);
 
       /* istanbul ignore if */
-      if (!primaryParam) {
+      if (!primaryParams.length) {
         return replaced;
       }
 
-      req.parsed.search = { [primaryParam]: replaced[primaryParam] };
+      req.parsed.search = primaryParams.reduce(
+        (acc, p) => ({ ...acc, [p]: replaced[p] }),
+        {},
+      );
       return this.getOneOrFail(req);
     }
   }
