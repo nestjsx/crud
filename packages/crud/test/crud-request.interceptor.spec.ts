@@ -111,13 +111,31 @@ describe('#crud', () => {
     }
   }
 
+  @Crud({
+    model: { type: TestModel },
+    params: {
+      someParam: { field: 'someParam', type: 'number', primary: true },
+      someParam2: { field: 'someParam2', type: 'number', primary: true },
+    },
+  })
+  @Controller('test5')
+  class Test5Controller {
+    constructor(public service: TestService<TestModel>) {}
+  }
+
   let $: supertest.SuperTest<supertest.Test>;
   let app: NestApplication;
 
   beforeAll(async () => {
     const module = await Test.createTestingModule({
       providers: [TestService],
-      controllers: [TestController, Test2Controller, Test3Controller, Test4Controller],
+      controllers: [
+        TestController,
+        Test2Controller,
+        Test3Controller,
+        Test4Controller,
+        Test5Controller,
+      ],
     }).compile();
     app = module.createNestApplication();
     await app.init();
@@ -193,6 +211,10 @@ describe('#crud', () => {
       expect(res.body.filter).toHaveLength(2);
       expect(res.body.filter[0].field).toBe('id');
       expect(res.body.filter[0].value).toBe(1);
+    });
+
+    it('should parse multiple primary key', async () => {
+      const res = await $.get('/test5/123/456').expect(200);
     });
 
     it('should work like before', async () => {
