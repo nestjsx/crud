@@ -43,16 +43,16 @@ export class Company extends BaseModel {
       modelClass: path.resolve(__dirname, '../users/user.model'),
       join: {
         from: 'companies.id',
-        to: 'users.companyId'
-      }
+        to: 'users.companyId',
+      },
     },
     projects: {
       relation: Model.HasManyRelation,
       modelClass: path.resolve(__dirname, '../projects/project.model'),
       join: {
         from: 'companies.id',
-        to: 'projects.companyId'
-      }
-    }
-  }
+        to: 'projects.companyId',
+      },
+    },
+  };
 }

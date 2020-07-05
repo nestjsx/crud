@@ -1,10 +1,18 @@
-import { IsBoolean, IsDefined, IsNumber, IsOptional, IsString, MaxLength } from 'class-validator';
+import {
+  IsBoolean,
+  IsDefined,
+  IsNumber,
+  IsOptional,
+  IsString,
+  MaxLength,
+} from 'class-validator';
 import { CrudValidationGroups } from '@nestjsx/crud';
 import { BaseModel } from '../base.model';
 import * as path from 'path';
 import { Model } from 'objection';
 import { Company } from '../companies';
 import { User } from '../users';
+import { UserProject } from './user-project.model';
 
 const { CREATE, UPDATE } = CrudValidationGroups;
 
@@ -34,6 +42,7 @@ export class Project extends BaseModel {
 
   users?: User[];
   company?: Company;
+  userProjects?: UserProject[];
 
   static relationMappings = {
     company: {
@@ -41,8 +50,8 @@ export class Project extends BaseModel {
       modelClass: path.resolve(__dirname, '../companies/company.model'),
       join: {
         from: 'projects.companyId',
-        to: 'companies.id'
-      }
+        to: 'companies.id',
+      },
     },
     users: {
       relation: Model.ManyToManyRelation,
@@ -51,10 +60,18 @@ export class Project extends BaseModel {
         from: 'projects.id',
         through: {
           from: 'users_projects.projectId',
-          to: 'users_projects.userId'
+          to: 'users_projects.userId',
         },
-        to: 'users.id'
-      }
-    }
-  }
+        to: 'users.id',
+      },
+    },
+    userProjects: {
+      relation: Model.HasManyRelation,
+      modelClass: path.resolve(__dirname, '../projects/user-project.model'),
+      join: {
+        from: 'projects.id',
+        to: 'users_projects.projectId',
+      },
+    },
+  };
 }

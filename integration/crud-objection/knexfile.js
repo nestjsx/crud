@@ -7,10 +7,12 @@ module.exports = {
   migrations: {
     directory: './migrations',
     stub: './migration.stub',
+    extension: 'ts',
   },
   seeds: {
     directory: './seeds',
-    stub: './seed.stub'
+    stub: './seed.stub',
+    extension: 'ts',
   },
-  ...knexSnakeCaseMappers()
+  ...knexSnakeCaseMappers(),
 };

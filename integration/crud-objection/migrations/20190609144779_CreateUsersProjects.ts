@@ -18,6 +18,8 @@ export async function up(knex: Knex) {
       .inTable('projects')
       .onDelete('CASCADE');
 
+    t.text('review').nullable();
+
     t.unique(['user_id', 'project_id']);
 
     t.timestamps();

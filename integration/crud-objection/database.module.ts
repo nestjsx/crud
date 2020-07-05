@@ -2,18 +2,30 @@ import { Global, Module } from '@nestjs/common';
 import * as Knex from 'knex';
 import { knexSnakeCaseMappers, Model } from 'objection';
 import { UserProfile } from './users-profiles';
-import { Project } from './projects';
+import { Project, UserProject } from './projects';
 import { Company } from './companies';
 import { User } from './users';
 import { KNEX_CONNECTION } from './injection-tokens';
-import { UserProject } from './users-projects';
+import { Device } from './devices';
+import { License, UserLicense } from './users-licenses';
+import { Note } from './notes';
 
-const models = [User, Company, Project, UserProfile, UserProject];
+const models = [
+  User,
+  Company,
+  Project,
+  UserProfile,
+  UserProject,
+  Device,
+  License,
+  UserLicense,
+  Note,
+];
 
-const modelProviders = models.map(model => {
+const modelProviders = models.map((model) => {
   return {
     provide: model.name,
-    useValue: model
+    useValue: model,
   };
 });
 
@@ -26,18 +38,18 @@ const providers = [
         client: 'pg',
         connection: 'postgres://root:root@127.0.0.1:5455/nestjsx_crud_objection',
         debug: process.env.KNEX_DEBUG === 'true',
-        ...knexSnakeCaseMappers()
+        ...knexSnakeCaseMappers(),
       });
 
       Model.knex(knex);
       return knex;
-    }
-  }
+    },
+  },
 ];
 
 @Global()
 @Module({
   providers: [...providers],
-  exports: [...providers]
+  exports: [...providers],
 })
 export class DatabaseModule {}

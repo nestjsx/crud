@@ -10,3 +10,10 @@ export class UsersService extends ObjectionCrudService<User> {
     super(modelClass);
   }
 }
+
+@Injectable()
+export class UsersService2 extends ObjectionCrudService<User> {
+  constructor(@Inject('User') modelClass: ModelClass<User>) {
+    super(modelClass);
+  }
+}

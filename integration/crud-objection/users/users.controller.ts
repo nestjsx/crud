@@ -4,8 +4,8 @@ import {
   Crud,
   CrudController,
   CrudRequest,
-  ParsedRequest,
   Override,
+  ParsedRequest,
 } from '@nestjsx/crud';
 
 import { User } from './user.model';

@@ -10,6 +10,8 @@ export async function up(knex: Knex) {
       .notNullable()
       .unique();
 
+    t.jsonb('name').nullable();
+
     t.boolean('is_active')
       .notNullable()
       .defaultTo(true);

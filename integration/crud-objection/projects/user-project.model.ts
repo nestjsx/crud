@@ -3,16 +3,18 @@ import { IsNotEmpty } from 'class-validator';
 import { User } from '../users';
 import { Model } from 'objection';
 import { BaseModel } from '../base.model';
-import { Project } from '../projects';
+import { Project } from './index';
 
 export class UserProject extends BaseModel {
   static tableName = 'users_projects';
 
   @IsNotEmpty()
-  userId: number;
+  projectId: number;
 
   @IsNotEmpty()
-  projectId: number;
+  userId: number;
+
+  review: string;
 
   /**
    * Relations

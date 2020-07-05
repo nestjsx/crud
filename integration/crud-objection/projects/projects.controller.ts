@@ -1,5 +1,5 @@
 import { Controller } from '@nestjs/common';
-import { ApiUseTags } from '@nestjs/swagger';
+import { ApiTags } from '@nestjs/swagger';
 import { Crud } from '@nestjsx/crud';
 
 import { Project } from './project.model';
@@ -26,7 +26,7 @@ import { ProjectsService } from './projects.service';
     },
   },
 })
-@ApiUseTags('projects')
+@ApiTags('projects')
 @Controller('/companies/:companyId/projects')
 export class ProjectsController {
   constructor(public service: ProjectsService) {}
