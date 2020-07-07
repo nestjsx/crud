@@ -185,11 +185,7 @@ export class RequestQueryBuilder {
     customOperators?: CustomOperators,
   ): string {
     const filter = Array.isArray(f) ? { field: f[0], operator: f[1], value: f[2] } : f;
-    validateCondition(
-      filter,
-      cond,
-      this ? (this.options ? customOperators : undefined) : undefined,
-    );
+    validateCondition(filter, cond, customOperators);
     const d = this.options.delim;
 
     return (
