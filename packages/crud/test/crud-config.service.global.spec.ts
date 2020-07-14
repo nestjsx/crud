@@ -12,6 +12,7 @@ import { CrudConfigService } from '../src/module/crud-config.service';
 const conf: CrudGlobalConfig = {
   query: {
     limit: 10,
+    join: true,
   },
   params: {
     id: {
@@ -60,6 +61,7 @@ describe('#crud', () => {
       model: { type: TestModel },
       query: {
         limit: 12,
+        join: false,
       },
       params: {
         id: {
@@ -114,6 +116,7 @@ describe('#crud', () => {
           expect(res.body.req.options.routes.replaceOneBase.allowParamsOverride).toBe(
             true,
           );
+          expect(res.body.req.options.query.join).toBe(true);
           done();
         });
     });
@@ -139,6 +142,7 @@ describe('#crud', () => {
             false,
           );
           expect(res.body.req.options.routes.deleteOneBase.returnDeleted).toBe(true);
+          expect(res.body.req.options.query.join).toBe(false);
           done();
         });
     });
