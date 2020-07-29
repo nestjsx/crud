@@ -9,35 +9,35 @@ import {
   QueryOptions,
 } from '@nestjsx/crud';
 import {
+  ComparisonOperator,
   ParsedRequestParams,
   QueryFilter,
   QueryJoin,
   QuerySort,
   SCondition,
   SConditionKey,
-  ComparisonOperator,
 } from '@nestjsx/crud-request';
 import {
   hasLength,
   isArrayFull,
+  isNil,
+  isNull,
   isObject,
   isUndefined,
   objKeys,
-  isNil,
-  isNull,
 } from '@nestjsx/util';
 import { oO } from '@zmotivat0r/o0';
 import { plainToClass } from 'class-transformer';
 import { ClassType } from 'class-transformer/ClassTransformer';
 import {
   Brackets,
+  ConnectionOptions,
+  DeepPartial,
+  EntityMetadata,
   ObjectLiteral,
   Repository,
   SelectQueryBuilder,
-  DeepPartial,
   WhereExpression,
-  ConnectionOptions,
-  EntityMetadata,
 } from 'typeorm';
 
 interface IAllowedRelation {
@@ -235,12 +235,17 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
    * @param req
    */
   public async deleteOne(req: CrudRequest): Promise<void | T> {
-    const { returnDeleted } = req.options.routes.deleteOneBase;
+    const { returnDeleted, softDelete } = req.options.routes.deleteOneBase;
     const found = await this.getOneOrFail(req, returnDeleted);
     const toReturn = returnDeleted
       ? plainToClass(this.entityType, { ...found })
       : undefined;
-    const deleted = await this.repo.remove(found);
+
+    if (softDelete) {
+      const softDeleted = await this.repo.softDelete(found);
+    } else {
+      const deleted = await this.repo.remove(found);
+    }
 
     return toReturn;
   }

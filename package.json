@@ -100,7 +100,7 @@
     "tsconfig-paths": "3.9.0",
     "tslint": "5.20.0",
     "tslint-config-prettier": "1.18.0",
-    "typeorm": "0.2.19",
+    "typeorm": "^0.2.25",
     "typescript": "3.6.3",
     "validate-commit-msg": "2.14.0"
   },
