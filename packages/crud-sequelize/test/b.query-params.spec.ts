@@ -1,26 +1,40 @@
 import { Controller, INestApplication } from '@nestjs/common';
 import { APP_FILTER } from '@nestjs/core';
 import { Test } from '@nestjs/testing';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { SequelizeModule } from '@nestjs/sequelize';
 import { RequestQueryBuilder } from '@nestjsx/crud-request';
 import 'jest-extended';
 import * as request from 'supertest';
 
-import { Company } from '../../../integration/crud-typeorm/companies';
-import { withCache } from '../../../integration/crud-typeorm/orm.config';
-import { Project } from '../../../integration/crud-typeorm/projects';
-import { User } from '../../../integration/crud-typeorm/users';
-import { UserProfile } from '../../../integration/crud-typeorm/users-profiles';
-import { Note } from '../../../integration/crud-typeorm/notes';
+import { Company } from '../../../integration/crud-sequelize/companies/company.model';
+import { config } from '../../../integration/crud-sequelize/sequelize.config';
+import { Project } from '../../../integration/crud-sequelize/projects/project.model';
+import { User } from '../../../integration/crud-sequelize/users/user.model';
+import { UserProfile } from '../../../integration/crud-sequelize/users-profiles/userprofile.model';
 import { HttpExceptionFilter } from '../../../integration/shared/https-exception.filter';
 import { Crud } from '../../crud/src/decorators';
 import { CompaniesService } from './__fixture__/companies.service';
 import { ProjectsService } from './__fixture__/projects.service';
 import { UsersService, UsersService2 } from './__fixture__/users.service';
-import { NotesService } from './__fixture__/notes.service';
+import { MigrationHelper } from './migration-helper';
+import { Sequelize } from 'sequelize';
+import { NotesService } from '../../../integration/crud-sequelize/notes/notes.service';
+import { Note } from '../../../integration/crud-sequelize/notes/note.model';
 
 // tslint:disable:max-classes-per-file
-describe('#crud-typeorm', () => {
+describe('#crud-sequelize', () => {
+  beforeEach(async () => {
+    const helper = new MigrationHelper(
+      new Sequelize({ ...config, logging: !!process.env.SQL_LOG ? console.log : false }),
+    );
+    try {
+      await helper.down();
+      await helper.up();
+    } finally {
+      await helper.close();
+    }
+  });
+
   describe('#query params', () => {
     let app: INestApplication;
     let server: any;
@@ -166,8 +180,8 @@ describe('#crud-typeorm', () => {
     beforeAll(async () => {
       const fixture = await Test.createTestingModule({
         imports: [
-          TypeOrmModule.forRoot({ ...withCache, logging: true }),
-          TypeOrmModule.forFeature([Company, Project, User, UserProfile, Note]),
+          SequelizeModule.forRoot({ ...config, logging: false }),
+          SequelizeModule.forFeature([Company, Project, User, UserProfile, Note]),
         ],
         controllers: [
           CompaniesController,
@@ -554,7 +568,9 @@ describe('#crud-typeorm', () => {
         );
       });
 
-      it('should sort by nested field, 2', async () => {
+      // @TODO check the validity of this test, because
+      // the field "projects.id" can not be be resolved with these joins
+      /*it('should sort by nested field, 2', async () => {
         const query = qb
           .setFilter({ field: 'id', operator: 'eq', value: 1 })
           .setFilter({ field: 'company.id', operator: 'notnull' })
@@ -570,13 +586,51 @@ describe('#crud-typeorm', () => {
         expect(res.body[0].company.projects[1].id).toBeLessThan(
           res.body[0].company.projects[0].id,
         );
+      });*/
+
+      it('should sort by nested field, 2 (alternative)', async () => {
+        const query = qb
+          .setFilter({ field: 'id', operator: 'eq', value: 1 })
+          .setFilter({ field: 'company.id', operator: 'notnull' })
+          .setFilter({ field: 'company.projects.id', operator: 'notnull' })
+          .setJoin({ field: 'company' })
+          .setJoin({ field: 'company.projects' })
+          .sortBy({ field: 'company.projects.id', order: 'DESC' })
+          .query();
+        const res = await request(server)
+          .get('/users')
+          .query(query)
+          .expect(200);
+        expect(res.body[0].company.projects[1].id).toBeLessThan(
+          res.body[0].company.projects[0].id,
+        );
       });
 
-      it('should sort by nested field, 3', async () => {
+      // @TODO check the validity of this test, because
+      // the field "projects.id" can not be be resolved with these joins
+      /*it('should sort by nested field, 3', async () => {
         const query = qb
           .setFilter({ field: 'id', operator: 'eq', value: 1 })
           .setFilter({ field: 'company.id', operator: 'notnull' })
           .setFilter({ field: 'projects.id', operator: 'notnull' })
+          .setJoin({ field: 'company' })
+          .setJoin({ field: 'company.projects' })
+          .sortBy({ field: 'company.projects.id', order: 'DESC' })
+          .query();
+        const res = await request(server)
+          .get('/users')
+          .query(query)
+          .expect(200);
+        expect(res.body[0].company.projects[1].id).toBeLessThan(
+          res.body[0].company.projects[0].id,
+        );
+      });
+    });*/
+      it('should sort by nested field, 3 (alternative)', async () => {
+        const query = qb
+          .setFilter({ field: 'id', operator: 'eq', value: 1 })
+          .setFilter({ field: 'company.id', operator: 'notnull' })
+          .setFilter({ field: 'company.projects.id', operator: 'notnull' })
           .setJoin({ field: 'company' })
           .setJoin({ field: 'company.projects' })
           .sortBy({ field: 'company.projects.id', order: 'DESC' })
