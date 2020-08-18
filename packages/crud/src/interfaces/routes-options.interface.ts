@@ -14,7 +14,7 @@ export interface RoutesOptions {
 
 export interface BaseRouteOptions {
   interceptors?: any[];
-  decorators?: (PropertyDecorator | MethodDecorator)[];
+  decorators?: Array<PropertyDecorator | MethodDecorator>;
 }
 
 export interface GetMayRouteOptions extends BaseRouteOptions {}
@@ -39,4 +39,5 @@ export interface UpdateOneRouteOptions extends BaseRouteOptions {
 
 export interface DeleteOneRouteOptions extends BaseRouteOptions {
   returnDeleted?: boolean;
+  softDelete?: boolean;
 }
