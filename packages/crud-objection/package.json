@@ -1,0 +1,44 @@
+{
+  "name": "@nestjsx/crud-objection",
+  "description": "NestJs CRUD for RESTful APIs - Objection.js",
+  "version": "4.1.0",
+  "license": "MIT",
+  "main": "lib/index.js",
+  "typings": "lib/index.d.ts",
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "lib"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nestjsx/crud.git"
+  },
+  "bugs": {
+    "url": "https://github.com/nestjsx/crud/issues"
+  },
+  "keywords": [
+    "typescript",
+    "typeorm",
+    "objection",
+    "objection.js",
+    "nest",
+    "nestjs",
+    "rest",
+    "restful",
+    "api",
+    "crud",
+    "crud-generator",
+    "backend",
+    "frameworks"
+  ],
+  "author": {
+    "name": "Georgii Rychko",
+    "email": "rychko.georgiy@gmail.com"
+  },
+  "scripts": {
+    "prebuild": "npx rimraf ./lib",
+    "build": "npx tsc -b"
+  }
+}

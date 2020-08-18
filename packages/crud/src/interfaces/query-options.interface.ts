@@ -30,4 +30,5 @@ export interface JoinOption {
   persist?: QueryFields;
   select?: false;
   required?: boolean;
+  fetch?: boolean;
 }
