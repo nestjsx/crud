@@ -30,6 +30,11 @@ describe('#crud', () => {
           type: 'string',
           enum: Field,
         },
+        disabledField: {
+          field: 'disabled_field',
+          type: 'number',
+          disabled: true,
+        },
       },
     })
     @Controller('test')
@@ -114,6 +119,14 @@ describe('#crud', () => {
         const enumParam = params.find((param) => param.name === 'enumField');
         expect(enumParam).toBeDefined();
         expect(enumParam.enum).toEqual(['one']);
+      });
+      it('should not return disabled fields in swagger', () => {
+        const params = Swagger.getParams(TestController.prototype.getMany);
+        expect(Array.isArray(params)).toBe(true);
+        expect(params.length > 0).toBe(true);
+
+        const disabledParam = params.find((param) => param.name === 'disabledField');
+        expect(disabledParam).toBeUndefined();
       });
       it('should return swagger response ok', () => {
         const response = Swagger.getResponseOk(TestController.prototype.getMany);

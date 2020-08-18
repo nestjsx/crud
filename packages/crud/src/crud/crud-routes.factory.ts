@@ -485,13 +485,13 @@ export class CrudRoutesFactory {
       'createOneBase',
       'getManyBase',
     ];
-    const params = isIn(name, withoutPrimary)
-      ? objKeys(this.options.params).reduce(
-          (a, c) =>
-            this.options.params[c].primary ? a : { ...a, [c]: this.options.params[c] },
-          {},
-        )
-      : this.options.params;
+
+    const removePrimary = isIn(name, withoutPrimary);
+    const params = objKeys(this.options.params)
+      .filter((key) => !this.options.params[key].disabled)
+      .filter((key) => !(removePrimary && this.options.params[key].primary))
+      .reduce((a, c) => ({ ...a, [c]: this.options.params[c] }), {});
+
     const pathParamsMeta = Swagger.createPathParamsMeta(params);
     Swagger.setParams([...metadata, ...pathParamsMeta], this.targetProto[name]);
   }
