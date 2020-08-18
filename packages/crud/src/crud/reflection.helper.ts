@@ -84,25 +84,16 @@ export class R {
     target: object,
     name: string,
   ) {
-    // this makes proxy decorator works
-    Reflect.defineProperty(
-      target,
-      name,
-      Reflect.decorate(
-        decorators,
-        target,
-        name,
-        Reflect.getOwnPropertyDescriptor(target, name),
-      ),
-    );
-
     // this makes metadata decorator works
-    Reflect.decorate(
+    const decoratedDescriptor = Reflect.decorate(
       decorators,
       target,
       name,
       Reflect.getOwnPropertyDescriptor(target, name),
     );
+
+    // this makes proxy decorator works
+    Reflect.defineProperty(target, name, decoratedDescriptor);
   }
 
   static setParsedRequestArg(index: number) {
