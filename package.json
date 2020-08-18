@@ -21,6 +21,7 @@
     "test:postgres": "yarn db:prepare:typeorm && yarn test",
     "test:mysql": "yarn db:prepare:typeorm:mysql && TYPEORM_CONNECTION=mysql yarn test",
     "start:typeorm": "npx nodemon -w ./integration/crud-typeorm -e ts node_modules/ts-node/dist/bin.js integration/crud-typeorm/main.ts",
+    "start:mongoose": "npx nodemon -w ./integration/crud-mongoose -e ts node_modules/.bin/ts-node integration/crud-mongoose/main.ts",
     "db:cli:typeorm": "cd ./integration/crud-typeorm && npx ts-node -r tsconfig-paths/register ../../node_modules/typeorm/cli.js",
     "db:sync:typeorm": "yarn db:cli:typeorm schema:sync -f=orm",
     "db:drop:typeorm": "yarn db:cli:typeorm schema:drop -f=orm",
@@ -60,10 +61,12 @@
   "dependencies": {
     "@nestjs/common": "7.0.3",
     "@nestjs/core": "7.0.3",
+    "@nestjs/mongoose": "^6.1.2",
     "@nestjs/platform-express": "7.0.3",
     "@nestjs/swagger": "4.4.0",
     "@nestjs/testing": "7.0.3",
     "@nestjs/typeorm": "7.0.0",
+    "nest-crud-mongoose": "^0.0.1",
     "@nuxtjs/opencollective": "0.2.2",
     "@types/jest": "24.0.18",
     "@types/node": "12.7.5",
@@ -78,6 +81,7 @@
     "jest": "24.9.0",
     "jest-extended": "0.11.2",
     "lerna": "3.16.4",
+    "mongoose": "^5.7.13",
     "mysql": "^2.18.1",
     "nodemon": "1.19.2",
     "npm-check": "5.9.0",
@@ -104,7 +108,9 @@
     "typescript": "3.6.3",
     "validate-commit-msg": "2.14.0"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "@types/mongoose": "^5.5.32"
+  },
   "author": {
     "name": "Michael Yali",
     "email": "mihon4ik@gmail.com"
