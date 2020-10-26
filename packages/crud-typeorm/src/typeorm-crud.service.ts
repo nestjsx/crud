@@ -178,9 +178,12 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     const { allowParamsOverride, returnShallow } = req.options.routes.updateOneBase;
     const paramsFilters = this.getParamFilters(req.parsed);
     const found = await this.getOneOrFail(req, returnShallow);
+    const entityIdMap = this.repo.metadata.getEntityIdMap(found);
+
     const toSave = !allowParamsOverride
-      ? { ...found, ...dto, ...paramsFilters, ...req.parsed.authPersist }
-      : { ...found, ...dto, ...req.parsed.authPersist };
+      ? { ...entityIdMap, ...dto, ...paramsFilters, ...req.parsed.authPersist }
+      : { ...entityIdMap, ...dto, ...req.parsed.authPersist };
+
     const updated = await this.repo.save(plainToClass(this.entityType, toSave));
 
     if (returnShallow) {
