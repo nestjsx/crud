@@ -7,6 +7,7 @@ import { RoutesOptions } from './routes-options.interface';
 import { AuthOptions } from './auth-options.interface';
 import { DtoOptions } from './dto-options.interface';
 import { SerializeOptions } from './serialize-options.interface';
+import { CrudRoutesFactory } from '../crud';
 
 export interface CrudRequestOptions {
   query?: QueryOptions;
@@ -22,6 +23,7 @@ export interface CrudOptions {
   routes?: RoutesOptions;
   params?: ParamsOptions;
   validation?: ValidationPipeOptions | false;
+  crudRoutesFactory?: typeof CrudRoutesFactory;
 }
 
 export interface MergedCrudOptions extends CrudOptions {

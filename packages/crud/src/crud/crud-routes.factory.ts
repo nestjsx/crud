@@ -28,28 +28,23 @@ export class CrudRoutesFactory {
   protected options: MergedCrudOptions;
   protected swaggerModels: any = {};
 
-  constructor(private target: any, options: CrudOptions) {
+  constructor(protected target: any, options: CrudOptions) {
     this.options = options;
     this.create();
   }
-
-  static create(target: any, options: CrudOptions): CrudRoutesFactory {
-    return new CrudRoutesFactory(target, options);
-  }
-
-  private get targetProto(): any {
+  protected get targetProto(): any {
     return this.target.prototype;
   }
 
-  private get modelName(): string {
+  protected get modelName(): string {
     return this.options.model.type.name;
   }
 
-  private get modelType(): any {
+  protected get modelType(): any {
     return this.options.model.type;
   }
 
-  private get actionsMap(): { [key in BaseRouteName]: CrudActions } {
+  protected get actionsMap(): { [key in BaseRouteName]: CrudActions } {
     return {
       getManyBase: CrudActions.ReadAll,
       getOneBase: CrudActions.ReadOne,
@@ -472,13 +467,13 @@ export class CrudRoutesFactory {
     R.setAction(this.actionsMap[name], this.targetProto[name]);
   }
 
-  private setSwaggerOperation(name: BaseRouteName) {
+  protected setSwaggerOperation(name: BaseRouteName) {
     const summary = Swagger.operationsMap(this.modelName)[name];
     const operationId = name + this.targetProto.constructor.name + this.modelName;
     Swagger.setOperation({ summary, operationId }, this.targetProto[name]);
   }
 
-  private setSwaggerPathParams(name: BaseRouteName) {
+  protected setSwaggerPathParams(name: BaseRouteName) {
     const metadata = Swagger.getParams(this.targetProto[name]);
     const withoutPrimary: BaseRouteName[] = [
       'createManyBase',
@@ -496,13 +491,13 @@ export class CrudRoutesFactory {
     Swagger.setParams([...metadata, ...pathParamsMeta], this.targetProto[name]);
   }
 
-  private setSwaggerQueryParams(name: BaseRouteName) {
+  protected setSwaggerQueryParams(name: BaseRouteName) {
     const metadata = Swagger.getParams(this.targetProto[name]);
     const queryParamsMeta = Swagger.createQueryParamsMeta(name);
     Swagger.setParams([...metadata, ...queryParamsMeta], this.targetProto[name]);
   }
 
-  private setSwaggerResponseOk(name: BaseRouteName) {
+  protected setSwaggerResponseOk(name: BaseRouteName) {
     const metadata = Swagger.getResponseOk(this.targetProto[name]);
     const metadataToAdd =
       Swagger.createResponseMeta(name, this.options, this.swaggerModels) ||
