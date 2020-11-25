@@ -8,6 +8,7 @@ import { CompaniesModule } from './companies/companies.module';
 import { ProjectsModule } from './projects/projects.module';
 import { UsersModule } from './users/users.module';
 import { DevicesModule } from './devices/devices.module';
+import { NotesModule } from './notes/notes.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { DevicesModule } from './devices/devices.module';
     ProjectsModule,
     UsersModule,
     DevicesModule,
+    NotesModule,
   ],
   providers: [
     {

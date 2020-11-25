@@ -7,6 +7,8 @@ import {
   PATH_METADATA,
   ROUTE_ARGS_METADATA,
 } from '@nestjs/common/constants';
+import { ArgumentsHost } from '@nestjs/common';
+import { isFunction } from '@nestjsx/util';
 
 import { BaseRoute, MergedCrudOptions, AuthOptions } from '../interfaces';
 import { BaseRouteName } from '../types';
@@ -54,7 +56,7 @@ export class R {
     return {
       [`${paramtype}${CUSTOM_ROUTE_AGRS_METADATA}:${index}`]: {
         index,
-        factory: (_, req) => req[paramtype],
+        factory: (_, ctx) => R.getContextRequest(ctx)[paramtype],
         data,
         pipes,
       },
@@ -82,25 +84,16 @@ export class R {
     target: object,
     name: string,
   ) {
-    // this makes proxy decorator works
-    Reflect.defineProperty(
-      target,
-      name,
-      Reflect.decorate(
-        decorators,
-        target,
-        name,
-        Reflect.getOwnPropertyDescriptor(target, name),
-      ),
-    );
-
     // this makes metadata decorator works
-    Reflect.decorate(
+    const decoratedDescriptor = Reflect.decorate(
       decorators,
       target,
       name,
       Reflect.getOwnPropertyDescriptor(target, name),
     );
+
+    // this makes proxy decorator works
+    Reflect.defineProperty(target, name, decoratedDescriptor);
   }
 
   static setParsedRequestArg(index: number) {
@@ -170,5 +163,11 @@ export class R {
 
   static getParsedBody(func: Function): any {
     return R.get(PARSED_BODY_METADATA, func);
+  }
+
+  static getContextRequest(ctx: ArgumentsHost): any {
+    return isFunction(ctx.switchToHttp)
+      ? ctx.switchToHttp().getRequest()
+      : /* istanbul ignore next */ ctx;
   }
 }

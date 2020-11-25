@@ -1,6 +1,7 @@
 import { HttpStatus } from '@nestjs/common';
 import { objKeys, isString, isFunction } from '@nestjsx/util';
 import { RequestQueryBuilder } from '@nestjsx/crud-request';
+const pluralize = require('pluralize');
 
 import { safeRequire } from '../util';
 import { R } from './reflection.helper';
@@ -14,13 +15,13 @@ export const swaggerPkgJson = safeRequire('@nestjs/swagger/package.json');
 export class Swagger {
   static operationsMap(modelName): { [key in BaseRouteName]: string } {
     return {
-      getManyBase: `Retrieve many ${modelName}`,
-      getOneBase: `Retrieve one ${modelName}`,
-      createManyBase: `Create many ${modelName}`,
-      createOneBase: `Create one ${modelName}`,
-      updateOneBase: `Update one ${modelName}`,
-      replaceOneBase: `Replace one ${modelName}`,
-      deleteOneBase: `Delete one ${modelName}`,
+      getManyBase: `Retrieve multiple ${pluralize(modelName)}`,
+      getOneBase: `Retrieve a single ${modelName}`,
+      createManyBase: `Create multiple ${pluralize(modelName)}`,
+      createOneBase: `Create a single ${modelName}`,
+      updateOneBase: `Update a single ${modelName}`,
+      replaceOneBase: `Replace a single ${modelName}`,
+      deleteOneBase: `Delete a single ${modelName}`,
     };
   }
 
@@ -212,13 +213,14 @@ export class Swagger {
     }
   }
 
-  static createPathParasmMeta(options: ParamsOptions): any[] {
+  static createPathParamsMeta(options: ParamsOptions): any[] {
     return swaggerConst
       ? objKeys(options).map((param) => ({
           name: param,
           required: true,
           in: 'path',
           type: options[param].type === 'number' ? Number : String,
+          enum: options[param].enum ? Object.values(options[param].enum) : undefined,
         }))
       : /* istanbul ignore next */ [];
   }

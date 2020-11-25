@@ -1,3 +1,63 @@
+## [4.6.2] - 2020-05-14
+
+### Bug Fixes
+
+- **typeorm** - fixed selected fields on joins [#510](https://github.com/nestjsx/crud/issues/510)). Kudos to @jbrousseau for finding this bug
+
+## [4.6.1] - 2020-05-08
+
+### Bug Fixes
+
+- **typeorm** - fixed query generation when a column display name differs from its name in db [#401](https://github.com/nestjsx/crud/issues/401)). Kudos to @farhad2161 for finding this bug
+
+## [4.6.0] - 2020-05-07
+
+### Features
+
+- **crud**/**typeorm** - added `select` (boolean) to `join` options which allows to join relation but not select it ([#218](https://github.com/nestjsx/crud/issues/218))
+
+### Bug Fixes
+
+- **typeorm** - fixed column identifier for MySQL ([#401](https://github.com/nestjsx/crud/issues/401))
+- **typeorm** - fixed nested relations aliases, filtering, sorting ([#419](https://github.com/nestjsx/crud/issues/419), [#450](https://github.com/nestjsx/crud/issues/450), [#267](https://github.com/nestjsx/crud/issues/267), [#385](https://github.com/nestjsx/crud/issues/385))
+
+## [4.5.0] - 2020-05-01
+
+### Improvements
+
+- **crud** - added enum support for params Swagger. Kudos to @tbrannam
+
+### Bug Fixes
+
+- **crud** - fixed auth property definition. Kudos to @lafeuil
+- **typeorm** - fixed request generation with aliases ([#321](https://github.com/nestjsx/crud/issues/321), [#401](https://github.com/nestjsx/crud/issues/401)). Kudos to @joennlae
+
+## [4.4.5] - 2020-04-18
+
+## Deps
+
+- **crud** fixted imports
+
+## [4.4.4] - 2020-04-18
+
+### Deps
+
+- **dev** fixted lerna
+
+## [4.4.3] - 2020-04-18
+
+### Bug Fixes
+
+- **crud** fixed returning `pageCount` in some cases ([#465](https://github.com/nestjsx/crud/pull/465))
+- **typeorm** fixed critical bug with possible SQL injections when using query `?sort=` (big kudos to João Maurício)
+- **typeorm** fixed filter conditions for LIKE/iLIKE operators ([#395](https://github.com/nestjsx/crud/pull/395))
+
+## [4.4.2] - 2020-03-17
+
+### Bug Fixes
+
+- **crud** fixed custom routes params caused by NestJs v7 breaking changes ([#443](https://github.com/nestjsx/crud/issues/443))
+
 ## [4.4.1] - 2019-12-28
 
 ### Bug Fixes
@@ -111,6 +171,14 @@
 
 - several fixes
 
+[4.6.2]: https://github.com/nestjsx/crud/compare/v4.6.1...v4.6.2
+[4.6.1]: https://github.com/nestjsx/crud/compare/v4.6.0...v4.6.1
+[4.6.0]: https://github.com/nestjsx/crud/compare/v4.5.0...v4.6.0
+[4.5.0]: https://github.com/nestjsx/crud/compare/v4.4.5...v4.5.0
+[4.4.5]: https://github.com/nestjsx/crud/compare/v4.4.4...v4.4.5
+[4.4.4]: https://github.com/nestjsx/crud/compare/v4.4.3...v4.4.4
+[4.4.3]: https://github.com/nestjsx/crud/compare/v4.4.2...v4.4.3
+[4.4.2]: https://github.com/nestjsx/crud/compare/v4.4.1...v4.4.2
 [4.4.1]: https://github.com/nestjsx/crud/compare/v4.4.0...v4.4.1
 [4.4.0]: https://github.com/nestjsx/crud/compare/v4.3.0...v4.4.0
 [4.3.0]: https://github.com/nestjsx/crud/compare/v4.2.0...v4.3.0

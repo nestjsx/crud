@@ -68,7 +68,6 @@ describe('#crud', () => {
           .send(send)
           .end((_, res) => {
             expect(res.status).toEqual(400);
-            expect(res.body.message[0].property).toBe('age');
             done();
           });
       });
@@ -99,7 +98,6 @@ describe('#crud', () => {
           .send(send)
           .end((_, res) => {
             expect(res.status).toEqual(400);
-            expect(res.body.message[0].property).toBe('email');
             done();
           });
       });

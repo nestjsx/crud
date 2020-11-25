@@ -63,12 +63,8 @@ export abstract class CrudService<T> {
       data,
       count: data.length,
       total,
-      page: Math.floor(offset / limit) + 1,
-      pageCount:
-        limit && total
-          ? Math.ceil(total / limit)
-          : /* istanbul ignore next line */
-            undefined,
+      page: limit ? Math.floor(offset / limit) + 1 : 1,
+      pageCount: limit && total ? Math.ceil(total / limit) : 1,
     };
   }
 
@@ -127,16 +123,11 @@ export abstract class CrudService<T> {
    * Get primary param name from CrudOptions
    * @param options
    */
-  getPrimaryParam(options: CrudRequestOptions): string {
-    const param = objKeys(options.params).find(
+  getPrimaryParams(options: CrudRequestOptions): string[] {
+    const params = objKeys(options.params).filter(
       (n) => options.params[n] && options.params[n].primary,
     );
 
-    /* istanbul ignore if */
-    if (!param) {
-      return undefined;
-    }
-
-    return options.params[param].field;
+    return params.map((p) => options.params[p].field);
   }
 }

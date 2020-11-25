@@ -18,8 +18,19 @@ describe('#crud', () => {
     let server: any;
     let qb: RequestQueryBuilder;
 
+    enum Field {
+      ONE = 'one',
+    }
+
     @Crud({
       model: { type: TestModel },
+      params: {
+        enumField: {
+          field: 'enum_field',
+          type: 'string',
+          enum: Field,
+        },
+      },
     })
     @Controller('test')
     class TestController implements CrudController<TestModel> {
@@ -92,13 +103,17 @@ describe('#crud', () => {
       });
       it('should return swagger operation', () => {
         const operation = Swagger.getOperation(TestController.prototype.getMany);
-        const expected = { summary: 'Retrieve many TestModel' };
+        const expected = { summary: 'Retrieve multiple TestModels' };
         expect(operation).toMatchObject(expected);
       });
       it('should return swagger params', () => {
         const params = Swagger.getParams(TestController.prototype.getMany);
         expect(Array.isArray(params)).toBe(true);
         expect(params.length > 0).toBe(true);
+
+        const enumParam = params.find((param) => param.name === 'enumField');
+        expect(enumParam).toBeDefined();
+        expect(enumParam.enum).toEqual(['one']);
       });
       it('should return swagger response ok', () => {
         const response = Swagger.getResponseOk(TestController.prototype.getMany);
@@ -126,7 +141,6 @@ describe('#crud', () => {
           .send(send)
           .end((_, res) => {
             expect(res.status).toEqual(400);
-            expect(res.body.message[0].property).toBe('bulk');
             done();
           });
       });
