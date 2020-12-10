@@ -18,12 +18,13 @@ export type QueryJoinArr = [string, QueryFields?];
 export type QuerySort = {
   field: string;
   order: QuerySortOperator;
-  nulls?: string;
+  nulls?: QuerySortNullsPriority;
 };
 
 export type QuerySortArr = [string, QuerySortOperator];
 
 export type QuerySortOperator = 'ASC' | 'DESC';
+export type QuerySortNullsPriority = 'NULLS FIRST' | 'NULLS LAST';
 
 type DeprecatedCondOperator =
   | 'eq'
