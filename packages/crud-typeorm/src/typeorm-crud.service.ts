@@ -867,8 +867,11 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
 
     for (let i = 0; i < sort.length; i++) {
       const field = this.getFieldWithAlias(sort[i].field, true);
-      const checkedFiled = this.checkSqlInjection(field);
-      params[checkedFiled] = sort[i].order;
+      const checkedField = this.checkSqlInjection(field);
+      params[checkedField] = sort[i].order;
+      if(this.dbName === 'postgres' && sort[i].nulls) {
+          params[checkedField] += " " + sort[i].nulls;
+      }
     }
 
     return params;

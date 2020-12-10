@@ -18,6 +18,7 @@ export type QueryJoinArr = [string, QueryFields?];
 export type QuerySort = {
   field: string;
   order: QuerySortOperator;
+  nulls?: string;
 };
 
 export type QuerySortArr = [string, QuerySortOperator];
