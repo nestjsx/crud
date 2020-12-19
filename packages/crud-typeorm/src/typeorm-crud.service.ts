@@ -320,13 +320,6 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
       if (parsed.includeDeleted === 1 || withDeleted) {
         builder.withDeleted();
       }
-      // } else {
-      //   this.setAndWhere(
-      //     { field: this.repo.metadata.deleteDateColumn.databaseName, operator: 'isnull' },
-      //     null,
-      //     builder
-      //   );
-      // }
     }
 
     /* istanbul ignore else */
