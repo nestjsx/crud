@@ -103,7 +103,7 @@ describe('#crud', () => {
       });
       it('should return swagger operation', () => {
         const operation = Swagger.getOperation(TestController.prototype.getMany);
-        const expected = { summary: 'Retrieve many TestModel' };
+        const expected = { summary: 'Retrieve multiple TestModels' };
         expect(operation).toMatchObject(expected);
       });
       it('should return swagger params', () => {

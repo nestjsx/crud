@@ -95,7 +95,7 @@ export class CrudRoutesFactory {
       : isObjectFull(CrudConfigService.config.params)
       ? CrudConfigService.config.params
       : {};
-    const hasPrimary = this.getPrimaryParam();
+    const hasPrimary = this.getPrimaryParams().length > 0;
     if (!hasPrimary) {
       this.options.params['id'] = {
         field: 'id',
@@ -306,7 +306,9 @@ export class CrudRoutesFactory {
   }
 
   private createRoutes(routesSchema: BaseRoute[]) {
-    const primaryParam = this.getPrimaryParam();
+    const primaryParams = this.getPrimaryParams().filter(
+      (param) => !this.options.params[param].disabled,
+    );
 
     routesSchema.forEach((route) => {
       if (this.canCreateRoute(route.name)) {
@@ -317,9 +319,10 @@ export class CrudRoutesFactory {
         this.setBaseRouteMeta(route.name);
       }
 
-      if (route.withParams && !this.options.params[primaryParam].disabled) {
-        route.path =
-          route.path.length > 0 ? `/:${primaryParam}${route.path}` : `/:${primaryParam}`;
+      if (route.withParams && primaryParams.length > 0) {
+        route.path = route.path.length > 0 
+          ? `${primaryParams.map((param) => `/:${param}`).join('')}${route.path}` 
+          : primaryParams.map((param) => `/:${param}`).join('');
       }
     });
   }
@@ -415,8 +418,8 @@ export class CrudRoutesFactory {
     }
   }
 
-  private getPrimaryParam(): string {
-    return objKeys(this.options.params).find(
+  private getPrimaryParams(): string[] {
+    return objKeys(this.options.params).filter(
       (param) => this.options.params[param] && this.options.params[param].primary,
     );
   }

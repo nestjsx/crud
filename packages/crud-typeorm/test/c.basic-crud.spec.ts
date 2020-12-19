@@ -241,6 +241,18 @@ describe('#crud-typeorm', () => {
     }
 
     @Crud({
+      model: { type: User },
+      params: {
+        companyId: { field: 'companyId', type: 'number', primary: true },
+        profileId: { field: 'profileId', type: 'number', primary: true },
+      },
+    })
+    @Controller('users4')
+    class UsersController4 {
+      constructor(public service: UsersService) {}
+    }
+
+    @Crud({
       model: { type: Device },
       params: {
         deviceKey: {
@@ -271,6 +283,7 @@ describe('#crud-typeorm', () => {
           UsersController,
           UsersController2,
           UsersController3,
+          UsersController4,
           DevicesController,
         ],
         providers: [
@@ -423,6 +436,15 @@ describe('#crud-typeorm', () => {
             expect(res.status).toBe(200);
             expect(res.body.id).toBe(1);
             expect(res.body.domain).toBeTruthy();
+            done();
+          });
+      });
+      it('should return an entity with compound key', (done) => {
+        return request(server)
+          .get('/users4/1/5')
+          .end((_, res) => {
+            expect(res.status).toBe(200);
+            expect(res.body.id).toBe(5);
             done();
           });
       });
