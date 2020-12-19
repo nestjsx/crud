@@ -1,4 +1,4 @@
-import { Entity, Column, OneToOne } from 'typeorm';
+import { Entity, Column, OneToOne, DeleteDateColumn } from 'typeorm';
 import { IsOptional, IsString, MaxLength } from 'class-validator';
 
 import { BaseEntity } from '../base-entity';
@@ -11,6 +11,9 @@ export class UserProfile extends BaseEntity {
   @MaxLength(32, { always: true })
   @Column({ type: 'varchar', length: 32, nullable: true, default: null })
   name: string;
+
+  @DeleteDateColumn({ nullable: true })
+  deletedAt?: Date;
 
   /**
    * Relations

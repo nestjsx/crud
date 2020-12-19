@@ -5,4 +5,5 @@ export type BaseRouteName =
   | 'createManyBase'
   | 'updateOneBase'
   | 'replaceOneBase'
-  | 'deleteOneBase';
+  | 'deleteOneBase'
+  | 'recoverOneBase';

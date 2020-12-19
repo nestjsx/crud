@@ -23,5 +23,6 @@ export interface CrudGlobalConfig {
     update?: false;
     replace?: false;
     delete?: false;
+    recover?: false;
   };
 }

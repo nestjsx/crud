@@ -41,7 +41,7 @@ export class Seeds1544303473346 implements MigrationInterface {
       { name: 'Name6', domain: 'Domain6' },
       { name: 'Name7', domain: 'Domain7' },
       { name: 'Name8', domain: 'Domain8' },
-      { name: 'Name9', domain: 'Domain9' },
+      { name: 'Name9', domain: 'Domain9', deletedAt: new Date() },
       { name: 'Name10', domain: 'Domain10' },
     ]);
 

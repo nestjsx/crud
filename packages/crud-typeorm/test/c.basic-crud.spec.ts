@@ -124,7 +124,7 @@ describe('#crud-typeorm', () => {
           .get('/companies')
           .end((_, res) => {
             expect(res.status).toBe(200);
-            expect(res.body.data.length).toBe(10);
+            expect(res.body.data.length).toBe(9);
             expect(res.body.page).toBe(1);
             done();
           });
@@ -169,6 +169,9 @@ describe('#crud-typeorm', () => {
 
     @Crud({
       model: { type: Company },
+      query: {
+        softDelete: true,
+      },
     })
     @Controller('companies')
     class CompaniesController {
@@ -296,7 +299,7 @@ describe('#crud-typeorm', () => {
     describe('#find', () => {
       it('should return entities', async () => {
         const data = await service.find();
-        expect(data.length).toBe(10);
+        expect(data.length).toBe(9);
       });
     });
 
@@ -317,7 +320,7 @@ describe('#crud-typeorm', () => {
     describe('#getAllBase', () => {
       it('should return an array of all entities', (done) => {
         return request(server)
-          .get('/companies')
+          .get('/companies?include_deleted=1')
           .end((_, res) => {
             expect(res.status).toBe(200);
             expect(res.body.length).toBe(10);
@@ -348,9 +351,9 @@ describe('#crud-typeorm', () => {
             expect(res.status).toBe(200);
             expect(res.body.data.length).toBe(3);
             expect(res.body.count).toBe(3);
-            expect(res.body.total).toBe(10);
+            expect(res.body.total).toBe(9);
             expect(res.body.page).toBe(1);
-            expect(res.body.pageCount).toBe(4);
+            expect(res.body.pageCount).toBe(3);
             done();
           });
       });
@@ -366,10 +369,10 @@ describe('#crud-typeorm', () => {
           .end((_, res) => {
             expect(res.status).toBe(200);
             if (isMysql) {
-              expect(res.body.count).toBe(7);
-              expect(res.body.data.length).toBe(7);
+              expect(res.body.count).toBe(6);
+              expect(res.body.data.length).toBe(6);
             } else {
-              expect(res.body.length).toBe(7);
+              expect(res.body.length).toBe(6);
             }
             done();
           });
@@ -382,6 +385,23 @@ describe('#crud-typeorm', () => {
           .get('/companies/333')
           .end((_, res) => {
             expect(res.status).toBe(404);
+            done();
+          });
+      });
+      it('should return status 404 for deleted entity', (done) => {
+        return request(server)
+          .get('/companies/9')
+          .end((_, res) => {
+            expect(res.status).toBe(404);
+            done();
+          });
+      });
+      it('should return a deleted entity if include_deleted query param is specified', (done) => {
+        return request(server)
+          .get('/companies/9?include_deleted=1')
+          .end((_, res) => {
+            expect(res.status).toBe(200);
+            expect(res.body.id).toBe(9);
             done();
           });
       });
@@ -593,6 +613,39 @@ describe('#crud-typeorm', () => {
           .delete('/companies/3333')
           .end((_, res) => {
             expect(res.status).toBe(404);
+            done();
+          });
+      });
+      it('should softly delete entity', (done) => {
+        return request(server)
+          .delete('/companies/5')
+          .end((_, res) => {
+            expect(res.status).toBe(200);
+            done();
+          });
+      });
+      it('should not return softly deleted entity', (done) => {
+        return request(server)
+          .get('/companies/5')
+          .end((_, res) => {
+            expect(res.status).toBe(404);
+            done();
+          });
+      });
+      it('should recover softly deleted entity', (done) => {
+        return request(server)
+          .patch('/companies/5/recover')
+          .end((_, res) => {
+            expect(res.status).toBe(200);
+            done();
+          });
+      });
+      it('should return recovered entity', (done) => {
+        return request(server)
+          .get('/companies/5')
+          .end((_, res) => {
+            expect(res.status).toBe(200);
+            expect(res.body.id).toBe(5);
             done();
           });
       });

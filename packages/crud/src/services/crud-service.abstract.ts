@@ -25,6 +25,8 @@ export abstract class CrudService<T> {
 
   abstract deleteOne(req: CrudRequest): Promise<void | T>;
 
+  abstract recoverOne(req: CrudRequest): Promise<void | T>;
+
   throwBadRequestException(msg?: any): BadRequestException {
     throw new BadRequestException(msg);
   }

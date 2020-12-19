@@ -6,6 +6,7 @@ import {
   OneToMany,
   ManyToOne,
   ManyToMany,
+  DeleteDateColumn,
 } from 'typeorm';
 import {
   IsOptional,
@@ -64,6 +65,9 @@ export class User extends BaseEntity {
 
   @Column({ nullable: false })
   companyId?: number;
+
+  @DeleteDateColumn({ nullable: true })
+  deletedAt?: Date;
 
   /**
    * Relations

@@ -20,4 +20,5 @@ export interface CreateQueryParams {
   offset?: number;
   page?: number;
   resetCache?: boolean;
+  includeDeleted?: number;
 }

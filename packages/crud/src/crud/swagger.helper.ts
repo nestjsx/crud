@@ -21,6 +21,7 @@ export class Swagger {
       updateOneBase: `Update one ${modelName}`,
       replaceOneBase: `Replace one ${modelName}`,
       deleteOneBase: `Delete one ${modelName}`,
+      recoverOneBase: `Recover one ${modelName}`,
     };
   }
 
@@ -188,6 +189,27 @@ export class Swagger {
                   description: 'Delete one base response',
                 },
           };
+        case 'recoverOneBase':
+          /* istanbul ignore if */
+          if (oldVersion) {
+            return {
+              [HttpStatus.OK]: routes.recoverOneBase.returnRecovered
+                ? {
+                    type: swaggerModels.delete,
+                  }
+                : {},
+            };
+          }
+          return {
+            [HttpStatus.OK]: routes.recoverOneBase.returnRecovered
+              ? {
+                  description: 'Recover one base response',
+                  schema: { $ref: swagger.getSchemaPath(swaggerModels.recover.name) },
+                }
+              : {
+                  description: 'Recover one base response',
+                },
+          };
         default:
           const dto = swaggerModels[name.split('OneBase')[0]];
 
@@ -224,7 +246,7 @@ export class Swagger {
       : /* istanbul ignore next */ [];
   }
 
-  static createQueryParamsMeta(name: BaseRouteName) {
+  static createQueryParamsMeta(name: BaseRouteName, options: MergedCrudOptions) {
     /* istanbul ignore if */
     if (!swaggerConst) {
       return [];
@@ -243,6 +265,7 @@ export class Swagger {
       offset,
       page,
       cache,
+      includeDeleted,
     } = Swagger.getQueryParamsNames();
     const oldVersion = Swagger.getSwaggerVersion() < 4;
     const docsLink = (a: string) =>
@@ -438,22 +461,56 @@ export class Swagger {
         }
       : { ...cacheMetaBase, schema: { type: 'integer', minimum: 0, maximum: 1 } };
 
+    const includeDeletedMetaBase = {
+      name: includeDeleted,
+      description: `Include deleted. ${docsLink('includeDeleted')}`,
+      required: false,
+      in: 'query',
+    };
+    const includeDeletedMeta = oldVersion
+      ? /* istanbul ignore next */ {
+          ...includeDeletedMetaBase,
+          type: 'integer',
+          minimum: 0,
+          maximum: 1,
+        }
+      : {
+          ...includeDeletedMetaBase,
+          schema: { type: 'integer', minimum: 0, maximum: 1 },
+        };
+
     switch (name) {
       case 'getManyBase':
-        return [
-          fieldsMeta,
-          searchMeta,
-          filterMeta,
-          orMeta,
-          sortMeta,
-          joinMeta,
-          limitMeta,
-          offsetMeta,
-          pageMeta,
-          cacheMeta,
-        ];
+        return options.query.softDelete
+          ? [
+              fieldsMeta,
+              searchMeta,
+              filterMeta,
+              orMeta,
+              sortMeta,
+              joinMeta,
+              limitMeta,
+              offsetMeta,
+              pageMeta,
+              cacheMeta,
+              includeDeletedMeta,
+            ]
+          : [
+              fieldsMeta,
+              searchMeta,
+              filterMeta,
+              orMeta,
+              sortMeta,
+              joinMeta,
+              limitMeta,
+              offsetMeta,
+              pageMeta,
+              cacheMeta,
+            ];
       case 'getOneBase':
-        return [fieldsMeta, joinMeta, cacheMeta];
+        return options.query.softDelete
+          ? [fieldsMeta, joinMeta, cacheMeta, includeDeletedMeta]
+          : [fieldsMeta, joinMeta, cacheMeta];
       default:
         return [];
     }
@@ -479,6 +536,7 @@ export class Swagger {
       offset: name('offset'),
       page: name('page'),
       cache: name('cache'),
+      includeDeleted: name('includeDeleted'),
     };
   }
 
