@@ -14,6 +14,7 @@ export interface CrudGlobalConfig {
     maxLimit?: number;
     cache?: number | false;
     alwaysPaginate?: boolean;
+    softDelete?: boolean;
   };
   serialize?: {
     getMany?: false;

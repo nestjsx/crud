@@ -44,5 +44,7 @@ export class TestSerializeService<T = TestSerializeModel> extends CrudService<T>
     return req.options.routes.deleteOneBase.returnDeleted ? this.store[0] : undefined;
   }
 
-  async recoverOne(req: CrudRequest): Promise<any> {}
+  async recoverOne(req: CrudRequest): Promise<any> {
+    return req.options.routes.recoverOneBase.returnRecovered ? this.store[0] : undefined;
+  }
 }

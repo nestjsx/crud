@@ -11,6 +11,7 @@ import {
   GetModelResponseDto,
   GetManyModelResponseDto,
   DeleteModelResponseDto,
+  RecoverModelResponseDto,
 } from './__fixture__/response';
 import { TestSerializeService } from './__fixture__/services';
 
@@ -109,11 +110,34 @@ describe('#crud', () => {
         createMany: false,
         update: false,
         replace: false,
+        recover: false,
       },
     })
     @Controller('test5')
     class Test5Controller {
       constructor(@Inject(SERVICE2_TOKEN) public service: TestSerializeService) {}
+    }
+
+    @Crud({
+      model: {
+        type: TestSerializeModel,
+      },
+      serialize: {
+        get: GetModelResponseDto,
+        recover: RecoverModelResponseDto,
+      },
+      query: {
+        softDelete: true,
+      },
+      routes: {
+        recoverOneBase: {
+          returnRecovered: true,
+        },
+      },
+    })
+    @Controller('test6')
+    class Test6Controller {
+      constructor(@Inject(SERVICE_TOKEN) public service: TestSerializeService) {}
     }
 
     beforeAll(async () => {
@@ -124,6 +148,7 @@ describe('#crud', () => {
           Test3Controller,
           Test4Controller,
           Test5Controller,
+          Test6Controller,
         ],
         providers: [
           { provide: APP_FILTER, useClass: HttpExceptionFilter },
@@ -247,6 +272,30 @@ describe('#crud', () => {
       it('should return en empty response', (done) => {
         return request(server)
           .delete('/test3/1')
+          .expect(200)
+          .end((_, res) => {
+            expect(res.body).toMatchObject({});
+            done();
+          });
+      });
+    });
+
+    describe('#recoverOneBase', () => {
+      it('should return model', (done) => {
+        return request(server)
+          .patch('/test6/1/recover')
+          .expect(200)
+          .end((_, res) => {
+            expect(res.body.id).toBeDefined();
+            expect(res.body.name).toBeDefined();
+            expect(res.body.email).toBeDefined();
+            expect(res.body.isActive).toBeDefined();
+            done();
+          });
+      });
+      it('should return en empty response', (done) => {
+        return request(server)
+          .patch('/test3/1/recover')
           .expect(200)
           .end((_, res) => {
             expect(res.body).toMatchObject({});

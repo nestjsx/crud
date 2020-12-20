@@ -320,9 +320,10 @@ export class CrudRoutesFactory {
       }
 
       if (route.withParams && primaryParams.length > 0) {
-        route.path = route.path.length > 0 
-          ? `${primaryParams.map((param) => `/:${param}`).join('')}${route.path}` 
-          : primaryParams.map((param) => `/:${param}`).join('');
+        route.path =
+          route.path !== '/'
+            ? `${primaryParams.map((param) => `/:${param}`).join('')}${route.path}`
+            : primaryParams.map((param) => `/:${param}`).join('');
       }
     });
   }
