@@ -28,7 +28,7 @@ import {
 } from './types';
 
 // tslint:disable:variable-name ban-types
-export class RequestQueryBuilder {
+export class RequestQueryBuilder<K extends string = string> {
   constructor() {
     this.setParamNames();
   }
@@ -95,7 +95,7 @@ export class RequestQueryBuilder {
     return this.queryString;
   }
 
-  select(fields: QueryFields): this {
+  select(fields: QueryFields<K>): this {
     if (isArrayFull(fields)) {
       validateFields(fields);
       this.queryObject[this.paramNames.fields] = fields.join(this.options.delimStr);
@@ -103,44 +103,52 @@ export class RequestQueryBuilder {
     return this;
   }
 
-  search(s: SCondition) {
+  search(s: SCondition<K>) {
     if (!isNil(s) && isObject(s)) {
       this.queryObject[this.paramNames.search] = JSON.stringify(s);
     }
     return this;
   }
 
-  setFilter(f: QueryFilter | QueryFilterArr | Array<QueryFilter | QueryFilterArr>): this {
+  setFilter(
+    f: QueryFilter<K> | QueryFilterArr<K> | Array<QueryFilter<K> | QueryFilterArr<K>>,
+  ): this {
     this.setCondition(f, 'filter');
     return this;
   }
 
-  setOr(f: QueryFilter | QueryFilterArr | Array<QueryFilter | QueryFilterArr>): this {
+  setOr(
+    f: QueryFilter<K> | QueryFilterArr<K> | Array<QueryFilter<K> | QueryFilterArr<K>>,
+  ): this {
     this.setCondition(f, 'or');
     return this;
   }
 
-  setJoin(j: QueryJoin | QueryJoinArr | Array<QueryJoin | QueryJoinArr>): this {
+  setJoin(
+    j: QueryJoin<K> | QueryJoinArr<K> | Array<QueryJoin<K> | QueryJoinArr<K>>,
+  ): this {
     if (!isNil(j)) {
       const param = this.checkQueryObjectParam('join', []);
       this.queryObject[param] = [
         ...this.queryObject[param],
         ...(Array.isArray(j) && !isString(j[0])
-          ? (j as Array<QueryJoin | QueryJoinArr>).map((o) => this.addJoin(o))
-          : [this.addJoin(j as QueryJoin | QueryJoinArr)]),
+          ? (j as Array<QueryJoin<K> | QueryJoinArr<K>>).map((o) => this.addJoin(o))
+          : [this.addJoin(j as QueryJoin<K> | QueryJoinArr<K>)]),
       ];
     }
     return this;
   }
 
-  sortBy(s: QuerySort | QuerySortArr | Array<QuerySort | QuerySortArr>): this {
+  sortBy(
+    s: QuerySort<K> | QuerySortArr<K> | Array<QuerySort<K> | QuerySortArr<K>>,
+  ): this {
     if (!isNil(s)) {
       const param = this.checkQueryObjectParam('sort', []);
       this.queryObject[param] = [
         ...this.queryObject[param],
         ...(Array.isArray(s) && !isString(s[0])
-          ? (s as Array<QuerySort | QuerySortArr>).map((o) => this.addSortBy(o))
-          : [this.addSortBy(s as QuerySort | QuerySortArr)]),
+          ? (s as Array<QuerySort<K> | QuerySortArr<K>>).map((o) => this.addSortBy(o))
+          : [this.addSortBy(s as QuerySort<K> | QuerySortArr<K>)]),
       ];
     }
     return this;
@@ -167,7 +175,7 @@ export class RequestQueryBuilder {
   }
 
   cond(
-    f: QueryFilter | QueryFilterArr,
+    f: QueryFilter<K> | QueryFilterArr<K>,
     cond: 'filter' | 'or' | 'search' = 'search',
   ): string {
     const filter = Array.isArray(f) ? { field: f[0], operator: f[1], value: f[2] } : f;
@@ -182,7 +190,7 @@ export class RequestQueryBuilder {
     );
   }
 
-  private addJoin(j: QueryJoin | QueryJoinArr): string {
+  private addJoin(j: QueryJoin<K> | QueryJoinArr<K>): string {
     const join = Array.isArray(j) ? { field: j[0], select: j[1] } : j;
     validateJoin(join);
     const d = this.options.delim;
@@ -191,7 +199,7 @@ export class RequestQueryBuilder {
     return join.field + (isArrayFull(join.select) ? d + join.select.join(ds) : '');
   }
 
-  private addSortBy(s: QuerySort | QuerySortArr): string {
+  private addSortBy(s: QuerySort<K> | QuerySortArr<K>): string {
     const sort = Array.isArray(s) ? { field: s[0], order: s[1] } : s;
     validateSort(sort);
     const ds = this.options.delimStr;
@@ -199,7 +207,7 @@ export class RequestQueryBuilder {
     return sort.field + ds + sort.order;
   }
 
-  private createFromParams(params: CreateQueryParams): this {
+  private createFromParams(params: CreateQueryParams<K>): this {
     this.select(params.fields);
     this.search(params.search);
     this.setFilter(params.filter);
@@ -227,7 +235,7 @@ export class RequestQueryBuilder {
   }
 
   private setCondition(
-    f: QueryFilter | QueryFilterArr | Array<QueryFilter | QueryFilterArr>,
+    f: QueryFilter<K> | QueryFilterArr<K> | Array<QueryFilter<K> | QueryFilterArr<K>>,
     cond: 'filter' | 'or',
   ): void {
     if (!isNil(f)) {
@@ -235,8 +243,10 @@ export class RequestQueryBuilder {
       this.queryObject[param] = [
         ...this.queryObject[param],
         ...(Array.isArray(f) && !isString(f[0])
-          ? (f as Array<QueryFilter | QueryFilterArr>).map((o) => this.cond(o, cond))
-          : [this.cond(f as QueryFilter | QueryFilterArr, cond)]),
+          ? (f as Array<QueryFilter<K> | QueryFilterArr<K>>).map((o) =>
+              this.cond(o, cond),
+            )
+          : [this.cond(f as QueryFilter<K> | QueryFilterArr<K>, cond)]),
       ];
     }
   }
