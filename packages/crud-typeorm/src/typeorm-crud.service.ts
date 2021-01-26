@@ -18,6 +18,7 @@ import {
   ComparisonOperator,
 } from '@nestjsx/crud-request';
 import {
+  ClassType,
   hasLength,
   isArrayFull,
   isObject,
@@ -28,7 +29,6 @@ import {
 } from '@nestjsx/util';
 import { oO } from '@zmotivat0r/o0';
 import { plainToClass } from 'class-transformer';
-import { ClassType } from 'class-transformer/ClassTransformer';
 import {
   Brackets,
   ObjectLiteral,
