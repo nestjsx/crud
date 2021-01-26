@@ -1,7 +1,7 @@
 language: node_js
 
 node_js:
-  - '10'
+  - '14'
 
 env:
   - DOCKER_COMPOSE_VERSION=1.23.1
