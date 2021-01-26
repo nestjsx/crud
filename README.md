@@ -9,7 +9,7 @@
 
 <div align="center">
   <a href="https://travis-ci.org/nestjsx/crud">
-    <img src="https://travis-ci.org/nestjsx/crud.svg?branch=master" alt="Build" />
+    <img src="https://github.com/nestjsx/crud/workflows/Tests/badge.svg" alt="Build" />
   </a>
   <a href="https://coveralls.io/github/nestjsx/crud?branch=master">
     <img src="https://coveralls.io/repos/github/nestjsx/crud/badge.svg" alt="Coverage" />
