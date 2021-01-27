@@ -10,7 +10,7 @@ export interface QueryOptions {
   exclude?: QueryFields;
   persist?: QueryFields;
   filter?: QueryFilterOption;
-  join?: JoinOptions;
+  join?: JoinOptions | boolean;
   sort?: QuerySort[];
   limit?: number;
   maxLimit?: number;

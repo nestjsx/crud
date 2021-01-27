@@ -141,6 +141,17 @@ describe('#crud-typeorm', () => {
     @Crud({
       model: { type: User },
       query: {
+        join: true,
+      },
+    })
+    @Controller('users3')
+    class UsersController3 {
+      constructor(public service: UsersService) {}
+    }
+
+    @Crud({
+      model: { type: User },
+      query: {
         join: {
           company: {
             alias: 'userCompany',
@@ -151,7 +162,7 @@ describe('#crud-typeorm', () => {
       },
     })
     @Controller('myusers')
-    class UsersController3 {
+    class UsersController4 {
       constructor(public service: UsersService2) {}
     }
 
@@ -178,6 +189,7 @@ describe('#crud-typeorm', () => {
           UsersController,
           UsersController2,
           UsersController3,
+          UsersController4,
           NotesController,
         ],
         providers: [
@@ -524,6 +536,44 @@ describe('#crud-typeorm', () => {
           .end((_, res) => {
             expect(res.status).toBe(200);
             expect(res.body.userLicenses).toBeDefined();
+            done();
+          });
+      });
+    });
+
+    describe('#query any join relation', () => {
+      it('should return joined relation', (done) => {
+        const query = qb.setJoin({ field: 'company', select: ['name'] }).query();
+        return request(server)
+          .get('/users3')
+          .query(query)
+          .end((_, res) => {
+            expect(res.status).toBe(200);
+            expect(res.body).toBeArray();
+            res.body.forEach((user) => {
+              expect(user.company).toBeDefined();
+              expect(user.company.name).toBeDefined();
+            });
+            done();
+          });
+      });
+      it('should allow joining nested relation', (done) => {
+        const query = qb
+          .setJoin({ field: 'company', select: ['name'] })
+          .setJoin({ field: 'company.projects' })
+          .query();
+        return request(server)
+          .get('/users3')
+          .query(query)
+          .end((_, res) => {
+            expect(res.status).toBe(200);
+            expect(res.body).toBeArray();
+            res.body.forEach((user) => {
+              expect(user.company).toBeDefined();
+              expect(user.company.name).toBeDefined();
+              expect(user.company.projects).toBeDefined();
+              expect(user.company.projects).toBeArray();
+            });
             done();
           });
       });

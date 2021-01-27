@@ -283,7 +283,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     const joinOptions = options.query.join || {};
     const allowedJoins = objKeys(joinOptions);
 
-    if (hasLength(allowedJoins)) {
+    if (hasLength(allowedJoins) || joinOptions === true) {
       const eagerJoins: any = {};
 
       for (let i = 0; i < allowedJoins.length; i++) {
@@ -292,16 +292,23 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
           const cond = parsed.join.find((j) => j && j.field === allowedJoins[i]) || {
             field: allowedJoins[i],
           };
-          this.setJoin(cond, joinOptions, builder);
+          this.setJoin(cond, joinOptions as JoinOptions, builder);
           eagerJoins[allowedJoins[i]] = true;
         }
       }
 
       if (isArrayFull(parsed.join)) {
+        const parsedJoins: JoinOptions = parsed.join
+          .map((p) => ({ [p.field]: { allow: p.select } }))
+          .reduce((prev, curr) => ({ ...prev, ...curr }), {});
         for (let i = 0; i < parsed.join.length; i++) {
           /* istanbul ignore else */
           if (!eagerJoins[parsed.join[i].field]) {
-            this.setJoin(parsed.join[i], joinOptions, builder);
+            this.setJoin(
+              parsed.join[i],
+              joinOptions === true ? parsedJoins : joinOptions,
+              builder,
+            );
           }
         }
       }
