@@ -1,6 +1,6 @@
+import { ClassType } from '@nestjsx/util';
 import { plainToClass } from 'class-transformer';
 import { MigrationInterface, Repository, QueryRunner } from 'typeorm';
-import { ClassType } from 'class-transformer/ClassTransformer';
 import { Company } from './companies';
 import { Project, UserProject } from './projects';
 import { Name, User } from './users';
