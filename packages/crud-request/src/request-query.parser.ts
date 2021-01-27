@@ -52,6 +52,7 @@ export class RequestQueryParser implements ParsedRequestParams {
   public offset: number;
   public page: number;
   public cache: number;
+  public includeDeleted: number;
 
   private _params: any;
   private _query: any;
@@ -80,6 +81,7 @@ export class RequestQueryParser implements ParsedRequestParams {
       offset: this.offset,
       page: this.page,
       cache: this.cache,
+      includeDeleted: this.includeDeleted,
     };
   }
 
@@ -91,7 +93,6 @@ export class RequestQueryParser implements ParsedRequestParams {
         this._query = query;
         this._paramNames = paramNames;
         let searchData = this._query[this.getParamNames('search')[0]];
-
         this.search = this.parseSearchQueryParam(searchData) as any;
         if (isNil(this.search)) {
           this.filter = this.parseQueryParam(
@@ -119,6 +120,10 @@ export class RequestQueryParser implements ParsedRequestParams {
         this.cache = this.parseQueryParam(
           'cache',
           this.numericParser.bind(this, 'cache'),
+        )[0];
+        this.includeDeleted = this.parseQueryParam(
+          'includeDeleted',
+          this.numericParser.bind(this, 'includeDeleted'),
         )[0];
       }
     }
@@ -311,7 +316,7 @@ export class RequestQueryParser implements ParsedRequestParams {
   }
 
   private numericParser(
-    num: 'limit' | 'offset' | 'page' | 'cache',
+    num: 'limit' | 'offset' | 'page' | 'cache' | 'includeDeleted',
     data: string,
   ): number {
     const val = this.parseValue(data);

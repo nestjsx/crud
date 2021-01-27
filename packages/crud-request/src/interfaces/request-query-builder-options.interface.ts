@@ -12,5 +12,6 @@ export interface RequestQueryBuilderOptions {
     offset?: string | string[];
     page?: string | string[];
     cache?: string | string[];
+    includeDeleted?: string | string[];
   };
 }

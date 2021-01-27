@@ -58,6 +58,7 @@ export class CrudRoutesFactory {
       updateOneBase: CrudActions.UpdateOne,
       deleteOneBase: CrudActions.DeleteOne,
       replaceOneBase: CrudActions.ReplaceOne,
+      recoverOneBase: CrudActions.RecoverOne,
     };
   }
 
@@ -197,6 +198,14 @@ export class CrudRoutesFactory {
         override: false,
         withParams: true,
       },
+      {
+        name: 'recoverOneBase',
+        path: '/recover',
+        method: RequestMethod.PATCH,
+        enable: false,
+        override: false,
+        withParams: true,
+      },
     ];
   }
 
@@ -242,9 +251,20 @@ export class CrudRoutesFactory {
     };
   }
 
-  private canCreateRoute(name: string) {
+  private recoverOneBase(name: BaseRouteName) {
+    this.targetProto[name] = function recoverOneBase(req: CrudRequest) {
+      return this.service.recoverOne(req);
+    };
+  }
+
+  private canCreateRoute(name: BaseRouteName) {
     const only = this.options.routes.only;
     const exclude = this.options.routes.exclude;
+
+    // include recover route only for models with soft delete option
+    if (name === 'recoverOneBase' && this.options.query.softDelete !== true) {
+      return false;
+    }
 
     if (isArrayFull(only)) {
       return only.some((route) => route === name);
@@ -279,6 +299,9 @@ export class CrudRoutesFactory {
     this.swaggerModels.delete = isFunction(this.options.serialize.delete)
       ? this.options.serialize.delete
       : modelType;
+    this.swaggerModels.recover = isFunction(this.options.serialize.recover)
+      ? this.options.serialize.recover
+      : modelType;
     Swagger.setExtraModels(this.swaggerModels);
   }
 
@@ -297,7 +320,10 @@ export class CrudRoutesFactory {
       }
 
       if (route.withParams && primaryParams.length > 0) {
-        route.path = primaryParams.map((param) => `/:${param}`).join('');
+        route.path =
+          route.path !== '/'
+            ? `${primaryParams.map((param) => `/:${param}`).join('')}${route.path}`
+            : primaryParams.map((param) => `/:${param}`).join('');
       }
     });
   }
@@ -498,7 +524,7 @@ export class CrudRoutesFactory {
 
   private setSwaggerQueryParams(name: BaseRouteName) {
     const metadata = Swagger.getParams(this.targetProto[name]);
-    const queryParamsMeta = Swagger.createQueryParamsMeta(name);
+    const queryParamsMeta = Swagger.createQueryParamsMeta(name, this.options);
     Swagger.setParams([...metadata, ...queryParamsMeta], this.targetProto[name]);
   }
 

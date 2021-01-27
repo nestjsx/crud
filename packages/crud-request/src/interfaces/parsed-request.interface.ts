@@ -14,4 +14,5 @@ export interface ParsedRequestParams {
   offset: number;
   page: number;
   cache: number;
+  includeDeleted: number;
 }

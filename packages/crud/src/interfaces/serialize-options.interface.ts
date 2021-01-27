@@ -8,4 +8,5 @@ export interface SerializeOptions {
   update?: Type<any> | false;
   replace?: Type<any> | false;
   delete?: Type<any> | false;
+  recover?: Type<any> | false;
 }

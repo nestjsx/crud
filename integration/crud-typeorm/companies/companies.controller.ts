@@ -8,7 +8,7 @@ import { serialize } from './responses';
 
 @Crud({
   model: {
-    type: Company,
+    type: Company
   },
   serialize,
   routes: {
@@ -18,6 +18,7 @@ import { serialize } from './responses';
   },
   query: {
     alwaysPaginate: false,
+    softDelete: true,
     allow: ['name'],
     join: {
       users: {

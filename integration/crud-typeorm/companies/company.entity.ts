@@ -1,5 +1,5 @@
 import { CrudValidationGroups } from '@nestjsx/crud';
-import { Entity, Column, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Entity, Column, OneToMany, PrimaryGeneratedColumn, DeleteDateColumn } from 'typeorm';
 import {
   IsOptional,
   IsString,
@@ -42,6 +42,9 @@ export class Company extends BaseEntity {
   @IsString({ always: true })
   @Column({ type: 'text', nullable: true, default: null })
   description: string;
+
+  @DeleteDateColumn({ nullable: true })
+  deletedAt?: Date;
 
   /**
    * Relations

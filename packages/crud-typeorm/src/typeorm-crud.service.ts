@@ -54,6 +54,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
   protected dbName: ConnectionOptions['type'];
   protected entityColumns: string[];
   protected entityPrimaryColumns: string[];
+  protected entityHasDeleteColumn: boolean = false;
   protected entityColumnsHash: ObjectLiteral = {};
   protected entityRelationsHash: Map<string, IAllowedRelation> = new Map();
   protected sqlInjectionRegEx: RegExp[] = [
@@ -194,6 +195,16 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
   }
 
   /**
+   * Recover one
+   * @param req
+   * @param dto
+   */
+  public async recoverOne(req: CrudRequest): Promise<T> {
+    const found = await this.getOneOrFail(req, false, true);
+    return this.repo.recover(found);
+  }
+
+  /**
    * Replace one
    * @param req
    * @param dto
@@ -240,8 +251,10 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     const toReturn = returnDeleted
       ? plainToClass(this.entityType, { ...found })
       : undefined;
-    const deleted = await this.repo.remove(found);
-
+    const deleted =
+      req.options.query.softDelete === true
+        ? await this.repo.softRemove(found)
+        : await this.repo.remove(found);
     return toReturn;
   }
 
@@ -268,6 +281,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     parsed: ParsedRequestParams,
     options: CrudRequestOptions,
     many = true,
+    withDeleted = false,
   ): Promise<SelectQueryBuilder<T>> {
     // create query builder
     const builder = this.repo.createQueryBuilder(this.alias);
@@ -304,6 +318,13 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
             this.setJoin(parsed.join[i], joinOptions, builder);
           }
         }
+      }
+    }
+
+    // if soft deleted is enabled add where statement to filter deleted records
+    if (this.entityHasDeleteColumn && options.query.softDelete) {
+      if (parsed.includeDeleted === 1 || withDeleted) {
+        builder.withDeleted();
       }
     }
 
@@ -376,19 +397,27 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     this.entityPrimaryColumns = this.repo.metadata.columns
       .filter((prop) => prop.isPrimary)
       .map((prop) => prop.propertyName);
+    this.entityHasDeleteColumn =
+      this.repo.metadata.columns.filter((prop) => prop.isDeleteDate).length > 0;
   }
 
-  protected async getOneOrFail(req: CrudRequest, shallow = false): Promise<T> {
+  protected async getOneOrFail(
+    req: CrudRequest,
+    shallow = false,
+    withDeleted = false,
+  ): Promise<T> {
     const { parsed, options } = req;
     const builder = shallow
       ? this.repo.createQueryBuilder(this.alias)
-      : await this.createBuilder(parsed, options);
+      : await this.createBuilder(parsed, options, true, withDeleted);
 
     if (shallow) {
       this.setSearchCondition(builder, parsed.search);
     }
 
-    const found = await builder.getOne();
+    const found = withDeleted
+      ? await builder.withDeleted().getOne()
+      : await builder.getOne();
 
     if (!found) {
       this.throwNotFoundException(this.alias);
