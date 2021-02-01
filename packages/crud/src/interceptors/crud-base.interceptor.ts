@@ -14,13 +14,12 @@ export class CrudBaseInterceptor {
     const ctrl = context.getClass();
     const handler = context.getHandler();
     const ctrlOptions = R.getCrudOptions(ctrl);
-    const crudOptions = ctrlOptions
-      ? ctrlOptions
-      : {
-          query: {},
-          routes: {},
-          params: {},
-        };
+    const methodOptions = R.getCrudOptions(handler);
+    const { query: methodQuery, params: methodParams } = { ...methodOptions };
+    const { query: ctrlQuery, params: ctrlParams, ...ctrlOthers } = { ...ctrlOptions };
+    const query = { ...ctrlQuery, ...methodQuery };
+    const params = { ...ctrlParams, ...methodParams };
+    const crudOptions = { query, params, routes: {}, ...ctrlOthers };
     const action = R.getAction(handler);
 
     return { ctrlOptions, crudOptions, action };
