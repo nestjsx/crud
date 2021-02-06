@@ -28,28 +28,29 @@ export class CrudRoutesFactory {
   protected options: MergedCrudOptions;
   protected swaggerModels: any = {};
 
-  constructor(private target: any, options: CrudOptions) {
+  constructor(protected target: any, options: CrudOptions) {
     this.options = options;
     this.create();
   }
 
+  /* istanbul ignore next */
   static create(target: any, options: CrudOptions): CrudRoutesFactory {
     return new CrudRoutesFactory(target, options);
   }
 
-  private get targetProto(): any {
+  protected get targetProto(): any {
     return this.target.prototype;
   }
 
-  private get modelName(): string {
+  protected get modelName(): string {
     return this.options.model.type.name;
   }
 
-  private get modelType(): any {
+  protected get modelType(): any {
     return this.options.model.type;
   }
 
-  private get actionsMap(): { [key in BaseRouteName]: CrudActions } {
+  protected get actionsMap(): { [key in BaseRouteName]: CrudActions } {
     return {
       getManyBase: CrudActions.ReadAll,
       getOneBase: CrudActions.ReadOne,
@@ -62,7 +63,7 @@ export class CrudRoutesFactory {
     };
   }
 
-  private create() {
+  protected create() {
     const routesSchema = this.getRoutesSchema();
     this.mergeOptions();
     this.setResponseModels();
@@ -71,7 +72,7 @@ export class CrudRoutesFactory {
     this.enableRoutes(routesSchema);
   }
 
-  private mergeOptions() {
+  protected mergeOptions() {
     // merge auth config
     const authOptions = R.getCrudAuthOptions(this.target);
     this.options.auth = isObjectFull(authOptions) ? authOptions : {};
@@ -140,7 +141,7 @@ export class CrudRoutesFactory {
     R.setCrudOptions(this.options, this.target);
   }
 
-  private getRoutesSchema(): BaseRoute[] {
+  protected getRoutesSchema(): BaseRoute[] {
     return [
       {
         name: 'getOneBase',
@@ -209,55 +210,55 @@ export class CrudRoutesFactory {
     ];
   }
 
-  private getManyBase(name: BaseRouteName) {
+  protected getManyBase(name: BaseRouteName) {
     this.targetProto[name] = function getManyBase(req: CrudRequest) {
       return this.service.getMany(req);
     };
   }
 
-  private getOneBase(name: BaseRouteName) {
+  protected getOneBase(name: BaseRouteName) {
     this.targetProto[name] = function getOneBase(req: CrudRequest) {
       return this.service.getOne(req);
     };
   }
 
-  private createOneBase(name: BaseRouteName) {
+  protected createOneBase(name: BaseRouteName) {
     this.targetProto[name] = function createOneBase(req: CrudRequest, dto: any) {
       return this.service.createOne(req, dto);
     };
   }
 
-  private createManyBase(name: BaseRouteName) {
+  protected createManyBase(name: BaseRouteName) {
     this.targetProto[name] = function createManyBase(req: CrudRequest, dto: any) {
       return this.service.createMany(req, dto);
     };
   }
 
-  private updateOneBase(name: BaseRouteName) {
+  protected updateOneBase(name: BaseRouteName) {
     this.targetProto[name] = function updateOneBase(req: CrudRequest, dto: any) {
       return this.service.updateOne(req, dto);
     };
   }
 
-  private replaceOneBase(name: BaseRouteName) {
+  protected replaceOneBase(name: BaseRouteName) {
     this.targetProto[name] = function replaceOneBase(req: CrudRequest, dto: any) {
       return this.service.replaceOne(req, dto);
     };
   }
 
-  private deleteOneBase(name: BaseRouteName) {
+  protected deleteOneBase(name: BaseRouteName) {
     this.targetProto[name] = function deleteOneBase(req: CrudRequest) {
       return this.service.deleteOne(req);
     };
   }
 
-  private recoverOneBase(name: BaseRouteName) {
+  protected recoverOneBase(name: BaseRouteName) {
     this.targetProto[name] = function recoverOneBase(req: CrudRequest) {
       return this.service.recoverOne(req);
     };
   }
 
-  private canCreateRoute(name: BaseRouteName) {
+  protected canCreateRoute(name: BaseRouteName) {
     const only = this.options.routes.only;
     const exclude = this.options.routes.exclude;
 
@@ -277,7 +278,7 @@ export class CrudRoutesFactory {
     return true;
   }
 
-  private setResponseModels() {
+  protected setResponseModels() {
     const modelType = isFunction(this.modelType)
       ? this.modelType
       : SerializeHelper.createGetOneResponseDto(this.modelName);
@@ -305,7 +306,7 @@ export class CrudRoutesFactory {
     Swagger.setExtraModels(this.swaggerModels);
   }
 
-  private createRoutes(routesSchema: BaseRoute[]) {
+  protected createRoutes(routesSchema: BaseRoute[]) {
     const primaryParams = this.getPrimaryParams().filter(
       (param) => !this.options.params[param].disabled,
     );
@@ -328,7 +329,7 @@ export class CrudRoutesFactory {
     });
   }
 
-  private overrideRoutes(routesSchema: BaseRoute[]) {
+  protected overrideRoutes(routesSchema: BaseRoute[]) {
     getOwnPropNames(this.targetProto).forEach((name) => {
       const override = R.getOverrideRoute(this.targetProto[name]);
       const route = routesSchema.find((r) => isEqual(r.name, override));
@@ -364,7 +365,7 @@ export class CrudRoutesFactory {
     });
   }
 
-  private enableRoutes(routesSchema: BaseRoute[]) {
+  protected enableRoutes(routesSchema: BaseRoute[]) {
     routesSchema.forEach((route) => {
       if (!route.override && route.enable) {
         R.setRoute(route, this.targetProto[route.name]);
@@ -372,7 +373,7 @@ export class CrudRoutesFactory {
     });
   }
 
-  private overrideParsedBodyDecorator(override: BaseRouteName, name: string) {
+  protected overrideParsedBodyDecorator(override: BaseRouteName, name: string) {
     const allowed = [
       'createManyBase',
       'createOneBase',
@@ -419,13 +420,13 @@ export class CrudRoutesFactory {
     }
   }
 
-  private getPrimaryParams(): string[] {
+  protected getPrimaryParams(): string[] {
     return objKeys(this.options.params).filter(
       (param) => this.options.params[param] && this.options.params[param].primary,
     );
   }
 
-  private setBaseRouteMeta(name: BaseRouteName) {
+  protected setBaseRouteMeta(name: BaseRouteName) {
     this.setRouteArgs(name);
     this.setRouteArgsTypes(name);
     this.setInterceptors(name);
@@ -438,7 +439,7 @@ export class CrudRoutesFactory {
     this.setDecorators(name);
   }
 
-  private setRouteArgs(name: BaseRouteName) {
+  protected setRouteArgs(name: BaseRouteName) {
     let rest = {};
     const routes: BaseRouteName[] = [
       'createManyBase',
@@ -460,7 +461,7 @@ export class CrudRoutesFactory {
     R.setRouteArgs({ ...R.setParsedRequestArg(0), ...rest }, this.target, name);
   }
 
-  private setRouteArgsTypes(name: BaseRouteName) {
+  protected setRouteArgsTypes(name: BaseRouteName) {
     if (isEqual(name, 'createManyBase')) {
       const bulkDto = Validation.createBulkDto(this.options);
       R.setRouteArgsTypes([Object, bulkDto], this.targetProto, name);
@@ -473,7 +474,7 @@ export class CrudRoutesFactory {
     }
   }
 
-  private setInterceptors(name: BaseRouteName) {
+  protected setInterceptors(name: BaseRouteName) {
     const interceptors = this.options.routes[name].interceptors;
     R.setInterceptors(
       [
@@ -485,7 +486,7 @@ export class CrudRoutesFactory {
     );
   }
 
-  private setDecorators(name: BaseRouteName) {
+  protected setDecorators(name: BaseRouteName) {
     const decorators = this.options.routes[name].decorators;
     R.setDecorators(
       isArrayFull(decorators) ? /* istanbul ignore next */ decorators : [],
@@ -494,17 +495,17 @@ export class CrudRoutesFactory {
     );
   }
 
-  private setAction(name: BaseRouteName) {
+  protected setAction(name: BaseRouteName) {
     R.setAction(this.actionsMap[name], this.targetProto[name]);
   }
 
-  private setSwaggerOperation(name: BaseRouteName) {
+  protected setSwaggerOperation(name: BaseRouteName) {
     const summary = Swagger.operationsMap(this.modelName)[name];
     const operationId = name + this.targetProto.constructor.name + this.modelName;
     Swagger.setOperation({ summary, operationId }, this.targetProto[name]);
   }
 
-  private setSwaggerPathParams(name: BaseRouteName) {
+  protected setSwaggerPathParams(name: BaseRouteName) {
     const metadata = Swagger.getParams(this.targetProto[name]);
     const withoutPrimary: BaseRouteName[] = [
       'createManyBase',
@@ -522,13 +523,13 @@ export class CrudRoutesFactory {
     Swagger.setParams([...metadata, ...pathParamsMeta], this.targetProto[name]);
   }
 
-  private setSwaggerQueryParams(name: BaseRouteName) {
+  protected setSwaggerQueryParams(name: BaseRouteName) {
     const metadata = Swagger.getParams(this.targetProto[name]);
     const queryParamsMeta = Swagger.createQueryParamsMeta(name, this.options);
     Swagger.setParams([...metadata, ...queryParamsMeta], this.targetProto[name]);
   }
 
-  private setSwaggerResponseOk(name: BaseRouteName) {
+  protected setSwaggerResponseOk(name: BaseRouteName) {
     const metadata = Swagger.getResponseOk(this.targetProto[name]);
     const metadataToAdd =
       Swagger.createResponseMeta(name, this.options, this.swaggerModels) ||
@@ -536,7 +537,7 @@ export class CrudRoutesFactory {
     Swagger.setResponseOk({ ...metadata, ...metadataToAdd }, this.targetProto[name]);
   }
 
-  private routeNameAction(name: BaseRouteName): string {
+  protected routeNameAction(name: BaseRouteName): string {
     return (
       name.split('OneBase')[0] || /* istanbul ignore next */ name.split('ManyBase')[0]
     );

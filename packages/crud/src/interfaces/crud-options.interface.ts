@@ -1,5 +1,6 @@
 import { ValidationPipeOptions } from '@nestjs/common';
 
+import { CrudRoutesFactory } from '../crud';
 import { ModelOptions } from './model-options.interface';
 import { ParamsOptions } from './params-options.interface';
 import { QueryOptions } from './query-options.interface';
@@ -20,6 +21,7 @@ export interface CrudOptions {
   serialize?: SerializeOptions;
   query?: QueryOptions;
   routes?: RoutesOptions;
+  routesFactory?: typeof CrudRoutesFactory;
   params?: ParamsOptions;
   validation?: ValidationPipeOptions | false;
 }
