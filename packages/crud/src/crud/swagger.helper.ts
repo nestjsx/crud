@@ -1,16 +1,19 @@
 import { HttpStatus } from '@nestjs/common';
-import { objKeys, isString, isFunction } from '@nestjsx/util';
 import { RequestQueryBuilder } from '@nestjsx/crud-request';
-const pluralize = require('pluralize');
-
+import { isString, objKeys } from '@nestjsx/util';
+import { MergedCrudOptions, ParamsOptions } from '../interfaces';
+import { BaseRouteName } from '../types';
 import { safeRequire } from '../util';
 import { R } from './reflection.helper';
-import { ParamsOptions, MergedCrudOptions } from '../interfaces';
-import { BaseRouteName } from '../types';
+const pluralize = require('pluralize');
 
-export const swagger = safeRequire('@nestjs/swagger');
-export const swaggerConst = safeRequire('@nestjs/swagger/dist/constants');
-export const swaggerPkgJson = safeRequire('@nestjs/swagger/package.json');
+export const swagger = safeRequire('@nestjs/swagger', () => require('@nestjs/swagger'));
+export const swaggerConst = safeRequire('@nestjs/swagger/dist/constants', () =>
+  require('@nestjs/swagger/dist/constants'),
+);
+export const swaggerPkgJson = safeRequire('@nestjs/swagger/package.json', () =>
+  require('@nestjs/swagger/package.json'),
+);
 
 export class Swagger {
   static operationsMap(modelName): { [key in BaseRouteName]: string } {
