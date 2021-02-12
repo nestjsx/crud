@@ -1,26 +1,26 @@
-export type QueryFields = string[];
+export type QueryFields<K extends string = string> = K[];
 
-export type QueryFilter = {
-  field: string;
+export type QueryFilter<K extends string = string> = {
+  field: K;
   operator: ComparisonOperator;
   value?: any;
 };
 
-export type QueryFilterArr = [string, ComparisonOperator, any?];
+export type QueryFilterArr<K extends string = string> = [K, ComparisonOperator, any?];
 
-export type QueryJoin = {
-  field: string;
-  select?: QueryFields;
+export type QueryJoin<K extends string = string> = {
+  field: K;
+  select?: QueryFields<K>;
 };
 
-export type QueryJoinArr = [string, QueryFields?];
+export type QueryJoinArr<K extends string = string> = [K, QueryFields<K>?];
 
-export type QuerySort = {
-  field: string;
+export type QuerySort<K extends string = string> = {
+  field: K;
   order: QuerySortOperator;
 };
 
-export type QuerySortArr = [string, QuerySortOperator];
+export type QuerySortArr<K extends string = string> = [K, QuerySortOperator];
 
 export type QuerySortOperator = 'ASC' | 'DESC';
 
@@ -104,17 +104,18 @@ export type SFieldOperator = {
 
 export type SField = SPrimitivesVal | SFieldOperator;
 
-export type SFields = {
-  [key: string]: SField | Array<SFields | SConditionAND> | undefined;
-  $or?: Array<SFields | SConditionAND>;
+export type SFields<K extends string = string> = {
+  $or?: Array<SFields<K> | SConditionAND<K>>;
   $and?: never;
+} & {
+  [key in K]?: SField | Array<SFields<K> | SConditionAND<K>> | undefined;
 };
 
-export type SConditionAND = {
-  $and?: Array<SFields | SConditionAND>;
+export type SConditionAND<K extends string = string> = {
+  $and?: Array<SFields<K> | SConditionAND<K>>;
   $or?: never;
 };
 
 export type SConditionKey = '$and' | '$or';
 
-export type SCondition = SFields | SConditionAND;
+export type SCondition<K extends string = string> = SFields<K> | SConditionAND<K>;
