@@ -3,7 +3,7 @@ import { BaseRouteName } from '../types';
 export interface RoutesOptions {
   exclude?: BaseRouteName[];
   only?: BaseRouteName[];
-  getManyBase?: GetMayRouteOptions;
+  getManyBase?: GetManyRouteOptions;
   getOneBase?: GetOneRouteOptions;
   createOneBase?: CreateOneRouteOptions;
   createManyBase?: CreateManyRouteOptions;
@@ -18,7 +18,7 @@ export interface BaseRouteOptions {
   decorators?: (PropertyDecorator | MethodDecorator)[];
 }
 
-export interface GetMayRouteOptions extends BaseRouteOptions {}
+export interface GetManyRouteOptions extends BaseRouteOptions {}
 
 export interface GetOneRouteOptions extends BaseRouteOptions {}
 
