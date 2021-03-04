@@ -836,7 +836,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
 
   protected getFieldWithAlias(field: string, sort: boolean = false) {
     /* istanbul ignore next */
-    const i = this.dbName === 'mysql' || this.dbName === 'mariadb' ? '`' : '"';
+    const i = ['mysql', 'mariadb'].includes(this.dbName) ? '`' : '"';
     const cols = field.split('.');
 
     switch (cols.length) {
