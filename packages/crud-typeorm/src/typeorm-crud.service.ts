@@ -181,7 +181,9 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     const toSave = !allowParamsOverride
       ? { ...found, ...dto, ...paramsFilters, ...req.parsed.authPersist }
       : { ...found, ...dto, ...req.parsed.authPersist };
-    const updated = await this.repo.save(plainToClass(this.entityType, toSave));
+    const updated = await this.repo.save(
+      plainToClass(this.entityType, toSave, { ignoreDecorators: true }),
+    );
 
     if (returnShallow) {
       return updated;
@@ -221,7 +223,9 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
           ...dto,
           ...req.parsed.authPersist,
         };
-    const replaced = await this.repo.save(plainToClass(this.entityType, toSave));
+    const replaced = await this.repo.save(
+      plainToClass(this.entityType, toSave, { ignoreDecorators: true }),
+    );
 
     if (returnShallow) {
       return replaced;
@@ -249,7 +253,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     const { returnDeleted } = req.options.routes.deleteOneBase;
     const found = await this.getOneOrFail(req, returnDeleted);
     const toReturn = returnDeleted
-      ? plainToClass(this.entityType, { ...found })
+      ? plainToClass(this.entityType, { ...found }, { ignoreDecorators: true })
       : undefined;
     const deleted =
       req.options.query.softDelete === true
@@ -448,7 +452,11 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
 
     return dto instanceof this.entityType
       ? Object.assign(dto, parsed.authPersist)
-      : plainToClass(this.entityType, { ...dto, ...parsed.authPersist });
+      : plainToClass(
+          this.entityType,
+          { ...dto, ...parsed.authPersist },
+          { ignoreDecorators: true },
+        );
   }
 
   protected getAllowedColumns(columns: string[], options: QueryOptions): string[] {
