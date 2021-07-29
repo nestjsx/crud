@@ -623,7 +623,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     i: any,
     builder: SelectQueryBuilder<T> | WhereExpression,
   ) {
-    const { str, params } = this.mapOperatorsToQuery(cond, `andWhere${i}`);
+    const { str, params } = this.mapOperatorsToQuery(cond, `andWhere_${i}`);
     builder.andWhere(str, params);
   }
 
@@ -632,7 +632,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     i: any,
     builder: SelectQueryBuilder<T> | WhereExpression,
   ) {
-    const { str, params } = this.mapOperatorsToQuery(cond, `orWhere${i}`);
+    const { str, params } = this.mapOperatorsToQuery(cond, `orWhere_${i}`);
     builder.orWhere(str, params);
   }
 
@@ -773,8 +773,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     value: any,
     operator: ComparisonOperator = '$eq',
   ) {
-    const time = process.hrtime();
-    const index = `${field}${time[0]}${time[1]}`;
+    const index = `crud_${Math.random().toString(16).substring(2)}`;
     const args = [
       { field, operator: isNull(value) ? '$isnull' : operator, value },
       index,
