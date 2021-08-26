@@ -39,7 +39,9 @@ type DeprecatedCondOperator =
   | 'notin'
   | 'isnull'
   | 'notnull'
-  | 'between';
+  | 'between'
+  | 'contArr'
+  | 'intersectsArr';
 
 export enum CondOperator {
   EQUALS = '$eq',
@@ -65,6 +67,8 @@ export enum CondOperator {
   EXCLUDES_LOW = '$exclL',
   IN_LOW = '$inL',
   NOT_IN_LOW = '$notinL',
+  CONTAINS_ARRAY = '$contArr',
+  INTERSECTS_ARRAY = '$intersectsArr',
 }
 
 export type ComparisonOperator = DeprecatedCondOperator | keyof SFieldOperator;
@@ -98,6 +102,8 @@ export type SFieldOperator = {
   $exclL?: SFiledValues;
   $inL?: SFiledValues;
   $notinL?: SFiledValues;
+  $contArr?: Array<SPrimitivesVal>;
+  $intersectsArr?: Array<SPrimitivesVal>;
   $or?: SFieldOperator;
   $and?: never;
 };
