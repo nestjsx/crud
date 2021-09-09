@@ -774,7 +774,14 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     operator: ComparisonOperator = '$eq',
   ) {
     const time = process.hrtime();
-    const index = `${field}${time[0]}${time[1]}`;
+    // const index = `${field}${time[0]}${time[1]}`;
+    /**
+     * Correcting the Error [Invalid Column Name] or [ syntax error at or near \":\".]
+     * When using filter or search in relational/nested entities.
+     */
+    const safeFieldName = field.replace(/./g, '_');
+    const index = `${safeFieldName}${time[0]}${time[1]}`;
+
     const args = [
       { field, operator: isNull(value) ? '$isnull' : operator, value },
       index,
