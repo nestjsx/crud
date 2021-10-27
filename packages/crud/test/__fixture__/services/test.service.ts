@@ -28,6 +28,9 @@ export class TestService<T> extends CrudService<T> {
   async deleteOne(req: CrudRequest): Promise<any> {
     return { req };
   }
+  async recoverOne(req: CrudRequest): Promise<any> {
+    return { req };
+  }
   decidePagination(parsed: ParsedRequestParams, options: CrudRequestOptions): boolean {
     return true;
   }

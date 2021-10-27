@@ -1,6 +1,7 @@
-export function safeRequire<T = any>(path: string): T | null {
+export function safeRequire<T = any>(path: string, loader?: () => T): T | null {
   try {
-    const pack = require(path);
+    /* istanbul ignore next */
+    const pack = loader ? loader() : require(path);
     return pack;
   } catch (_) {
     /* istanbul ignore next */

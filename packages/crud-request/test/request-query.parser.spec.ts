@@ -525,6 +525,7 @@ describe('#request-query', () => {
           offset: undefined,
           page: undefined,
           cache: undefined,
+          includeDeleted: undefined,
         };
         const test = qp.getParsed();
         expect(test).toMatchObject(expected);

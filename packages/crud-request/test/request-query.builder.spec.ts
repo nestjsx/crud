@@ -335,9 +335,10 @@ describe('#request-query', () => {
           .setPage(3)
           .sortBy({ field: 'foo', order: 'DESC' })
           .resetCache()
+          .setIncludeDeleted(1)
           .query(false);
         const expected =
-          'fields=foo,bar&filter[0]=is||notnull&or[0]=ok||ne||false&join[0]=voo||h,data&limit=1&offset=2&page=3&sort[0]=foo,DESC&cache=0';
+          'fields=foo,bar&filter[0]=is||notnull&or[0]=ok||ne||false&join[0]=voo||h,data&limit=1&offset=2&page=3&sort[0]=foo,DESC&cache=0&include_deleted=1';
         expect(test).toBe(expected);
       });
     });

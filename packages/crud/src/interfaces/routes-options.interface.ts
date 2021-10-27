@@ -10,6 +10,7 @@ export interface RoutesOptions {
   updateOneBase?: UpdateOneRouteOptions;
   replaceOneBase?: ReplaceOneRouteOptions;
   deleteOneBase?: DeleteOneRouteOptions;
+  recoverOneBase?: RecoverOneRouteOptions;
 }
 
 export interface BaseRouteOptions {
@@ -39,4 +40,8 @@ export interface UpdateOneRouteOptions extends BaseRouteOptions {
 
 export interface DeleteOneRouteOptions extends BaseRouteOptions {
   returnDeleted?: boolean;
+}
+
+export interface RecoverOneRouteOptions extends BaseRouteOptions {
+  returnRecovered?: boolean;
 }

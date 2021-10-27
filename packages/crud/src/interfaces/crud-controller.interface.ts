@@ -10,4 +10,5 @@ export interface CrudController<T> {
   updateOneBase?(req: CrudRequest, dto: T): Promise<T>;
   replaceOneBase?(req: CrudRequest, dto: T): Promise<T>;
   deleteOneBase?(req: CrudRequest): Promise<void | T>;
+  recoverOneBase?(req: CrudRequest): Promise<void | T>;
 }

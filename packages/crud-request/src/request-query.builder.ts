@@ -51,6 +51,7 @@ export class RequestQueryBuilder {
       offset: 'offset',
       page: 'page',
       cache: 'cache',
+      includeDeleted: 'include_deleted',
     },
   };
   private paramNames: {
@@ -179,6 +180,11 @@ export class RequestQueryBuilder {
     return this;
   }
 
+  setIncludeDeleted(n: number): this {
+    this.setNumeric(n, 'includeDeleted');
+    return this;
+  }
+
   cond(
     f: QueryFilter | QueryFilterArr,
     cond: 'filter' | 'or' | 'search' = 'search',
@@ -229,6 +235,7 @@ export class RequestQueryBuilder {
     if (params.resetCache) {
       this.resetCache();
     }
+    this.setIncludeDeleted(params.includeDeleted);
     return this;
   }
 
@@ -261,7 +268,10 @@ export class RequestQueryBuilder {
     }
   }
 
-  private setNumeric(n: number, cond: 'limit' | 'offset' | 'page' | 'cache'): void {
+  private setNumeric(
+    n: number,
+    cond: 'limit' | 'offset' | 'page' | 'cache' | 'includeDeleted',
+  ): void {
     if (!isNil(n)) {
       validateNumeric(n, cond);
       this.queryObject[this.paramNames[cond]] = n;

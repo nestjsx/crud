@@ -29,6 +29,7 @@ export class CrudConfigService {
         returnShallow: false,
       },
       deleteOneBase: { interceptors: [], decorators: [], returnDeleted: false },
+      recoverOneBase: { interceptors: [], decorators: [], returnRecovered: false },
     },
     params: {},
   };

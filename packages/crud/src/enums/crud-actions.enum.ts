@@ -7,4 +7,5 @@ export enum CrudActions {
   ReplaceOne = 'Replace-One',
   DeleteOne = 'Delete-One',
   DeleteAll = 'Delete-All',
+  RecoverOne = 'Recover-One',
 }

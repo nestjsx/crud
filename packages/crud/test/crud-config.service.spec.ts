@@ -104,6 +104,7 @@ describe('#crud', () => {
             returnShallow: false,
           },
           deleteOneBase: { interceptors: [], decorators: [], returnDeleted: false },
+          recoverOneBase: { interceptors: [], decorators: [], returnRecovered: false },
         },
       };
       CrudConfigService.load(conf);
