@@ -22,6 +22,12 @@ import {
 
 // tslint:disable:variable-name ban-types
 export class RequestQueryBuilder {
+  public queryObject: { [key: string]: any } = {};
+  public queryString: string;
+  private paramNames: {
+    [key in keyof RequestQueryBuilderOptions['paramNamesMap']]: string;
+  } = {};
+
   constructor() {
     this.setParamNames();
   }
@@ -43,11 +49,10 @@ export class RequestQueryBuilder {
       includeDeleted: 'include_deleted',
     },
   };
-  private paramNames: {
-    [key in keyof RequestQueryBuilderOptions['paramNamesMap']]: string;
-  } = {};
-  public queryObject: { [key: string]: any } = {};
-  public queryString: string;
+
+  get options(): RequestQueryBuilderOptions {
+    return RequestQueryBuilder._options;
+  }
 
   static setOptions(options: RequestQueryBuilderOptions) {
     RequestQueryBuilder._options = {
@@ -67,10 +72,6 @@ export class RequestQueryBuilder {
   static create(params?: CreateQueryParams): RequestQueryBuilder {
     const qb = new RequestQueryBuilder();
     return isObject(params) ? qb.createFromParams(params) : qb;
-  }
-
-  get options(): RequestQueryBuilderOptions {
-    return RequestQueryBuilder._options;
   }
 
   setParamNames() {
@@ -122,7 +123,9 @@ export class RequestQueryBuilder {
         ...(Array.isArray(j) && !isString(j[0])
           ? (j as Array<QueryJoin | QueryJoinArr>).map((o) => this.addJoin(o))
           : [this.addJoin(j as QueryJoin | QueryJoinArr)]),
-      ];
+      ].filter((item, pos) => {
+        return this.queryObject[param].indexOf(item) === pos;
+      });
     }
     return this;
   }
