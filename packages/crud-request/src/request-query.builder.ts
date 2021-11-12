@@ -1,14 +1,7 @@
-import {
-  hasValue,
-  isObject,
-  isString,
-  isArrayFull,
-  isNil,
-  isUndefined,
-} from '@nestjsx/util';
-import { stringify } from 'qs';
+import { hasValue, isArrayFull, isNil, isObject, isString, isUndefined } from '@nestjsx/util';
+import { IStringifyOptions, stringify } from 'qs';
 
-import { RequestQueryBuilderOptions, CreateQueryParams } from './interfaces';
+import { CreateQueryParams, RequestQueryBuilderOptions } from './interfaces';
 import {
   validateCondition,
   validateFields,
@@ -87,12 +80,12 @@ export class RequestQueryBuilder {
     });
   }
 
-  query(encode = true): string {
+  query(encode = true, options: IStringifyOptions = { arrayFormat: 'brackets' }): string {
     if (this.queryObject[this.paramNames.search]) {
       this.queryObject[this.paramNames.filter] = undefined;
       this.queryObject[this.paramNames.or] = undefined;
     }
-    this.queryString = stringify(this.queryObject, { encode });
+    this.queryString = stringify(this.queryObject, { encode, ...options });
     return this.queryString;
   }
 
