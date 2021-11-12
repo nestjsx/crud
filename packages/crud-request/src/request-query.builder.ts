@@ -1,14 +1,7 @@
-import {
-  hasValue,
-  isObject,
-  isString,
-  isArrayFull,
-  isNil,
-  isUndefined,
-} from '@nestjsx/util';
-import { stringify } from 'qs';
+import { hasValue, isArrayFull, isNil, isObject, isString, isUndefined } from '@nestjsx/util';
+import { IStringifyOptions, stringify } from 'qs';
 
-import { RequestQueryBuilderOptions, CreateQueryParams } from './interfaces';
+import { CreateQueryParams, RequestQueryBuilderOptions } from './interfaces';
 import {
   validateCondition,
   validateFields,
@@ -29,6 +22,12 @@ import {
 
 // tslint:disable:variable-name ban-types
 export class RequestQueryBuilder {
+  public queryObject: { [key: string]: any } = {};
+  public queryString: string;
+  private paramNames: {
+    [key in keyof RequestQueryBuilderOptions['paramNamesMap']]: string;
+  } = {};
+
   constructor() {
     this.setParamNames();
   }
@@ -50,11 +49,10 @@ export class RequestQueryBuilder {
       includeDeleted: 'include_deleted',
     },
   };
-  private paramNames: {
-    [key in keyof RequestQueryBuilderOptions['paramNamesMap']]: string;
-  } = {};
-  public queryObject: { [key: string]: any } = {};
-  public queryString: string;
+
+  get options(): RequestQueryBuilderOptions {
+    return RequestQueryBuilder._options;
+  }
 
   static setOptions(options: RequestQueryBuilderOptions) {
     RequestQueryBuilder._options = {
@@ -76,10 +74,6 @@ export class RequestQueryBuilder {
     return isObject(params) ? qb.createFromParams(params) : qb;
   }
 
-  get options(): RequestQueryBuilderOptions {
-    return RequestQueryBuilder._options;
-  }
-
   setParamNames() {
     Object.keys(RequestQueryBuilder._options.paramNamesMap).forEach((key) => {
       const name = RequestQueryBuilder._options.paramNamesMap[key];
@@ -87,12 +81,12 @@ export class RequestQueryBuilder {
     });
   }
 
-  query(encode = true): string {
+  query(encode = true, options: IStringifyOptions = { arrayFormat: 'brackets' }): string {
     if (this.queryObject[this.paramNames.search]) {
       this.queryObject[this.paramNames.filter] = undefined;
       this.queryObject[this.paramNames.or] = undefined;
     }
-    this.queryString = stringify(this.queryObject, { encode });
+    this.queryString = stringify(this.queryObject, { encode, ...options });
     return this.queryString;
   }
 
@@ -129,7 +123,9 @@ export class RequestQueryBuilder {
         ...(Array.isArray(j) && !isString(j[0])
           ? (j as Array<QueryJoin | QueryJoinArr>).map((o) => this.addJoin(o))
           : [this.addJoin(j as QueryJoin | QueryJoinArr)]),
-      ];
+      ].filter((item, pos) => {
+        return this.queryObject[param].indexOf(item) === pos;
+      });
     }
     return this;
   }
