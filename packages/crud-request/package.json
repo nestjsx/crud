@@ -1,7 +1,7 @@
 {
   "name": "@rewiko/crud-request",
   "description": "NestJs CRUD for RESTful APIs - request query builder",
-  "version": "5.0.5",
+  "version": "5.0.6",
   "license": "MIT",
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
@@ -47,8 +47,8 @@
     "build": "npx tsc -b"
   },
   "dependencies": {
-    "@rewiko/util": "^5.0.5",
+    "@rewiko/util": "^5.0.6",
     "qs": "^6.8.0"
   },
-  "gitHead": "898c63972240abcf7d4d5d490ba38edbf3c8fe0f"
+  "gitHead": "76d7441a53ec3e5aa7143a61237d0cf6c2e30389"
 }
