@@ -8,7 +8,7 @@ import {
   ROUTE_ARGS_METADATA,
 } from '@nestjs/common/constants';
 import { ArgumentsHost } from '@nestjs/common';
-import { isFunction } from '@nestjsx/util';
+import { isFunction } from '@rewiko/util';
 
 import { BaseRoute, MergedCrudOptions, AuthOptions } from '../interfaces';
 import { BaseRouteName } from '../types';

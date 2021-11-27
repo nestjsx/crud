@@ -4,7 +4,7 @@ import {
   Injectable,
   NestInterceptor,
 } from '@nestjs/common';
-import { isFalse, isObject, isFunction } from '@nestjsx/util';
+import { isFalse, isObject, isFunction } from '@rewiko/util';
 import { classToPlain, classToPlainFromExist } from 'class-transformer';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';

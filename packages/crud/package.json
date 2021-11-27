@@ -1,22 +1,23 @@
 {
-  "name": "@nestjsx/crud",
+  "name": "@rewiko/crud",
   "description": "NestJs CRUD for RESTful APIs",
-  "version": "5.0.0-alpha.3",
+  "version": "5.0.13",
   "license": "MIT",
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "publishConfig": {
-    "access": "public"
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
   },
   "files": [
     "lib"
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/nestjsx/crud.git"
+    "url": "https://github.com/rewiko/crud.git"
   },
   "bugs": {
-    "url": "https://github.com/nestjsx/crud/issues"
+    "url": "https://github.com/rewiko/crud/issues"
   },
   "keywords": [
     "typescript",
@@ -39,13 +40,14 @@
     "build": "npx tsc -b"
   },
   "dependencies": {
-    "@nestjsx/crud-request": "^5.0.0-alpha.3",
-    "@nestjsx/util": "^5.0.0-alpha.3",
+    "@rewiko/crud-request": "^5.0.13",
+    "@rewiko/util": "^5.0.13",
     "deepmerge": "^3.2.0",
     "pluralize": "^8.0.0"
   },
   "peerDependencies": {
     "class-transformer": "*",
     "class-validator": "*"
-  }
+  },
+  "gitHead": "d9e468bd6e47762cf0de415d049f56078195ddb3"
 }
