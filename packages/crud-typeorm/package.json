@@ -1,7 +1,7 @@
 {
   "name": "@rewiko/crud-typeorm",
   "description": "NestJs CRUD for RESTful APIs - TypeORM",
-  "version": "5.0.4",
+  "version": "5.0.5",
   "license": "MIT",
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
@@ -41,5 +41,5 @@
   "dependencies": {
     "@zmotivat0r/o0": "^1.0.2"
   },
-  "gitHead": "804b3a67e2e163bff1ee4ffcd5f967be42b688d5"
+  "gitHead": "898c63972240abcf7d4d5d490ba38edbf3c8fe0f"
 }
