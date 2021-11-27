@@ -1,6 +1,6 @@
 import { HttpStatus } from '@nestjs/common';
-import { RequestQueryBuilder } from '@nestjsx/crud-request';
-import { isString, objKeys } from '@nestjsx/util';
+import { RequestQueryBuilder } from '@rewiko/crud-request';
+import { isString, objKeys } from '@rewiko/util';
 import { MergedCrudOptions, ParamsOptions } from '../interfaces';
 import { BaseRouteName } from '../types';
 import { safeRequire } from '../util';
@@ -273,7 +273,7 @@ export class Swagger {
     } = Swagger.getQueryParamsNames();
     const oldVersion = Swagger.getSwaggerVersion() < 4;
     const docsLink = (a: string) =>
-      `<a href="https://github.com/nestjsx/crud/wiki/Requests#${a}" target="_blank">Docs</a>`;
+      `<a href="https://github.com/rewiko/crud/wiki/Requests#${a}" target="_blank">Docs</a>`;
 
     const fieldsMetaBase = {
       name: fields,
