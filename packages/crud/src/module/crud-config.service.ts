@@ -1,5 +1,5 @@
-import { RequestQueryBuilder } from '@nestjsx/crud-request';
-import { isObjectFull } from '@nestjsx/util';
+import { RequestQueryBuilder } from '@rewiko/crud-request';
+import { isObjectFull } from '@rewiko/util';
 import * as deepmerge from 'deepmerge';
 
 import { CrudGlobalConfig } from '../interfaces';

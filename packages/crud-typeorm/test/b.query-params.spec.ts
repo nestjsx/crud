@@ -2,7 +2,7 @@ import { Controller, INestApplication } from '@nestjs/common';
 import { APP_FILTER } from '@nestjs/core';
 import { Test } from '@nestjs/testing';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { RequestQueryBuilder } from '@nestjsx/crud-request';
+import { RequestQueryBuilder } from '@rewiko/crud-request';
 import 'jest-extended';
 import * as request from 'supertest';
 

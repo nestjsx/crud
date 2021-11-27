@@ -8,20 +8,20 @@
 <br />
 
 <div align="center">
-  <a href="https://travis-ci.org/nestjsx/crud">
-    <img src="https://github.com/nestjsx/crud/workflows/Tests/badge.svg" alt="Build" />
+  <a href="https://travis-ci.org/rewiko/crud">
+    <img src="https://github.com/rewiko/crud/workflows/Tests/badge.svg" alt="Build" />
   </a>
-  <a href="https://coveralls.io/github/nestjsx/crud?branch=master">
-    <img src="https://coveralls.io/repos/github/nestjsx/crud/badge.svg" alt="Coverage" />
+  <a href="https://coveralls.io/github/rewiko/crud?branch=master">
+    <img src="https://coveralls.io/repos/github/rewiko/crud/badge.svg" alt="Coverage" />
   </a>
-  <a href="https://github.com/nestjsx/crud/blob/master/LICENSE">
-    <img src="https://img.shields.io/github/license/nestjsx/crud.svg" alt="License" />
+  <a href="https://github.com/rewiko/crud/blob/master/LICENSE">
+    <img src="https://img.shields.io/github/license/rewiko/crud.svg" alt="License" />
   </a>
-  <a href="https://www.npmjs.com/package/@nestjsx/crud">
-    <img src="https://img.shields.io/npm/v/@nestjsx/crud.svg" alt="npm version" />
+  <a href="https://www.npmjs.com/package/@rewiko/crud">
+    <img src="https://img.shields.io/npm/v/@rewiko/crud.svg" alt="npm version" />
   </a>
   <a href="https://www.npmjs.com/org/nestjsx">
-    <img src="https://img.shields.io/npm/dm/@nestjsx/crud.svg" alt="npm downloads" />
+    <img src="https://img.shields.io/npm/dm/@rewiko/crud.svg" alt="npm downloads" />
   </a>
   <a href="https://npm.packagequality.com/#?package=@nestjsx%2Fcrud">
     <img src="https://npm.packagequality.com/shield/%40nestjsx%2Fcrud.svg" alt="Package Quality" />
@@ -33,13 +33,13 @@
     <img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square" alt="PRs welcome" />
   </a>
   <a href="https://github.com/marmelab/awesome-rest#nodejs">
-    <img src="https://raw.githubusercontent.com/nestjsx/crud/master/img/awesome-rest.svg?sanitize=true" alt="Awesome REST" />
+    <img src="https://raw.githubusercontent.com/rewiko/crud/master/img/awesome-rest.svg?sanitize=true" alt="Awesome REST" />
   </a>
   <a href="https://github.com/juliandavidmr/awesome-nestjs#components--libraries">
-    <img src="https://raw.githubusercontent.com/nestjsx/crud/master/img/awesome-nest.svg?sanitize=true" alt="Awesome Nest" />
+    <img src="https://raw.githubusercontent.com/rewiko/crud/master/img/awesome-nest.svg?sanitize=true" alt="Awesome Nest" />
   </a>
   <a href="https://github.com/nestjs/nest">
-    <img src="https://raw.githubusercontent.com/nestjsx/crud/master/img/nest-powered.svg?sanitize=true" alt="Nest Powered" />
+    <img src="https://raw.githubusercontent.com/rewiko/crud/master/img/nest-powered.svg?sanitize=true" alt="Nest Powered" />
   </a>
   <a href="#individuals" alt="Sponsors on Open Collective">
     <img src="https://opencollective.com/nestjsx/backers/badge.svg" />
@@ -52,7 +52,7 @@
 <div align="center">
   <sub>Built with :purple_heart: by
   <a href="https://twitter.com/MichaelYali">@MichaelYali</a> and
-  <a href="https://github.com/nestjsx/crud/graphs/contributors">
+  <a href="https://github.com/rewiko/crud/graphs/contributors">
     Contributors
   </a>
   <div align="center">
@@ -62,7 +62,7 @@
 
 <br />
 
-We believe that everyone who's working with NestJs and building some RESTful services and especially some CRUD functionality will find `@nestjsx/crud` microframework very useful.
+We believe that everyone who's working with NestJs and building some RESTful services and especially some CRUD functionality will find `@rewiko/crud` microframework very useful.
 
 ## Features
 
@@ -88,16 +88,16 @@ We believe that everyone who's working with NestJs and building some RESTful ser
 
 ## Packages
 
-- [**@nestjsx/crud**](https://www.npmjs.com/package/@nestjsx/crud) - core package which provides `@Crud()` decorator for endpoints generation, global configuration, validation, helper decorators ([docs](https://github.com/nestjsx/crud/wiki/Controllers#description))
-- [**@nestjsx/crud-request**](https://www.npmjs.com/package/@nestjsx/crud-request) - request builder/parser package which provides `RequestQueryBuilder` class for a frontend usage and `RequestQueryParser` that is being used internally for handling and validating query/path params on a backend side ([docs](https://github.com/nestjsx/crud/wiki/Requests#frontend-usage))
-- [**@nestjsx/crud-typeorm**](https://www.npmjs.com/package/@nestjsx/crud-typeorm) - TypeORM package which provides base `TypeOrmCrudService` with methods for CRUD database operations ([docs](https://github.com/nestjsx/crud/wiki/ServiceTypeorm))
+- [**@rewiko/crud**](https://www.npmjs.com/package/@rewiko/crud) - core package which provides `@Crud()` decorator for endpoints generation, global configuration, validation, helper decorators ([docs](https://github.com/rewiko/crud/wiki/Controllers#description))
+- [**@rewiko/crud-request**](https://www.npmjs.com/package/@rewiko/crud-request) - request builder/parser package which provides `RequestQueryBuilder` class for a frontend usage and `RequestQueryParser` that is being used internally for handling and validating query/path params on a backend side ([docs](https://github.com/rewiko/crud/wiki/Requests#frontend-usage))
+- [**@rewiko/crud-typeorm**](https://www.npmjs.com/package/@rewiko/crud-typeorm) - TypeORM package which provides base `TypeOrmCrudService` with methods for CRUD database operations ([docs](https://github.com/rewiko/crud/wiki/ServiceTypeorm))
 
 ## Documentation
 
-- :dart: [General Information](https://github.com/nestjsx/crud/wiki#why)
-- :video_game: [CRUD Controllers](https://github.com/nestjsx/crud/wiki/Controllers#description)
-- :horse_racing: [CRUD ORM Services](https://github.com/nestjsx/crud/wiki/Services#description)
-- :trumpet: [Handling Requests](https://github.com/nestjsx/crud/wiki/Requests#description)
+- :dart: [General Information](https://github.com/rewiko/crud/wiki#why)
+- :video_game: [CRUD Controllers](https://github.com/rewiko/crud/wiki/Controllers#description)
+- :horse_racing: [CRUD ORM Services](https://github.com/rewiko/crud/wiki/Services#description)
+- :trumpet: [Handling Requests](https://github.com/rewiko/crud/wiki/Requests#description)
 
 ## Support
 
@@ -108,7 +108,7 @@ Any support is welcome. At least you can give us a star :star:
 ### Code Contributors
 
 This project exists thanks to all the people who contribute. [[Contribute](CODE_OF_CONDUCT.md)].
-<a href="https://github.com/nestjsx/crud/graphs/contributors"><img src="https://opencollective.com/nestjsx/contributors.svg?width=890&button=false" /></a>
+<a href="https://github.com/rewiko/crud/graphs/contributors"><img src="https://opencollective.com/nestjsx/contributors.svg?width=890&button=false" /></a>
 
 ### Financial Contributors
 
