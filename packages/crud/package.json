@@ -1,7 +1,7 @@
 {
   "name": "@rewiko/crud",
   "description": "NestJs CRUD for RESTful APIs",
-  "version": "5.0.10",
+  "version": "5.0.11",
   "license": "MIT",
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
@@ -40,8 +40,8 @@
     "build": "npx tsc -b"
   },
   "dependencies": {
-    "@rewiko/crud-request": "^5.0.10",
-    "@rewiko/util": "^5.0.10",
+    "@rewiko/crud-request": "^5.0.11",
+    "@rewiko/util": "^5.0.11",
     "deepmerge": "^3.2.0",
     "pluralize": "^8.0.0"
   },
@@ -49,5 +49,5 @@
     "class-transformer": "*",
     "class-validator": "*"
   },
-  "gitHead": "1dacecac81dee78ec114e1776c5fc93f52271f6e"
+  "gitHead": "d9e468bd6e47762cf0de415d049f56078195ddb3"
 }
