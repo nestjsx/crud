@@ -1,7 +1,7 @@
 {
   "name": "@nestjsx/util",
   "description": "NestJs CRUD for RESTful APIs - util",
-  "version": "5.0.2",
+  "version": "5.0.3",
   "license": "MIT",
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
@@ -35,5 +35,6 @@
   },
   "scripts": {
     "build": "npx tsc -b"
-  }
+  },
+  "gitHead": "88a2334ad9777bb80facef790496faa4d93d0516"
 }
