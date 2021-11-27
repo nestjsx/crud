@@ -99,6 +99,21 @@ We believe that everyone who's working with NestJs and building some RESTful ser
 - :horse_racing: [CRUD ORM Services](https://github.com/rewiko/crud/wiki/Services#description)
 - :trumpet: [Handling Requests](https://github.com/rewiko/crud/wiki/Requests#description)
 
+## Build library and run tests
+
+```
+yarn bootstrap
+yarn build
+docker-compose up -d
+yarn test:coverage
+```
+
+## Make a release 
+
+- Merge a PR on master. 
+- Pull and checkout master 
+- Run `yarn pub` - this will publish on the npm repo (need to be logged under rewiko `yarn login`)
+
 ## Support
 
 Any support is welcome. At least you can give us a star :star:
