@@ -1,7 +1,7 @@
 {
   "name": "@rewiko/util",
   "description": "NestJs CRUD for RESTful APIs - util",
-  "version": "5.0.8",
+  "version": "5.0.9",
   "license": "MIT",
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
@@ -36,5 +36,5 @@
   "scripts": {
     "build": "npx tsc -b"
   },
-  "gitHead": "e0733cf769f000dd023e3bf9399159cea6e4ec60"
+  "gitHead": "a428a5a900699d63fb9681cc4ce741a600331bca"
 }
