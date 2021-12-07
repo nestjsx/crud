@@ -3,41 +3,42 @@ import {
   CrudRequest,
   CrudRequestOptions,
   CrudService,
+  CustomOperators,
   GetManyDefaultResponse,
   JoinOption,
   JoinOptions,
   QueryOptions,
 } from '@nestjsx/crud';
 import {
+  ComparisonOperator,
   ParsedRequestParams,
   QueryFilter,
   QueryJoin,
   QuerySort,
   SCondition,
   SConditionKey,
-  ComparisonOperator,
 } from '@nestjsx/crud-request';
 import {
   ClassType,
   hasLength,
   isArrayFull,
+  isNil,
+  isNull,
   isObject,
   isUndefined,
   objKeys,
-  isNil,
-  isNull,
 } from '@nestjsx/util';
 import { oO } from '@zmotivat0r/o0';
 import { plainToClass } from 'class-transformer';
 import {
   Brackets,
+  ConnectionOptions,
+  DeepPartial,
+  EntityMetadata,
   ObjectLiteral,
   Repository,
   SelectQueryBuilder,
-  DeepPartial,
   WhereExpression,
-  ConnectionOptions,
-  EntityMetadata,
 } from 'typeorm';
 
 interface IAllowedRelation {
@@ -259,7 +260,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
   }
 
   public getParamFilters(parsed: CrudRequest['parsed']): ObjectLiteral {
-    let filters = {};
+    const filters = {};
 
     /* istanbul ignore else */
     if (hasLength(parsed.paramsFilter)) {
@@ -291,7 +292,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     builder.select(select);
 
     // search
-    this.setSearchCondition(builder, parsed.search);
+    this.setSearchCondition(builder, parsed.search, options.operators.custom);
 
     // set joins
     const joinOptions = options.query.join || {};
@@ -412,7 +413,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
       : await this.createBuilder(parsed, options, true, withDeleted);
 
     if (shallow) {
-      this.setSearchCondition(builder, parsed.search);
+      this.setSearchCondition(builder, parsed.search, options.operators.custom);
     }
 
     const found = withDeleted
@@ -447,7 +448,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     }
 
     return dto instanceof this.entityType
-      ? Object.assign(dto, parsed.authPersist)
+      ? { ...dto, ...parsed.authPersist }
       : plainToClass(this.entityType, { ...dto, ...parsed.authPersist });
   }
 
@@ -512,7 +513,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
               const found = res.relations.length
                 ? res.relations.find((one) => one.propertyName === propertyName)
                 : null;
-              const relationMetadata = found ? found.inverseEntityMetadata : null;
+              relationMetadata = found ? found.inverseEntityMetadata : null;
               const relations = relationMetadata ? relationMetadata.relations : [];
               name = propertyName;
 
@@ -622,8 +623,13 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     cond: QueryFilter,
     i: any,
     builder: SelectQueryBuilder<T> | WhereExpression,
+    customOperators: CustomOperators,
   ) {
-    const { str, params } = this.mapOperatorsToQuery(cond, `andWhere${i}`);
+    const { str, params } = this.mapOperatorsToQuery(
+      cond,
+      `andWhere${i}`,
+      customOperators,
+    );
     builder.andWhere(str, params);
   }
 
@@ -631,14 +637,20 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     cond: QueryFilter,
     i: any,
     builder: SelectQueryBuilder<T> | WhereExpression,
+    customOperators: CustomOperators,
   ) {
-    const { str, params } = this.mapOperatorsToQuery(cond, `orWhere${i}`);
+    const { str, params } = this.mapOperatorsToQuery(
+      cond,
+      `orWhere${i}`,
+      customOperators,
+    );
     builder.orWhere(str, params);
   }
 
   protected setSearchCondition(
     builder: SelectQueryBuilder<T>,
     search: SCondition,
+    customOperators: CustomOperators,
     condition: SConditionKey = '$and',
   ) {
     /* istanbul ignore else */
@@ -650,7 +662,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
         if (isArrayFull(search.$and)) {
           // search: {$and: [{}]}
           if (search.$and.length === 1) {
-            this.setSearchCondition(builder, search.$and[0], condition);
+            this.setSearchCondition(builder, search.$and[0], customOperators, condition);
           }
           // search: {$and: [{}, {}, ...]}
           else {
@@ -659,7 +671,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
               condition,
               new Brackets((qb: any) => {
                 search.$and.forEach((item: any) => {
-                  this.setSearchCondition(qb, item, '$and');
+                  this.setSearchCondition(qb, item, customOperators, '$and');
                 });
               }),
             );
@@ -671,7 +683,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
           if (keys.length === 1) {
             // search: {$or: [{}]}
             if (search.$or.length === 1) {
-              this.setSearchCondition(builder, search.$or[0], condition);
+              this.setSearchCondition(builder, search.$or[0], customOperators, condition);
             }
             // search: {$or: [{}, {}, ...]}
             else {
@@ -680,7 +692,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
                 condition,
                 new Brackets((qb: any) => {
                   search.$or.forEach((item: any) => {
-                    this.setSearchCondition(qb, item, '$or');
+                    this.setSearchCondition(qb, item, customOperators, '$or');
                   });
                 }),
               );
@@ -696,20 +708,31 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
                   if (field !== '$or') {
                     const value = search[field];
                     if (!isObject(value)) {
-                      this.builderSetWhere(qb, '$and', field, value);
+                      this.builderSetWhere(qb, '$and', field, value, customOperators);
                     } else {
-                      this.setSearchFieldObjectCondition(qb, '$and', field, value);
+                      this.setSearchFieldObjectCondition(
+                        qb,
+                        '$and',
+                        field,
+                        value,
+                        customOperators,
+                      );
                     }
                   } else {
                     if (search.$or.length === 1) {
-                      this.setSearchCondition(builder, search.$or[0], '$and');
+                      this.setSearchCondition(
+                        builder,
+                        search.$or[0],
+                        customOperators,
+                        '$and',
+                      );
                     } else {
                       this.builderAddBrackets(
                         qb,
                         '$and',
                         new Brackets((qb2: any) => {
                           search.$or.forEach((item: any) => {
-                            this.setSearchCondition(qb2, item, '$or');
+                            this.setSearchCondition(qb2, item, customOperators, '$or');
                           });
                         }),
                       );
@@ -727,9 +750,15 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
             const field = keys[0];
             const value = search[field];
             if (!isObject(value)) {
-              this.builderSetWhere(builder, condition, field, value);
+              this.builderSetWhere(builder, condition, field, value, customOperators);
             } else {
-              this.setSearchFieldObjectCondition(builder, condition, field, value);
+              this.setSearchFieldObjectCondition(
+                builder,
+                condition,
+                field,
+                value,
+                customOperators,
+              );
             }
           }
           // search: {foo, ...}
@@ -741,9 +770,15 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
                 keys.forEach((field: string) => {
                   const value = search[field];
                   if (!isObject(value)) {
-                    this.builderSetWhere(qb, '$and', field, value);
+                    this.builderSetWhere(qb, '$and', field, value, customOperators);
                   } else {
-                    this.setSearchFieldObjectCondition(qb, '$and', field, value);
+                    this.setSearchFieldObjectCondition(
+                      qb,
+                      '$and',
+                      field,
+                      value,
+                      customOperators,
+                    );
                   }
                 });
               }),
@@ -771,6 +806,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     condition: SConditionKey,
     field: string,
     value: any,
+    customOperators: CustomOperators,
     operator: ComparisonOperator = '$eq',
   ) {
     const time = process.hrtime();
@@ -779,6 +815,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
       { field, operator: isNull(value) ? '$isnull' : operator, value },
       index,
       builder,
+      customOperators,
     ];
     const fn = condition === '$and' ? this.setAndWhere : this.setOrWhere;
     fn.apply(this, args);
@@ -789,6 +826,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     condition: SConditionKey,
     field: string,
     object: any,
+    customOperators: CustomOperators,
   ) {
     /* istanbul ignore else */
     if (isObject(object)) {
@@ -805,9 +843,17 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
             orKeys.length === 1 ? condition : '$or',
             field,
             object.$or,
+            customOperators,
           );
         } else {
-          this.builderSetWhere(builder, condition, field, value, operator);
+          this.builderSetWhere(
+            builder,
+            condition,
+            field,
+            value,
+            customOperators,
+            operator,
+          );
         }
       } else {
         /* istanbul ignore else */
@@ -820,18 +866,37 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
                 const value = object[operator];
 
                 if (operator !== '$or') {
-                  this.builderSetWhere(qb, condition, field, value, operator);
+                  this.builderSetWhere(
+                    qb,
+                    condition,
+                    field,
+                    value,
+                    customOperators,
+                    operator,
+                  );
                 } else {
                   const orKeys = objKeys(object.$or);
 
                   if (orKeys.length === 1) {
-                    this.setSearchFieldObjectCondition(qb, condition, field, object.$or);
+                    this.setSearchFieldObjectCondition(
+                      qb,
+                      condition,
+                      field,
+                      object.$or,
+                      customOperators,
+                    );
                   } else {
                     this.builderAddBrackets(
                       qb,
                       condition,
                       new Brackets((qb2: any) => {
-                        this.setSearchFieldObjectCondition(qb2, '$or', field, object.$or);
+                        this.setSearchFieldObjectCondition(
+                          qb2,
+                          '$or',
+                          field,
+                          object.$or,
+                          customOperators,
+                        );
                       }),
                     );
                   }
@@ -906,6 +971,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
   protected mapOperatorsToQuery(
     cond: QueryFilter,
     param: any,
+    customOperators: CustomOperators = {},
   ): { str: string; params: ObjectLiteral } {
     const field = this.getFieldWithAlias(cond.field);
     const likeOperator =
@@ -1032,7 +1098,21 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
 
       /* istanbul ignore next */
       default:
-        str = `${field} = :${param}`;
+        const customOperator = customOperators[cond.operator];
+        if (!customOperator) {
+          str = `${field} = :${param}`;
+          break;
+        }
+
+        try {
+          if (customOperator.isArray) {
+            this.checkFilterIsArray(cond);
+          }
+          str = customOperator.query(field, param);
+          params = customOperator.params;
+        } catch (error) {
+          this.throwBadRequestException(`Invalid custom operator '${field}' query`);
+        }
         break;
     }
 

@@ -43,6 +43,9 @@ describe('#crud', () => {
         query: {
           limit: 10,
         },
+        operators: {
+          custom: {},
+        },
         params: {
           id: {
             field: 'id',
@@ -69,6 +72,9 @@ describe('#crud', () => {
         },
         query: {
           limit: 10,
+        },
+        operators: {
+          custom: {},
         },
         params: {
           id: {
@@ -107,6 +113,9 @@ describe('#crud', () => {
       );
       expect(CrudConfigService.config.query).toEqual(
         expect.objectContaining(expected.query),
+      );
+      expect(CrudConfigService.config.operators).toEqual(
+        expect.objectContaining(expected.operators),
       );
       expect(JSON.stringify(CrudConfigService.config.routes)).toEqual(
         JSON.stringify(expected.routes),
