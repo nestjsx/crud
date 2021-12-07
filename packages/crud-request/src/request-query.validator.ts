@@ -36,6 +36,8 @@ export const deprecatedComparisonOperatorsList = [
   'isnull',
   'notnull',
   'between',
+  'contArr',
+  'intersectsArr',
 ];
 export const comparisonOperatorsList = [
   ...deprecatedComparisonOperatorsList,

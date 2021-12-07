@@ -270,6 +270,8 @@ export class RequestQueryParser implements ParsedRequestParams {
       '$between',
       '$inL',
       '$notinL',
+      '$contArr',
+      '$intersectsArr',
     ];
     const isEmptyValue = ['isnull', 'notnull', '$isnull', '$notnull'];
     const param = data.split(this._options.delim);
