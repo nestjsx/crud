@@ -17,6 +17,4 @@ lerna-debug.log
 /coverage
 /.nyc_output
 
-# dist
-packages/**/lib
-packages/**/tsconfig.tsbuildinfo
+
