@@ -8,11 +8,11 @@
   ],
   "private": true,
   "scripts": {
-    "bootstrap": "npx lerna bootstrap",
+    "boot": "npx lerna bootstrap",
     "s": "npx nps",
     "s:list": "yarn s --scripts",
     "rebuild": "yarn clean && yarn build",
-    "build": "yarn s build",
+    "build": "npx mrepo build",
     "clean": "yarn s clean",
     "test": "npx jest --runInBand -c=jest.config.js packages/ --verbose",
     "test:coverage": "yarn test:all --coverage",
@@ -29,23 +29,13 @@
     "db:prepare:typeorm:mysql": "yarn db:drop:typeorm -c=mysql && yarn db:sync:typeorm -c=mysql && yarn db:seeds:typeorm -c=mysql",
     "format": "npx pretty-quick --pattern \"packages/**/!(*.d).ts\"",
     "lint": "npx tslint 'packages/**/*.ts'",
-    "cm": "npx git-cz",
+    "commit": "npx git-cz",
     "postinstall": "npx opencollective",
     "pub": "npx lerna publish --force-publish --no-verify-access"
   },
   "config": {
     "commitizen": {
       "path": "node_modules/cz-conventional-changelog"
-    },
-    "validate-commit-msg": {
-      "types": "conventional-commit-types",
-      "helpMessage": "Use \"yarn commit\" instead, we use conventional-changelog format :) (https://github.com/commitizen/cz-cli)"
-    }
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "yarn format --staged",
-      "commit-msg": "npx validate-commit-msg"
     }
   },
   "collective": {
@@ -69,11 +59,12 @@
     "@types/node": "12.7.5",
     "@types/qs": "6.5.3",
     "@types/supertest": "2.0.8",
+    "@zmotivat0r/mrepo": "0.8.1",
     "class-transformer": "0.3.2",
     "class-validator": "0.13.1",
-    "commitizen": "4.0.3",
+    "commitizen": "4.2.3",
+    "conventional-changelog-cli": "2.1.1",
     "coveralls": "3.0.6",
-    "cz-conventional-changelog": "3.0.2",
     "husky": "3.0.5",
     "jest": "24.9.0",
     "jest-extended": "0.11.2",
@@ -101,7 +92,7 @@
     "tslint": "5.20.0",
     "tslint-config-prettier": "1.18.0",
     "typeorm": "0.2.30",
-    "typescript": "3.6.3",
+    "typescript": "4.6.2",
     "validate-commit-msg": "2.14.0"
   },
   "devDependencies": {},
