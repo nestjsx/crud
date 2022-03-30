@@ -1,11 +1,6 @@
-import {
-  CallHandler,
-  ExecutionContext,
-  Injectable,
-  NestInterceptor,
-} from '@nestjs/common';
+import { CallHandler, ExecutionContext, Injectable, NestInterceptor } from '@nestjs/common';
+import { classToPlain, classToPlainFromExist } from '@nestjs/class-transformer';
 import { isFalse, isObject, isFunction } from '@nestjsx/util';
-import { classToPlain, classToPlainFromExist } from 'class-transformer';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { CrudActions } from '../enums';
@@ -27,8 +22,7 @@ const actionToDtoNameMap: {
 };
 
 @Injectable()
-export class CrudResponseInterceptor extends CrudBaseInterceptor
-  implements NestInterceptor {
+export class CrudResponseInterceptor extends CrudBaseInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     return next.handle().pipe(map((data) => this.serialize(context, data)));
   }
@@ -42,9 +36,7 @@ export class CrudResponseInterceptor extends CrudBaseInterceptor
       return data.constructor !== Object ? classToPlain(data) : data;
     }
 
-    return data instanceof dto
-      ? classToPlain(data)
-      : classToPlain(classToPlainFromExist(data, new dto()));
+    return data instanceof dto ? classToPlain(data) : classToPlain(classToPlainFromExist(data, new dto()));
   }
 
   protected serialize(context: ExecutionContext, data: any): any {
@@ -55,13 +47,9 @@ export class CrudResponseInterceptor extends CrudBaseInterceptor
 
     switch (action) {
       case CrudActions.ReadAll:
-        return isArray
-          ? (data as any[]).map((item) => this.transform(serialize.get, item))
-          : this.transform(dto, data);
+        return isArray ? (data as any[]).map((item) => this.transform(serialize.get, item)) : this.transform(dto, data);
       case CrudActions.CreateMany:
-        return isArray
-          ? (data as any[]).map((item) => this.transform(dto, item))
-          : this.transform(dto, data);
+        return isArray ? (data as any[]).map((item) => this.transform(dto, item)) : this.transform(dto, data);
       default:
         return this.transform(dto, data);
     }

@@ -45,6 +45,8 @@
     }
   },
   "dependencies": {
+    "@nestjs/class-transformer": "0.4.0",
+    "@nestjs/class-validator": "0.13.4",
     "@nestjs/common": "8.4.3",
     "@nestjs/core": "8.4.3",
     "@nestjs/platform-express": "8.4.3",
@@ -52,8 +54,6 @@
     "@nestjs/testing": "8.4.3",
     "@nestjs/typeorm": "8.0.3",
     "@zmotivat0r/mrepo": "0.8.1",
-    "class-transformer": "0.5.1",
-    "class-validator": "0.13.2",
     "mysql": "2.18.1",
     "pg": "8.7.3",
     "pluralize": "8.0.0",
@@ -62,7 +62,7 @@
     "reflect-metadata": "0.1.13",
     "rxjs": "7.5.5",
     "swagger-ui-express": "4.3.0",
-    "typeorm": "0.3.4"
+    "typeorm": "0.2.45"
   },
   "devDependencies": {
     "@nuxtjs/opencollective": "0.2.2",

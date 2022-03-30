@@ -2,26 +2,20 @@ import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { ParsedRequestParams } from '@nestjsx/crud-request';
 import { objKeys } from '@nestjsx/util';
 
-import {
-  CreateManyDto,
-  CrudRequest,
-  CrudRequestOptions,
-  GetManyDefaultResponse,
-  QueryOptions,
-} from '../interfaces';
+import { CreateManyDto, CrudRequest, CrudRequestOptions, GetManyDefaultResponse, QueryOptions } from '../interfaces';
 
 export abstract class CrudService<T> {
   abstract getMany(req: CrudRequest): Promise<GetManyDefaultResponse<T> | T[]>;
 
   abstract getOne(req: CrudRequest): Promise<T>;
 
-  abstract createOne(req: CrudRequest, dto: T): Promise<T>;
+  abstract createOne(req: CrudRequest, dto: T | Partial<T>): Promise<T>;
 
   abstract createMany(req: CrudRequest, dto: CreateManyDto): Promise<T[]>;
 
-  abstract updateOne(req: CrudRequest, dto: T): Promise<T>;
+  abstract updateOne(req: CrudRequest, dto: T | Partial<T>): Promise<T>;
 
-  abstract replaceOne(req: CrudRequest, dto: T): Promise<T>;
+  abstract replaceOne(req: CrudRequest, dto: T | Partial<T>): Promise<T>;
 
   abstract deleteOne(req: CrudRequest): Promise<void | T>;
 
@@ -44,12 +38,7 @@ export abstract class CrudService<T> {
    * @param limit
    * @param offset
    */
-  createPageInfo(
-    data: T[],
-    total: number,
-    limit: number,
-    offset: number,
-  ): GetManyDefaultResponse<T> {
+  createPageInfo(data: T[], total: number, limit: number, offset: number): GetManyDefaultResponse<T> {
     return {
       data,
       count: data.length,
@@ -79,19 +68,11 @@ export abstract class CrudService<T> {
    */
   getTake(query: ParsedRequestParams, options: QueryOptions): number | null {
     if (query.limit) {
-      return options.maxLimit
-        ? query.limit <= options.maxLimit
-          ? query.limit
-          : options.maxLimit
-        : query.limit;
+      return options.maxLimit ? (query.limit <= options.maxLimit ? query.limit : options.maxLimit) : query.limit;
     }
     /* istanbul ignore if */
     if (options.limit) {
-      return options.maxLimit
-        ? options.limit <= options.maxLimit
-          ? options.limit
-          : options.maxLimit
-        : options.limit;
+      return options.maxLimit ? (options.limit <= options.maxLimit ? options.limit : options.maxLimit) : options.limit;
     }
 
     return options.maxLimit ? options.maxLimit : null;
@@ -103,11 +84,7 @@ export abstract class CrudService<T> {
    * @param take
    */
   getSkip(query: ParsedRequestParams, take: number): number | null {
-    return query.page && take
-      ? take * (query.page - 1)
-      : query.offset
-      ? query.offset
-      : null;
+    return query.page && take ? take * (query.page - 1) : query.offset ? query.offset : null;
   }
 
   /**
@@ -115,9 +92,7 @@ export abstract class CrudService<T> {
    * @param options
    */
   getPrimaryParams(options: CrudRequestOptions): string[] {
-    const params = objKeys(options.params).filter(
-      (n) => options.params[n] && options.params[n].primary,
-    );
+    const params = objKeys(options.params).filter((n) => options.params[n] && options.params[n].primary);
 
     return params.map((p) => options.params[p].field);
   }

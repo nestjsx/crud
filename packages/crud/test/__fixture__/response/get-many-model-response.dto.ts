@@ -1,4 +1,4 @@
-import { Type } from 'class-transformer';
+import { Type } from '@nestjs/class-transformer';
 
 import { GetModelResponseDto } from './get-model-response.dto';
 

@@ -5,7 +5,7 @@
     "registry": "npm",
     "packages": [
       {
-        "name": "crud"
+        "name": "util"
       },
       {
         "name": "crud-request"
@@ -13,7 +13,9 @@
       {
         "name": "crud-typeorm"
       },
-      { "name": "util" }
+      {
+        "name": "crud"
+      }
     ]
   },
   "packageGenerator": {
