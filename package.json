@@ -29,7 +29,8 @@
     "lint": "npx eslint \"packages/**/!(*.d).ts\" --fix",
     "commit": "npx git-cz",
     "postinstall": "npx opencollective",
-    "pub": "npx lerna publish --force-publish --no-verify-access"
+    "pub": "npx lerna publish --force-publish --no-verify-access",
+    "prepare": "npx husky install"
   },
   "config": {
     "commitizen": {
@@ -72,6 +73,7 @@
     "commitizen": "4.2.3",
     "conventional-changelog-cli": "2.1.1",
     "coveralls": "3.0.6",
+    "husky": "7.0.4",
     "jest": "27.5.1",
     "jest-extended": "2.0.0",
     "lerna": "4.0.0",
