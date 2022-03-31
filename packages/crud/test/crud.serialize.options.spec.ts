@@ -175,7 +175,7 @@ describe('#crud', () => {
 
     describe('#getManyBase', () => {
       it('should return an array', (done) => {
-        return request(server)
+        request(server)
           .get('/test')
           .expect(200)
           .end((_, res) => {
@@ -186,7 +186,7 @@ describe('#crud', () => {
           });
       });
       it('should return an object', (done) => {
-        return request(server)
+        request(server)
           .get('/test2')
           .expect(200)
           .end((_, res) => {
@@ -197,7 +197,7 @@ describe('#crud', () => {
           });
       });
       it('should return custom response', (done) => {
-        return request(server)
+        request(server)
           .get('/test3')
           .expect(200)
           .end((_, res) => {
@@ -211,7 +211,7 @@ describe('#crud', () => {
 
     describe('#getOneBase', () => {
       it('should return model', (done) => {
-        return request(server)
+        request(server)
           .get('/test4/1')
           .expect(200)
           .end((_, res) => {
@@ -221,7 +221,7 @@ describe('#crud', () => {
           });
       });
       it('should return serialized model', (done) => {
-        return request(server)
+        request(server)
           .get('/test/1')
           .expect(200)
           .end((_, res) => {
@@ -231,7 +231,7 @@ describe('#crud', () => {
           });
       });
       it('should return model without serializing', (done) => {
-        return request(server)
+        request(server)
           .get('/test5/1')
           .expect(200)
           .end((_, res) => {
@@ -246,7 +246,7 @@ describe('#crud', () => {
 
     describe('#deleteManyBase', () => {
       it('should return serialized model', (done) => {
-        return request(server)
+        request(server)
           .delete('/test/1')
           .expect(200)
           .end((_, res) => {
@@ -258,7 +258,7 @@ describe('#crud', () => {
           });
       });
       it('should return model', (done) => {
-        return request(server)
+        request(server)
           .delete('/test2/1')
           .expect(200)
           .end((_, res) => {
@@ -270,7 +270,7 @@ describe('#crud', () => {
           });
       });
       it('should return en empty response', (done) => {
-        return request(server)
+        request(server)
           .delete('/test3/1')
           .expect(200)
           .end((_, res) => {
@@ -282,7 +282,7 @@ describe('#crud', () => {
 
     describe('#recoverOneBase', () => {
       it('should return model', (done) => {
-        return request(server)
+        request(server)
           .patch('/test6/1/recover')
           .expect(200)
           .end((_, res) => {
@@ -294,7 +294,7 @@ describe('#crud', () => {
           });
       });
       it('should return en empty response', (done) => {
-        return request(server)
+        request(server)
           .patch('/test3/1/recover')
           .expect(200)
           .end((_, res) => {

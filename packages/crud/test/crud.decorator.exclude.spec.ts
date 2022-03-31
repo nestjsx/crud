@@ -41,10 +41,13 @@ describe('#crud', () => {
     });
 
     describe('#getManyBase excluded', () => {
-      it('should return status 404', () => {
-        return request(server)
+      it('should return status 404', (done) => {
+        request(server)
           .get('/test')
-          .expect(404);
+          .end((_, res) => {
+            expect(res.status).toEqual(404);
+            done();
+          });
       });
     });
   });
@@ -81,18 +84,24 @@ describe('#crud', () => {
     });
 
     describe('#getManyBase only', () => {
-      it('should return status 200', () => {
-        return request(server)
+      it('should return status 200', (done) => {
+        request(server)
           .get('/test')
-          .expect(200);
+          .end((_, res) => {
+            expect(res.status).toEqual(200);
+            done();
+          });
       });
     });
 
     describe('#getOneBase excluded', () => {
-      it('should return status 404', () => {
-        return request(server)
+      it('should return status 404', (done) => {
+        request(server)
           .get('/test/1')
-          .expect(404);
+          .end((_, res) => {
+            expect(res.status).toEqual(404);
+            done();
+          });
       });
     });
   });

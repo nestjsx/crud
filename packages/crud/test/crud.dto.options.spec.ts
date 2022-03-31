@@ -45,17 +45,20 @@ describe('#crud', () => {
     });
 
     describe('#createOneBase', () => {
-      it('should return status 201', () => {
+      it('should return status 201', (done) => {
         const send: TestCreateDto = {
           firstName: 'firstName',
           lastName: 'lastName',
           email: 'test@test.com',
           age: 15,
         };
-        return request(server)
+        request(server)
           .post('/test')
           .send(send)
-          .expect(201);
+          .end((_, res) => {
+            expect(res.status).toEqual(201);
+            done();
+          });
       });
       it('should return status 400', (done) => {
         const send: TestModel = {
@@ -63,7 +66,7 @@ describe('#crud', () => {
           lastName: 'lastName',
           email: 'test@test.com',
         };
-        return request(server)
+        request(server)
           .post('/test')
           .send(send)
           .end((_, res) => {
@@ -74,7 +77,7 @@ describe('#crud', () => {
     });
 
     describe('#updateOneBase', () => {
-      it('should return status 200', () => {
+      it('should return status 200', (done) => {
         const send: TestModel = {
           id: 1,
           firstName: 'firstName',
@@ -82,10 +85,13 @@ describe('#crud', () => {
           email: 'test@test.com',
           age: 15,
         };
-        return request(server)
+        request(server)
           .patch('/test/1')
           .send(send)
-          .expect(200);
+          .end((_, res) => {
+            expect(res.status).toEqual(200);
+            done();
+          });
       });
       it('should return status 400', (done) => {
         const send: TestModel = {
@@ -93,7 +99,7 @@ describe('#crud', () => {
           lastName: 'lastName',
           email: 'foo',
         };
-        return request(server)
+        request(server)
           .patch('/test/1')
           .send(send)
           .end((_, res) => {

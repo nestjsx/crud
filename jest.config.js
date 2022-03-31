@@ -6,7 +6,7 @@ const compilerOptions = tsconfig.load_file_sync('./tsconfig.jest.json', __dirnam
 
 module.exports = {
   testEnvironment: 'node',
-  setupFilesAfterEnv: ['jest-extended'],
+  setupFilesAfterEnv: ['jest-extended/all'],
   moduleNameMapper: pathsToModuleNameMapper(compilerOptions.paths, {
     prefix: '<rootDir>/packages/',
   }),

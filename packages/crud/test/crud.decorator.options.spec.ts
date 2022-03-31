@@ -95,7 +95,7 @@ describe('#crud', () => {
     });
 
     it('should return options in ParsedRequest', (done) => {
-      return request(server)
+      request(server)
         .get('/test')
         .expect(200)
         .end((_, res) => {
@@ -108,8 +108,8 @@ describe('#crud', () => {
     });
 
     it('should use crudRoutesFactory override', () => {
-      const testController = app.get('TestController');
-      const { operationId } = Swagger.getOperation(testController.replaceOneBase);
+      const testController = app.get(TestController);
+      const { operationId } = Swagger.getOperation((testController as any).replaceOneBase);
       expect(operationId).toEqual('_replaceOneBaseTestModel');
     });
   });
