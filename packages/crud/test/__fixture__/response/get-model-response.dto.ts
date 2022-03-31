@@ -1,4 +1,4 @@
-import { Exclude } from '@nestjs/class-transformer';
+import { Exclude } from 'class-transformer';
 
 export class GetModelResponseDto {
   id: number;

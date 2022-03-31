@@ -45,8 +45,6 @@
     }
   },
   "dependencies": {
-    "@nestjs/class-transformer": "0.4.0",
-    "@nestjs/class-validator": "0.13.4",
     "@nestjs/common": "8.4.3",
     "@nestjs/core": "8.4.3",
     "@nestjs/platform-express": "8.4.3",
@@ -54,6 +52,8 @@
     "@nestjs/testing": "8.4.3",
     "@nestjs/typeorm": "8.0.3",
     "@zmotivat0r/mrepo": "0.8.1",
+    "class-transformer": "0.3.2",
+    "class-validator": "0.13.2",
     "mysql": "2.18.1",
     "pg": "8.7.3",
     "pluralize": "8.0.0",
@@ -72,7 +72,7 @@
     "@types/supertest": "2.0.12",
     "commitizen": "4.2.3",
     "conventional-changelog-cli": "2.1.1",
-    "coveralls": "3.0.6",
+    "coveralls": "3.1.1",
     "husky": "7.0.4",
     "jest": "27.5.1",
     "jest-extended": "2.0.0",

@@ -18,8 +18,8 @@ import {
   ComparisonOperator,
 } from '@nestjsx/crud-request';
 import { ClassType, hasLength, isArrayFull, isObject, isUndefined, objKeys, isNil, isNull } from '@nestjsx/util';
-import { plainToClass } from '@nestjs/class-transformer';
 import { oO } from '@zmotivat0r/o0';
+import { plainToClass } from 'class-transformer';
 import {
   Brackets,
   DeepPartial,

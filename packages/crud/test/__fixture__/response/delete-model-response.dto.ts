@@ -1,4 +1,4 @@
-import { Exclude, Expose } from '@nestjs/class-transformer';
+import { Exclude, Expose } from 'class-transformer';
 
 @Exclude()
 export class DeleteModelResponseDto {

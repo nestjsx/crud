@@ -5,8 +5,8 @@ import { CreateManyDto, CrudOptions, MergedCrudOptions } from '../interfaces';
 import { safeRequire } from '../util';
 import { ApiProperty } from './swagger.helper';
 
-const validator = safeRequire('@nestjs/class-validator', () => require('@nestjs/class-validator'));
-const transformer = safeRequire('@nestjs/class-transformer', () => require('@nestjs/class-transformer'));
+const validator = safeRequire('class-validator', () => require('class-validator'));
+const transformer = safeRequire('class-transformer', () => require('class-transformer'));
 
 class BulkDto<T> implements CreateManyDto<T> {
   bulk: T[];

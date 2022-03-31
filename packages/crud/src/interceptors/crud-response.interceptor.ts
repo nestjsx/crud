@@ -1,6 +1,6 @@
 import { CallHandler, ExecutionContext, Injectable, NestInterceptor } from '@nestjs/common';
-import { classToPlain, classToPlainFromExist } from '@nestjs/class-transformer';
 import { isFalse, isObject, isFunction } from '@nestjsx/util';
+import { classToPlain, classToPlainFromExist } from 'class-transformer';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { CrudActions } from '../enums';
