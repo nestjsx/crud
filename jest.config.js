@@ -1,9 +1,12 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
+
 const tsconfig = require('tsconfig-extends');
 const { pathsToModuleNameMapper } = require('ts-jest/utils');
 const compilerOptions = tsconfig.load_file_sync('./tsconfig.jest.json', __dirname);
 
 module.exports = {
-  setupFilesAfterEnv: ['jest-extended'],
+  testEnvironment: 'node',
+  setupFilesAfterEnv: ['jest-extended/all'],
   moduleNameMapper: pathsToModuleNameMapper(compilerOptions.paths, {
     prefix: '<rootDir>/packages/',
   }),
@@ -15,7 +18,7 @@ module.exports = {
   },
   globals: {
     'ts-jest': {
-      tsConfig: 'tsconfig.jest.json',
+      tsconfig: 'tsconfig.jest.json',
     },
   },
   coverageReporters: ['json', 'lcov', 'text-summary'],
@@ -30,12 +33,4 @@ module.exports = {
     '!**/__fixture__/**',
     '!integration/*',
   ],
-  coverageThreshold: {
-    global: {
-      branches: 98,
-      functions: 98,
-      lines: 98,
-      statements: 98,
-    },
-  },
 };

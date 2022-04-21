@@ -13,10 +13,7 @@ class BulkDto<T> implements CreateManyDto<T> {
 }
 
 export class Validation {
-  static getValidationPipe(
-    options: CrudOptions,
-    group?: CrudValidationGroups,
-  ): ValidationPipe {
+  static getValidationPipe(options: CrudOptions, group?: CrudValidationGroups): ValidationPipe {
     return validator && !isFalse(options.validation)
       ? new ValidationPipe({
           ...(options.validation || {}),

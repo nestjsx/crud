@@ -68,9 +68,7 @@ describe('#request-query', () => {
         });
         it('should set array, 1', () => {
           const query = { filter: 'foo||eq||bar' };
-          const expected: QueryFilter[] = [
-            { field: 'foo', operator: 'eq', value: 'bar' },
-          ];
+          const expected: QueryFilter[] = [{ field: 'foo', operator: 'eq', value: 'bar' }];
           const test = qp.parseQuery(query);
           expect(test.filter[0]).toMatchObject(expected[0]);
         });
@@ -86,25 +84,19 @@ describe('#request-query', () => {
         });
         it('should set array, 3', () => {
           const query = { filter: ['foo||in||1,2'] };
-          const expected: QueryFilter[] = [
-            { field: 'foo', operator: 'in', value: [1, 2] },
-          ];
+          const expected: QueryFilter[] = [{ field: 'foo', operator: 'in', value: [1, 2] }];
           const test = qp.parseQuery(query);
           expect(test.filter[0]).toMatchObject(expected[0]);
         });
         it('should set array, 4', () => {
           const query = { filter: ['foo||isnull'] };
-          const expected: QueryFilter[] = [
-            { field: 'foo', operator: 'isnull', value: '' },
-          ];
+          const expected: QueryFilter[] = [{ field: 'foo', operator: 'isnull', value: '' }];
           const test = qp.parseQuery(query);
           expect(test.filter[0]).toMatchObject(expected[0]);
         });
         it('should set array, 5', () => {
           const query = { filter: ['foo||eq||{"foo":true}'] };
-          const expected: QueryFilter[] = [
-            { field: 'foo', operator: 'eq', value: '{"foo":true}' },
-          ];
+          const expected: QueryFilter[] = [{ field: 'foo', operator: 'eq', value: '{"foo":true}' }];
           const test = qp.parseQuery(query);
           expect(test.filter[0]).toMatchObject(expected[0]);
         });
@@ -122,24 +114,20 @@ describe('#request-query', () => {
           expect(test.filter[0]).toMatchObject(expected[0]);
         });
         it('should set false, 8', () => {
-          const query = { filter: [`foo||eq||false`] };
-          const expected: QueryFilter[] = [
-            { field: 'foo', operator: 'eq', value: false },
-          ];
+          const query = { filter: ['foo||eq||false'] };
+          const expected: QueryFilter[] = [{ field: 'foo', operator: 'eq', value: false }];
           const test = qp.parseQuery(query);
           expect(test.filter[0]).toMatchObject(expected[0]);
         });
         it('should set true, 9', () => {
-          const query = { filter: [`foo||eq||true`] };
+          const query = { filter: ['foo||eq||true'] };
           const expected: QueryFilter[] = [{ field: 'foo', operator: 'eq', value: true }];
           const test = qp.parseQuery(query);
           expect(test.filter[0]).toMatchObject(expected[0]);
         });
         it('should set number, 10', () => {
-          const query = { filter: [`foo||eq||12345`] };
-          const expected: QueryFilter[] = [
-            { field: 'foo', operator: 'eq', value: 12345 },
-          ];
+          const query = { filter: ['foo||eq||12345'] };
+          const expected: QueryFilter[] = [{ field: 'foo', operator: 'eq', value: 12345 }];
           const test = qp.parseQuery(query);
           expect(test.filter[0]).toMatchObject(expected[0]);
         });
@@ -176,9 +164,7 @@ describe('#request-query', () => {
         });
         it('should set array, 1', () => {
           const query = { or: 'foo||eq||bar' };
-          const expected: QueryFilter[] = [
-            { field: 'foo', operator: 'eq', value: 'bar' },
-          ];
+          const expected: QueryFilter[] = [{ field: 'foo', operator: 'eq', value: 'bar' }];
           const test = qp.parseQuery(query);
           expect(test.or[0]).toMatchObject(expected[0]);
         });
@@ -194,17 +180,13 @@ describe('#request-query', () => {
         });
         it('should set array, 3', () => {
           const query = { or: ['foo||in||1,2'] };
-          const expected: QueryFilter[] = [
-            { field: 'foo', operator: 'in', value: [1, 2] },
-          ];
+          const expected: QueryFilter[] = [{ field: 'foo', operator: 'in', value: [1, 2] }];
           const test = qp.parseQuery(query);
           expect(test.or[0]).toMatchObject(expected[0]);
         });
         it('should set array, 4', () => {
           const query = { or: ['foo||isnull'] };
-          const expected: QueryFilter[] = [
-            { field: 'foo', operator: 'isnull', value: '' },
-          ];
+          const expected: QueryFilter[] = [{ field: 'foo', operator: 'isnull', value: '' }];
           const test = qp.parseQuery(query);
           expect(test.or[0]).toMatchObject(expected[0]);
         });
@@ -231,10 +213,7 @@ describe('#request-query', () => {
         });
         it('should set array, 2', () => {
           const query = { join: ['foo', 'bar||baz,boo'] };
-          const expected: QueryJoin[] = [
-            { field: 'foo' },
-            { field: 'bar', select: ['baz', 'boo'] },
-          ];
+          const expected: QueryJoin[] = [{ field: 'foo' }, { field: 'bar', select: ['baz', 'boo'] }];
           const test = qp.parseQuery(query);
           expect(test.join[0]).toMatchObject(expected[0]);
           expect(test.join[1]).toMatchObject(expected[1]);
@@ -397,44 +376,32 @@ describe('#request-query', () => {
       it('should throw an error, 1', () => {
         const params = { foo: 'bar' };
         const options = undefined;
-        expect(qp.parseParams.bind(qp, params, options)).toThrowError(
-          RequestQueryException,
-        );
+        expect(qp.parseParams.bind(qp, params, options)).toThrowError(RequestQueryException);
       });
       it('should throw an error, 2', () => {
         const params = { foo: 'bar' };
         const options = {};
-        expect(qp.parseParams.bind(qp, params, options)).toThrowError(
-          RequestQueryException,
-        );
+        expect(qp.parseParams.bind(qp, params, options)).toThrowError(RequestQueryException);
       });
       it('should throw an error, 3', () => {
         const params = { foo: 'bar' };
         const options = { foo: {} };
-        expect(qp.parseParams.bind(qp, params, options)).toThrowError(
-          RequestQueryException,
-        );
+        expect(qp.parseParams.bind(qp, params, options)).toThrowError(RequestQueryException);
       });
       it('should throw an error, 4', () => {
         const params = { foo: 'bar' };
         const options = { foo: { field: 'number' } };
-        expect(qp.parseParams.bind(qp, params, options)).toThrowError(
-          RequestQueryException,
-        );
+        expect(qp.parseParams.bind(qp, params, options)).toThrowError(RequestQueryException);
       });
       it('should throw an error, 5', () => {
         const params = { foo: 'bar' };
         const options = { foo: { field: 'foo', type: 'number' } };
-        expect(qp.parseParams.bind(qp, params, options)).toThrowError(
-          RequestQueryException,
-        );
+        expect(qp.parseParams.bind(qp, params, options)).toThrowError(RequestQueryException);
       });
       it('should throw an error, 6', () => {
         const params = { foo: 'bar' };
         const options = { foo: { field: 'foo', type: 'uuid' } };
-        expect(qp.parseParams.bind(qp, params, options)).toThrowError(
-          RequestQueryException,
-        );
+        expect(qp.parseParams.bind(qp, params, options)).toThrowError(RequestQueryException);
       });
       it('should set paramsFilter', () => {
         const params = {

@@ -207,7 +207,7 @@ describe('#crud-typeorm', () => {
     describe('#select', () => {
       it('should throw status 400', (done) => {
         const query = qb.setFilter({ field: 'invalid', operator: 'isnull' }).query();
-        return request(server)
+        request(server)
           .get('/companies')
           .query(query)
           .end((_, res) => {
@@ -220,7 +220,7 @@ describe('#crud-typeorm', () => {
     describe('#query filter', () => {
       it('should return data with limit', (done) => {
         const query = qb.setLimit(4).query();
-        return request(server)
+        request(server)
           .get('/companies')
           .query(query)
           .end((_, res) => {
@@ -234,7 +234,7 @@ describe('#crud-typeorm', () => {
       });
       it('should return with maxLimit', (done) => {
         const query = qb.setLimit(7).query();
-        return request(server)
+        request(server)
           .get('/companies')
           .query(query)
           .end((_, res) => {
@@ -248,7 +248,7 @@ describe('#crud-typeorm', () => {
           .setFilter({ field: 'name', operator: 'notin', value: ['Name2', 'Name3'] })
           .setOr({ field: 'domain', operator: 'cont', value: 5 })
           .query();
-        return request(server)
+        request(server)
           .get('/companies')
           .query(query)
           .end((_, res) => {
@@ -263,7 +263,7 @@ describe('#crud-typeorm', () => {
           .setOr({ field: 'name', operator: 'starts', value: 'P' })
           .setOr({ field: 'isActive', operator: 'eq', value: true })
           .query();
-        return request(server)
+        request(server)
           .get('/projects')
           .query(query)
           .end((_, res) => {
@@ -278,7 +278,7 @@ describe('#crud-typeorm', () => {
           .setFilter({ field: 'companyId', operator: 'gte', value: 6 })
           .setFilter({ field: 'companyId', operator: 'lt', value: 10 })
           .query();
-        return request(server)
+        request(server)
           .get('/projects')
           .query(query)
           .end((_, res) => {
@@ -294,7 +294,7 @@ describe('#crud-typeorm', () => {
           .setFilter({ field: 'isActive', operator: 'eq', value: false })
           .setFilter({ field: 'description', operator: 'notnull' })
           .query();
-        return request(server)
+        request(server)
           .get('/projects')
           .query(query)
           .end((_, res) => {
@@ -305,7 +305,7 @@ describe('#crud-typeorm', () => {
       });
       it('should return with filter and or, 6', (done) => {
         const query = qb.setOr({ field: 'companyId', operator: 'isnull' }).query();
-        return request(server)
+        request(server)
           .get('/projects')
           .query(query)
           .end((_, res) => {
@@ -315,10 +315,8 @@ describe('#crud-typeorm', () => {
           });
       });
       it('should return with filter and or, 6', (done) => {
-        const query = qb
-          .setOr({ field: 'companyId', operator: 'between', value: [1, 5] })
-          .query();
-        return request(server)
+        const query = qb.setOr({ field: 'companyId', operator: 'between', value: [1, 5] }).query();
+        request(server)
           .get('/projects')
           .query(query)
           .end((_, res) => {
@@ -329,7 +327,7 @@ describe('#crud-typeorm', () => {
       });
       it('should return with filter, 1', (done) => {
         const query = qb.setOr({ field: 'companyId', operator: 'eq', value: 1 }).query();
-        return request(server)
+        request(server)
           .get('/projects')
           .query(query)
           .end((_, res) => {
@@ -343,7 +341,7 @@ describe('#crud-typeorm', () => {
     describe('#query join', () => {
       it('should return joined entity, 1', (done) => {
         const query = qb.setJoin({ field: 'company', select: ['name'] }).query();
-        return request(server)
+        request(server)
           .get('/projects/2')
           .query(query)
           .end((_, res) => {
@@ -354,7 +352,7 @@ describe('#crud-typeorm', () => {
       });
       it('should return joined entity, 2', (done) => {
         const query = qb.setJoin({ field: 'users', select: ['name'] }).query();
-        return request(server)
+        request(server)
           .get('/companies/2')
           .query(query)
           .end((_, res) => {
@@ -366,7 +364,7 @@ describe('#crud-typeorm', () => {
       });
       it('should eager join without selection', (done) => {
         const query = qb.search({ 'userCompany.id': { $eq: 1 } }).query();
-        return request(server)
+        request(server)
           .get('/myusers')
           .query(query)
           .end((_, res) => {
@@ -389,7 +387,7 @@ describe('#crud-typeorm', () => {
             value: 'invalid',
           })
           .query();
-        return request(server)
+        request(server)
           .get('/users/1')
           .query(query)
           .end((_, res) => {
@@ -407,7 +405,7 @@ describe('#crud-typeorm', () => {
             value: 'invalid',
           })
           .query();
-        return request(server)
+        request(server)
           .get('/users/1')
           .query(query)
           .end((_, res) => {
@@ -425,7 +423,7 @@ describe('#crud-typeorm', () => {
             value: 'invalid',
           })
           .query();
-        return request(server)
+        request(server)
           .get('/users/1')
           .query(query)
           .end((_, res) => {
@@ -434,11 +432,8 @@ describe('#crud-typeorm', () => {
           });
       });
       it('should return status 200', (done) => {
-        const query = qb
-          .setJoin({ field: 'company' })
-          .setJoin({ field: 'company.projectsinvalid' })
-          .query();
-        return request(server)
+        const query = qb.setJoin({ field: 'company' }).setJoin({ field: 'company.projectsinvalid' }).query();
+        request(server)
           .get('/users/1')
           .query(query)
           .end((_, res) => {
@@ -452,7 +447,7 @@ describe('#crud-typeorm', () => {
           .setJoin({ field: 'company' })
           .setJoin({ field: 'company.projects' })
           .query();
-        return request(server)
+        request(server)
           .get('/users/1')
           .query(query)
           .end((_, res) => {
@@ -468,7 +463,7 @@ describe('#crud-typeorm', () => {
           .setJoin({ field: 'company' })
           .setJoin({ field: 'company.projects' })
           .query();
-        return request(server)
+        request(server)
           .get('/users/1')
           .query(query)
           .end((_, res) => {
@@ -484,7 +479,7 @@ describe('#crud-typeorm', () => {
           .setJoin({ field: 'company' })
           .setJoin({ field: 'company.projects' })
           .query();
-        return request(server)
+        request(server)
           .get('/users2/1')
           .query(query)
           .end((_, res) => {
@@ -495,11 +490,8 @@ describe('#crud-typeorm', () => {
           });
       });
       it('should return joined entity with ManyToMany pivot table', (done) => {
-        const query = qb
-          .setJoin({ field: 'users' })
-          .setJoin({ field: 'userProjects' })
-          .query();
-        return request(server)
+        const query = qb.setJoin({ field: 'users' }).setJoin({ field: 'userProjects' }).query();
+        request(server)
           .get('/projects/1')
           .query(query)
           .end((_, res) => {
@@ -518,7 +510,7 @@ describe('#crud-typeorm', () => {
     describe('#query composite key join', () => {
       it('should return joined relation', (done) => {
         const query = qb.setJoin({ field: 'userLicenses' }).query();
-        return request(server)
+        request(server)
           .get('/users/1')
           .query(query)
           .end((_, res) => {
@@ -532,10 +524,7 @@ describe('#crud-typeorm', () => {
     describe('#sort', () => {
       it('should sort by field', async () => {
         const query = qb.sortBy({ field: 'id', order: 'DESC' }).query();
-        const res = await request(server)
-          .get('/users')
-          .query(query)
-          .expect(200);
+        const res = await request(server).get('/users').query(query).expect(200);
         expect(res.body[1].id).toBeLessThan(res.body[0].id);
       });
 
@@ -545,13 +534,8 @@ describe('#crud-typeorm', () => {
           .setJoin({ field: 'company' })
           .sortBy({ field: 'company.id', order: 'DESC' })
           .query();
-        const res = await request(server)
-          .get('/users')
-          .query(query)
-          .expect(200);
-        expect(res.body[res.body.length - 1].company.id).toBeLessThan(
-          res.body[0].company.id,
-        );
+        const res = await request(server).get('/users').query(query).expect(200);
+        expect(res.body[res.body.length - 1].company.id).toBeLessThan(res.body[0].company.id);
       });
 
       it('should sort by nested field, 2', async () => {
@@ -563,13 +547,8 @@ describe('#crud-typeorm', () => {
           .setJoin({ field: 'company.projects' })
           .sortBy({ field: 'projects.id', order: 'DESC' })
           .query();
-        const res = await request(server)
-          .get('/users')
-          .query(query)
-          .expect(200);
-        expect(res.body[0].company.projects[1].id).toBeLessThan(
-          res.body[0].company.projects[0].id,
-        );
+        const res = await request(server).get('/users').query(query).expect(200);
+        expect(res.body[0].company.projects[1].id).toBeLessThan(res.body[0].company.projects[0].id);
       });
 
       it('should sort by nested field, 3', async () => {
@@ -581,13 +560,8 @@ describe('#crud-typeorm', () => {
           .setJoin({ field: 'company.projects' })
           .sortBy({ field: 'company.projects.id', order: 'DESC' })
           .query();
-        const res = await request(server)
-          .get('/users')
-          .query(query)
-          .expect(200);
-        expect(res.body[0].company.projects[1].id).toBeLessThan(
-          res.body[0].company.projects[0].id,
-        );
+        const res = await request(server).get('/users').query(query).expect(200);
+        expect(res.body[0].company.projects[1].id).toBeLessThan(res.body[0].company.projects[0].id);
       });
 
       it('should throw 400 if SQL injection has been detected', (done) => {
@@ -598,7 +572,7 @@ describe('#crud-typeorm', () => {
           })
           .query();
 
-        return request(server)
+        request(server)
           .get('/companies')
           .query(query)
           .end((_, res) => {
@@ -615,145 +589,99 @@ describe('#crud-typeorm', () => {
 
       it('should return with search, 1', async () => {
         const query = qb.search({ id: 1 }).query();
-        const res = await projects2()
-          .query(query)
-          .expect(200);
+        const res = await projects2().query(query).expect(200);
         expect(res.body).toBeArrayOfSize(1);
         expect(res.body[0].id).toBe(1);
       });
       it('should return with search, 2', async () => {
         const query = qb.search({ id: 1, name: 'Project1' }).query();
-        const res = await projects2()
-          .query(query)
-          .expect(200);
+        const res = await projects2().query(query).expect(200);
         expect(res.body).toBeArrayOfSize(1);
         expect(res.body[0].id).toBe(1);
       });
       it('should return with search, 3', async () => {
         const query = qb.search({ id: 1, name: { $eq: 'Project1' } }).query();
-        const res = await projects2()
-          .query(query)
-          .expect(200);
+        const res = await projects2().query(query).expect(200);
         expect(res.body).toBeArrayOfSize(1);
         expect(res.body[0].id).toBe(1);
       });
       it('should return with search, 4', async () => {
         const query = qb.search({ name: { $eq: 'Project1' } }).query();
-        const res = await projects2()
-          .query(query)
-          .expect(200);
+        const res = await projects2().query(query).expect(200);
         expect(res.body).toBeArrayOfSize(1);
         expect(res.body[0].id).toBe(1);
       });
       it('should return with search, 5', async () => {
         const query = qb.search({ id: { $notnull: true, $eq: 1 } }).query();
-        const res = await projects2()
-          .query(query)
-          .expect(200);
+        const res = await projects2().query(query).expect(200);
         expect(res.body).toBeArrayOfSize(1);
         expect(res.body[0].id).toBe(1);
       });
       it('should return with search, 6', async () => {
         const query = qb.search({ id: { $or: { $isnull: true, $eq: 1 } } }).query();
-        const res = await projects2()
-          .query(query)
-          .expect(200);
+        const res = await projects2().query(query).expect(200);
         expect(res.body).toBeArrayOfSize(1);
         expect(res.body[0].id).toBe(1);
       });
       it('should return with search, 7', async () => {
         const query = qb.search({ id: { $or: { $eq: 1 } } }).query();
-        const res = await projects2()
-          .query(query)
-          .expect(200);
+        const res = await projects2().query(query).expect(200);
         expect(res.body).toBeArrayOfSize(1);
         expect(res.body[0].id).toBe(1);
       });
       it('should return with search, 8', async () => {
-        const query = qb
-          .search({ id: { $notnull: true, $or: { $eq: 1, $in: [30, 31] } } })
-          .query();
-        const res = await projects2()
-          .query(query)
-          .expect(200);
+        const query = qb.search({ id: { $notnull: true, $or: { $eq: 1, $in: [30, 31] } } }).query();
+        const res = await projects2().query(query).expect(200);
         expect(res.body).toBeArrayOfSize(1);
         expect(res.body[0].id).toBe(1);
       });
       it('should return with search, 9', async () => {
         const query = qb.search({ id: { $notnull: true, $or: { $eq: 1 } } }).query();
-        const res = await projects2()
-          .query(query)
-          .expect(200);
+        const res = await projects2().query(query).expect(200);
         expect(res.body).toBeArrayOfSize(1);
         expect(res.body[0].id).toBe(1);
       });
       it('should return with search, 10', async () => {
         const query = qb.search({ id: null }).query();
-        const res = await projects2()
-          .query(query)
-          .expect(200);
+        const res = await projects2().query(query).expect(200);
         expect(res.body).toBeArrayOfSize(0);
       });
       it('should return with search, 11', async () => {
-        const query = qb
-          .search({ $and: [{ id: { $notin: [5, 6, 7, 8, 9, 10] } }, { isActive: true }] })
-          .query();
-        const res = await projects2()
-          .query(query)
-          .expect(200);
+        const query = qb.search({ $and: [{ id: { $notin: [5, 6, 7, 8, 9, 10] } }, { isActive: true }] }).query();
+        const res = await projects2().query(query).expect(200);
         expect(res.body).toBeArrayOfSize(4);
       });
       it('should return with search, 12', async () => {
-        const query = qb
-          .search({ $and: [{ id: { $notin: [5, 6, 7, 8, 9, 10] } }] })
-          .query();
-        const res = await projects2()
-          .query(query)
-          .expect(200);
+        const query = qb.search({ $and: [{ id: { $notin: [5, 6, 7, 8, 9, 10] } }] }).query();
+        const res = await projects2().query(query).expect(200);
         expect(res.body).toBeArrayOfSize(14);
       });
       it('should return with search, 13', async () => {
         const query = qb.search({ $or: [{ id: 54 }] }).query();
-        const res = await projects2()
-          .query(query)
-          .expect(200);
+        const res = await projects2().query(query).expect(200);
         expect(res.body).toBeArrayOfSize(0);
       });
       it('should return with search, 14', async () => {
-        const query = qb
-          .search({ $or: [{ id: 54 }, { id: 33 }, { id: { $in: [1, 2] } }] })
-          .query();
-        const res = await projects2()
-          .query(query)
-          .expect(200);
+        const query = qb.search({ $or: [{ id: 54 }, { id: 33 }, { id: { $in: [1, 2] } }] }).query();
+        const res = await projects2().query(query).expect(200);
         expect(res.body).toBeArrayOfSize(2);
         expect(res.body[0].id).toBe(1);
         expect(res.body[1].id).toBe(2);
       });
       it('should return with search, 15', async () => {
         const query = qb.search({ $or: [{ id: 54 }], name: 'Project1' }).query();
-        const res = await projects2()
-          .query(query)
-          .expect(200);
+        const res = await projects2().query(query).expect(200);
         expect(res.body).toBeArrayOfSize(0);
       });
       it('should return with search, 16', async () => {
-        const query = qb
-          .search({ $or: [{ isActive: false }, { id: 3 }], name: 'Project3' })
-          .query();
-        const res = await projects2()
-          .query(query)
-          .expect(200);
+        const query = qb.search({ $or: [{ isActive: false }, { id: 3 }], name: 'Project3' }).query();
+        const res = await projects2().query(query).expect(200);
         expect(res.body).toBeArrayOfSize(1);
         expect(res.body[0].id).toBe(3);
       });
       it('should return with search, 17', async () => {
-        const query = qb
-          .search({ $or: [{ isActive: false }, { id: { $eq: 3 } }], name: 'Project3' })
-          .query();
-        const res = await projects2()
-          .query(query)
-          .expect(200);
+        const query = qb.search({ $or: [{ isActive: false }, { id: { $eq: 3 } }], name: 'Project3' }).query();
+        const res = await projects2().query(query).expect(200);
         expect(res.body).toBeArrayOfSize(1);
         expect(res.body[0].id).toBe(3);
       });
@@ -764,112 +692,76 @@ describe('#crud-typeorm', () => {
             name: { $eq: 'Project3' },
           })
           .query();
-        const res = await projects2()
-          .query(query)
-          .expect(200);
+        const res = await projects2().query(query).expect(200);
         expect(res.body).toBeArrayOfSize(1);
         expect(res.body[0].id).toBe(3);
       });
       it('should return with default filter, 1', async () => {
         const query = qb.search({ name: 'Project11' }).query();
-        const res = await projects3()
-          .query(query)
-          .expect(200);
+        const res = await projects3().query(query).expect(200);
         expect(res.body).toBeArrayOfSize(1);
         expect(res.body[0].id).toBe(11);
       });
       it('should return with default filter, 2', async () => {
         const query = qb.search({ name: 'Project1' }).query();
-        const res = await projects3()
-          .query(query)
-          .expect(200);
+        const res = await projects3().query(query).expect(200);
         expect(res.body).toBeArrayOfSize(0);
       });
       it('should return with default filter, 3', async () => {
         const query = qb.search({ name: 'Project2' }).query();
-        const res = await projects4()
-          .query(query)
-          .expect(200);
+        const res = await projects4().query(query).expect(200);
         expect(res.body).toBeArrayOfSize(1);
         expect(res.body[0].id).toBe(2);
       });
       it('should return with default filter, 4', async () => {
         const query = qb.search({ name: 'Project11' }).query();
-        const res = await projects4()
-          .query(query)
-          .expect(200);
+        const res = await projects4().query(query).expect(200);
         expect(res.body).toBeArrayOfSize(0);
       });
       it('should return with $eqL search operator', async () => {
         const query = qb.search({ name: { $eqL: 'project1' } }).query();
-        const res = await projects4()
-          .query(query)
-          .expect(200);
+        const res = await projects4().query(query).expect(200);
         expect(res.body).toBeArrayOfSize(1);
       });
       it('should return with $neL search operator', async () => {
         const query = qb.search({ name: { $neL: 'project1' } }).query();
-        const res = await projects4()
-          .query(query)
-          .expect(200);
+        const res = await projects4().query(query).expect(200);
         expect(res.body).toBeArrayOfSize(9);
       });
       it('should return with $startsL search operator', async () => {
         const query = qb.search({ email: { $startsL: '2' } }).query();
-        const res = await request(server)
-          .get('/users')
-          .query(query)
-          .expect(200);
+        const res = await request(server).get('/users').query(query).expect(200);
         expect(res.body).toBeArrayOfSize(3);
       });
       it('should return with $endsL search operator', async () => {
         const query = qb.search({ domain: { $endsL: 'AiN10' } }).query();
-        const res = await request(server)
-          .get('/companies')
-          .query(query)
-          .expect(200);
+        const res = await request(server).get('/companies').query(query).expect(200);
         expect(res.body).toBeArrayOfSize(1);
         expect(res.body[0].domain).toBe('Domain10');
       });
       it('should return with $contL search operator', async () => {
         const query = qb.search({ email: { $contL: '1@' } }).query();
-        const res = await request(server)
-          .get('/users')
-          .query(query)
-          .expect(200);
+        const res = await request(server).get('/users').query(query).expect(200);
         expect(res.body).toBeArrayOfSize(3);
       });
       it('should return with $exclL search operator', async () => {
         const query = qb.search({ email: { $exclL: '1@' } }).query();
-        const res = await request(server)
-          .get('/users')
-          .query(query)
-          .expect(200);
+        const res = await request(server).get('/users').query(query).expect(200);
         expect(res.body).toBeArrayOfSize(18);
       });
       it('should return with $inL search operator', async () => {
         const query = qb.search({ name: { $inL: ['name2', 'name3'] } }).query();
-        const res = await request(server)
-          .get('/companies')
-          .query(query)
-          .expect(200);
+        const res = await request(server).get('/companies').query(query).expect(200);
         expect(res.body).toBeArrayOfSize(2);
       });
       it('should return with $notinL search operator', async () => {
-        const query = qb
-          .search({ name: { $notinL: ['project7', 'project8', 'project9'] } })
-          .query();
-        const res = await projects4()
-          .query(query)
-          .expect(200);
+        const query = qb.search({ name: { $notinL: ['project7', 'project8', 'project9'] } }).query();
+        const res = await projects4().query(query).expect(200);
         expect(res.body).toBeArrayOfSize(7);
       });
       it('should search by display column name, but use dbName in sql query', async () => {
         const query = qb.search({ revisionId: 2 }).query();
-        const res = await request(server)
-          .get('/notes')
-          .query(query)
-          .expect(200);
+        const res = await request(server).get('/notes').query(query).expect(200);
         expect(res.body).toBeArrayOfSize(2);
         expect(res.body[0].revisionId).toBe(2);
         expect(res.body[1].revisionId).toBe(2);
@@ -878,14 +770,9 @@ describe('#crud-typeorm', () => {
 
     describe('#update', () => {
       it('should update company id of project', async () => {
-        await request(server)
-          .patch('/projects/18')
-          .send({ companyId: 10 })
-          .expect(200);
+        await request(server).patch('/projects/18').send({ companyId: 10 }).expect(200);
 
-        const modified = await request(server)
-          .get('/projects/18')
-          .expect(200);
+        const modified = await request(server).get('/projects/18').expect(200);
 
         expect(modified.body.companyId).toBe(10);
       });

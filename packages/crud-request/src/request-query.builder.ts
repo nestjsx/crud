@@ -1,11 +1,4 @@
-import {
-  hasValue,
-  isObject,
-  isString,
-  isArrayFull,
-  isNil,
-  isUndefined,
-} from '@nestjsx/util';
+import { hasValue, isObject, isString, isArrayFull, isNil, isUndefined } from '@nestjsx/util';
 import { stringify } from 'qs';
 
 import { RequestQueryBuilderOptions, CreateQueryParams } from './interfaces';
@@ -29,10 +22,6 @@ import {
 
 // tslint:disable:variable-name ban-types
 export class RequestQueryBuilder {
-  constructor() {
-    this.setParamNames();
-  }
-
   private static _options: RequestQueryBuilderOptions = {
     delim: '||',
     delimStr: ',',
@@ -50,11 +39,18 @@ export class RequestQueryBuilder {
       includeDeleted: 'include_deleted',
     },
   };
+
+  public queryObject: { [key: string]: any } = {};
+
+  public queryString: string;
+
   private paramNames: {
     [key in keyof RequestQueryBuilderOptions['paramNamesMap']]: string;
   } = {};
-  public queryObject: { [key: string]: any } = {};
-  public queryString: string;
+
+  constructor() {
+    this.setParamNames();
+  }
 
   static setOptions(options: RequestQueryBuilderOptions) {
     RequestQueryBuilder._options = {
@@ -172,20 +168,12 @@ export class RequestQueryBuilder {
     return this;
   }
 
-  cond(
-    f: QueryFilter | QueryFilterArr,
-    cond: 'filter' | 'or' | 'search' = 'search',
-  ): string {
+  cond(f: QueryFilter | QueryFilterArr, cond: 'filter' | 'or' | 'search' = 'search'): string {
     const filter = Array.isArray(f) ? { field: f[0], operator: f[1], value: f[2] } : f;
     validateCondition(filter, cond);
     const d = this.options.delim;
 
-    return (
-      filter.field +
-      d +
-      filter.operator +
-      (hasValue(filter.value) ? d + filter.value : '')
-    );
+    return filter.field + d + filter.operator + (hasValue(filter.value) ? d + filter.value : '');
   }
 
   private addJoin(j: QueryJoin | QueryJoinArr): string {
@@ -222,10 +210,7 @@ export class RequestQueryBuilder {
     return this;
   }
 
-  private checkQueryObjectParam(
-    cond: keyof RequestQueryBuilderOptions['paramNamesMap'],
-    defaults: any,
-  ): string {
+  private checkQueryObjectParam(cond: keyof RequestQueryBuilderOptions['paramNamesMap'], defaults: any): string {
     const param = this.paramNames[cond];
     if (isNil(this.queryObject[param]) && !isUndefined(defaults)) {
       this.queryObject[param] = defaults;
@@ -248,10 +233,7 @@ export class RequestQueryBuilder {
     }
   }
 
-  private setNumeric(
-    n: number,
-    cond: 'limit' | 'offset' | 'page' | 'cache' | 'includeDeleted',
-  ): void {
+  private setNumeric(n: number, cond: 'limit' | 'offset' | 'page' | 'cache' | 'includeDeleted'): void {
     if (!isNil(n)) {
       validateNumeric(n, cond);
       this.queryObject[this.paramNames[cond]] = n;

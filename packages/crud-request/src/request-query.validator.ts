@@ -1,24 +1,8 @@
-import {
-  isUndefined,
-  isArrayStrings,
-  isStringFull,
-  isObject,
-  isEqual,
-  isNumber,
-  isNil,
-  objKeys,
-} from '@nestjsx/util';
+import { isUndefined, isArrayStrings, isStringFull, isObject, isEqual, isNumber, isNil, objKeys } from '@nestjsx/util';
 
 import { RequestQueryException } from './exceptions';
 import { ParamsOptions, ParamOption } from './interfaces';
-import {
-  QueryFields,
-  QueryFilter,
-  ComparisonOperator,
-  QueryJoin,
-  QuerySort,
-  CondOperator,
-} from './types';
+import { QueryFields, QueryFilter, ComparisonOperator, QueryJoin, QuerySort, CondOperator } from './types';
 
 export const deprecatedComparisonOperatorsList = [
   'eq',
@@ -53,23 +37,16 @@ export function validateFields(fields: QueryFields): void {
   }
 }
 
-export function validateCondition(
-  val: QueryFilter,
-  cond: 'filter' | 'or' | 'search',
-): void {
+export function validateCondition(val: QueryFilter, cond: 'filter' | 'or' | 'search'): void {
   if (!isObject(val) || !isStringFull(val.field)) {
-    throw new RequestQueryException(
-      `Invalid field type in ${cond} condition. String expected`,
-    );
+    throw new RequestQueryException(`Invalid field type in ${cond} condition. String expected`);
   }
   validateComparisonOperator(val.operator);
 }
 
 export function validateComparisonOperator(operator: ComparisonOperator): void {
   if (!comparisonOperatorsList.includes(operator)) {
-    throw new RequestQueryException(
-      `Invalid comparison operator. ${comparisonOperatorsListStr} expected`,
-    );
+    throw new RequestQueryException(`Invalid comparison operator. ${comparisonOperatorsListStr} expected`);
   }
 }
 
@@ -86,10 +63,7 @@ export function validateSort(sort: QuerySort): void {
   if (!isObject(sort) || !isStringFull(sort.field)) {
     throw new RequestQueryException('Invalid sort field. String expected');
   }
-  if (
-    !isEqual(sort.order, sortOrdersList[0]) &&
-    !isEqual(sort.order, sortOrdersList[1])
-  ) {
+  if (!isEqual(sort.order, sortOrdersList[0]) && !isEqual(sort.order, sortOrdersList[1])) {
     throw new RequestQueryException(`Invalid sort order. ${sortOrdersListStr} expected`);
   }
 }
@@ -112,7 +86,7 @@ export function validateParamOption(options: ParamsOptions, name: string) {
     return;
   }
   if (!isObject(option) || isNil(option.field) || isNil(option.type)) {
-    throw new RequestQueryException(`Invalid param option in Crud`);
+    throw new RequestQueryException('Invalid param option in Crud');
   }
 }
 

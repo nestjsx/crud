@@ -45,14 +45,17 @@ describe('#crud', () => {
     });
 
     describe('#getManyBase', () => {
-      it('should return status 200', () => {
-        return request(server)
+      it('should return status 200', (done) => {
+        request(server)
           .get('/test')
-          .expect(200);
+          .end((_, res) => {
+            expect(res.status).toEqual(200);
+            done();
+          });
       });
       it('should return status 400', (done) => {
         const query = qb.setFilter({ field: 'foo', operator: 'gt' }).query();
-        return request(server)
+        request(server)
           .get('/test')
           .query(query)
           .end((_, res) => {
@@ -65,13 +68,16 @@ describe('#crud', () => {
     });
 
     describe('#getOneBase', () => {
-      it('should return status 200', () => {
-        return request(server)
+      it('should return status 200', (done) => {
+        request(server)
           .get('/test/1')
-          .expect(200);
+          .end((_, res) => {
+            expect(res.status).toEqual(200);
+            done();
+          });
       });
       it('should return status 400', (done) => {
-        return request(server)
+        request(server)
           .get('/test/invalid')
           .end((_, res) => {
             const expected = {
@@ -86,17 +92,20 @@ describe('#crud', () => {
     });
 
     describe('#createOneBase', () => {
-      it('should return status 201', () => {
+      it('should return status 201', (done) => {
         const send: TestModel = {
           firstName: 'firstName',
           lastName: 'lastName',
           email: 'test@test.com',
           age: 15,
         };
-        return request(server)
+        request(server)
           .post('/test')
           .send(send)
-          .expect(201);
+          .end((_, res) => {
+            expect(res.status).toEqual(201);
+            done();
+          });
       });
       it('should return status 400', (done) => {
         const send: TestModel = {
@@ -104,7 +113,7 @@ describe('#crud', () => {
           lastName: 'lastName',
           email: 'test@test.com',
         };
-        return request(server)
+        request(server)
           .post('/test')
           .send(send)
           .end((_, res) => {
@@ -115,7 +124,7 @@ describe('#crud', () => {
     });
 
     describe('#createMadyBase', () => {
-      it('should return status 201', () => {
+      it('should return status 201', (done) => {
         const send: CreateManyDto<TestModel> = {
           bulk: [
             {
@@ -132,16 +141,19 @@ describe('#crud', () => {
             },
           ],
         };
-        return request(server)
+        request(server)
           .post('/test/bulk')
           .send(send)
-          .expect(201);
+          .end((_, res) => {
+            expect(res.status).toEqual(201);
+            done();
+          });
       });
       it('should return status 400', (done) => {
         const send: CreateManyDto<TestModel> = {
           bulk: [],
         };
-        return request(server)
+        request(server)
           .post('/test/bulk')
           .send(send)
           .end((_, res) => {
@@ -152,7 +164,7 @@ describe('#crud', () => {
     });
 
     describe('#replaceOneBase', () => {
-      it('should return status 200', () => {
+      it('should return status 200', (done) => {
         const send: TestModel = {
           id: 1,
           firstName: 'firstName',
@@ -160,10 +172,13 @@ describe('#crud', () => {
           email: 'test@test.com',
           age: 15,
         };
-        return request(server)
+        request(server)
           .put('/test/1')
           .send(send)
-          .expect(200);
+          .end((_, res) => {
+            expect(res.status).toEqual(200);
+            done();
+          });
       });
       it('should return status 400', (done) => {
         const send: TestModel = {
@@ -171,7 +186,7 @@ describe('#crud', () => {
           lastName: 'lastName',
           email: 'test@test.com',
         };
-        return request(server)
+        request(server)
           .put('/test/1')
           .send(send)
           .end((_, res) => {
@@ -182,7 +197,7 @@ describe('#crud', () => {
     });
 
     describe('#updateOneBase', () => {
-      it('should return status 200', () => {
+      it('should return status 200', (done) => {
         const send: TestModel = {
           id: 1,
           firstName: 'firstName',
@@ -190,10 +205,13 @@ describe('#crud', () => {
           email: 'test@test.com',
           age: 15,
         };
-        return request(server)
+        request(server)
           .patch('/test/1')
           .send(send)
-          .expect(200);
+          .end((_, res) => {
+            expect(res.status).toEqual(200);
+            done();
+          });
       });
       it('should return status 400', (done) => {
         const send: TestModel = {
@@ -201,7 +219,7 @@ describe('#crud', () => {
           lastName: 'lastName',
           email: 'test@test.com',
         };
-        return request(server)
+        request(server)
           .patch('/test/1')
           .send(send)
           .end((_, res) => {
@@ -212,10 +230,13 @@ describe('#crud', () => {
     });
 
     describe('#deleteOneBase', () => {
-      it('should return status 200', () => {
-        return request(server)
+      it('should return status 200', (done) => {
+        request(server)
           .delete('/test/1')
-          .expect(200);
+          .end((_, res) => {
+            expect(res.status).toEqual(200);
+            done();
+          });
       });
     });
   });

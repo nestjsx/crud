@@ -17,25 +17,15 @@ import {
   SConditionKey,
   ComparisonOperator,
 } from '@nestjsx/crud-request';
-import {
-  ClassType,
-  hasLength,
-  isArrayFull,
-  isObject,
-  isUndefined,
-  objKeys,
-  isNil,
-  isNull,
-} from '@nestjsx/util';
+import { ClassType, hasLength, isArrayFull, isObject, isUndefined, objKeys, isNil, isNull } from '@nestjsx/util';
 import { oO } from '@zmotivat0r/o0';
 import { plainToClass } from 'class-transformer';
 import {
   Brackets,
+  DeepPartial,
   ObjectLiteral,
   Repository,
   SelectQueryBuilder,
-  DeepPartial,
-  WhereExpression,
   ConnectionOptions,
   EntityMetadata,
 } from 'typeorm';
@@ -52,11 +42,17 @@ interface IAllowedRelation {
 
 export class TypeOrmCrudService<T> extends CrudService<T> {
   protected dbName: ConnectionOptions['type'];
+
   protected entityColumns: string[];
+
   protected entityPrimaryColumns: string[];
-  protected entityHasDeleteColumn: boolean = false;
+
+  protected entityHasDeleteColumn = false;
+
   protected entityColumnsHash: ObjectLiteral = {};
+
   protected entityRelationsHash: Map<string, IAllowedRelation> = new Map();
+
   protected sqlInjectionRegEx: RegExp[] = [
     /(%27)|(\')|(--)|(%23)|(#)/gi,
     /((%3D)|(=))[^\n]*((%27)|(\')|(--)|(%3B)|(;))/gi,
@@ -114,13 +110,13 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
    * @param req
    * @param dto
    */
-  public async createOne(req: CrudRequest, dto: DeepPartial<T>): Promise<T> {
+  public async createOne(req: CrudRequest, dto: T | Partial<T>): Promise<T> {
     const { returnShallow } = req.options.routes.createOneBase;
     const entity = this.prepareEntityBeforeSave(dto, req.parsed);
 
     /* istanbul ignore if */
     if (!entity) {
-      this.throwBadRequestException(`Empty data. Nothing to save.`);
+      this.throwBadRequestException('Empty data. Nothing to save.');
     }
 
     const saved = await this.repo.save<any>(entity);
@@ -134,10 +130,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
       if (!primaryParams.length && primaryParams.some((p) => isNil(saved[p]))) {
         return saved;
       } else {
-        req.parsed.search = primaryParams.reduce(
-          (acc, p) => ({ ...acc, [p]: saved[p] }),
-          {},
-        );
+        req.parsed.search = primaryParams.reduce((acc, p) => ({ ...acc, [p]: saved[p] }), {});
         return this.getOneOrFail(req);
       }
     }
@@ -148,22 +141,17 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
    * @param req
    * @param dto
    */
-  public async createMany(
-    req: CrudRequest,
-    dto: CreateManyDto<DeepPartial<T>>,
-  ): Promise<T[]> {
+  public async createMany(req: CrudRequest, dto: CreateManyDto<T | Partial<T>>): Promise<T[]> {
     /* istanbul ignore if */
     if (!isObject(dto) || !isArrayFull(dto.bulk)) {
-      this.throwBadRequestException(`Empty data. Nothing to save.`);
+      this.throwBadRequestException('Empty data. Nothing to save.');
     }
 
-    const bulk = dto.bulk
-      .map((one) => this.prepareEntityBeforeSave(one, req.parsed))
-      .filter((d) => !isUndefined(d));
+    const bulk = dto.bulk.map((one) => this.prepareEntityBeforeSave(one, req.parsed)).filter((d) => !isUndefined(d));
 
     /* istanbul ignore if */
     if (!hasLength(bulk)) {
-      this.throwBadRequestException(`Empty data. Nothing to save.`);
+      this.throwBadRequestException('Empty data. Nothing to save.');
     }
 
     return this.repo.save<any>(bulk, { chunk: 50 });
@@ -174,14 +162,14 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
    * @param req
    * @param dto
    */
-  public async updateOne(req: CrudRequest, dto: DeepPartial<T>): Promise<T> {
+  public async updateOne(req: CrudRequest, dto: T | Partial<T>): Promise<T> {
     const { allowParamsOverride, returnShallow } = req.options.routes.updateOneBase;
     const paramsFilters = this.getParamFilters(req.parsed);
     const found = await this.getOneOrFail(req, returnShallow);
     const toSave = !allowParamsOverride
       ? { ...found, ...dto, ...paramsFilters, ...req.parsed.authPersist }
       : { ...found, ...dto, ...req.parsed.authPersist };
-    const updated = await this.repo.save(plainToClass(this.entityType, toSave));
+    const updated = await this.repo.save(plainToClass(this.entityType, toSave) as unknown as DeepPartial<T>);
 
     if (returnShallow) {
       return updated;
@@ -201,7 +189,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
    */
   public async recoverOne(req: CrudRequest): Promise<T> {
     const found = await this.getOneOrFail(req, false, true);
-    return this.repo.recover(found);
+    return this.repo.recover(found as unknown as DeepPartial<T>);
   }
 
   /**
@@ -209,7 +197,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
    * @param req
    * @param dto
    */
-  public async replaceOne(req: CrudRequest, dto: DeepPartial<T>): Promise<T> {
+  public async replaceOne(req: CrudRequest, dto: T | Partial<T>): Promise<T> {
     const { allowParamsOverride, returnShallow } = req.options.routes.replaceOneBase;
     const paramsFilters = this.getParamFilters(req.parsed);
     const [_, found] = await oO(this.getOneOrFail(req, returnShallow));
@@ -221,7 +209,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
           ...dto,
           ...req.parsed.authPersist,
         };
-    const replaced = await this.repo.save(plainToClass(this.entityType, toSave));
+    const replaced = await this.repo.save(plainToClass(this.entityType, toSave) as unknown as DeepPartial<T>);
 
     if (returnShallow) {
       return replaced;
@@ -233,10 +221,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
         return replaced;
       }
 
-      req.parsed.search = primaryParams.reduce(
-        (acc, p) => ({ ...acc, [p]: replaced[p] }),
-        {},
-      );
+      req.parsed.search = primaryParams.reduce((acc, p) => ({ ...acc, [p]: replaced[p] }), {});
       return this.getOneOrFail(req);
     }
   }
@@ -248,18 +233,16 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
   public async deleteOne(req: CrudRequest): Promise<void | T> {
     const { returnDeleted } = req.options.routes.deleteOneBase;
     const found = await this.getOneOrFail(req, returnDeleted);
-    const toReturn = returnDeleted
-      ? plainToClass(this.entityType, { ...found })
-      : undefined;
+    const toReturn = returnDeleted ? plainToClass(this.entityType, { ...found }) : undefined;
     const deleted =
       req.options.query.softDelete === true
-        ? await this.repo.softRemove(found)
+        ? await this.repo.softRemove(found as unknown as DeepPartial<T>)
         : await this.repo.remove(found);
     return toReturn;
   }
 
   public getParamFilters(parsed: CrudRequest['parsed']): ObjectLiteral {
-    let filters = {};
+    const filters = {};
 
     /* istanbul ignore else */
     if (hasLength(parsed.paramsFilter)) {
@@ -397,15 +380,10 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     this.entityPrimaryColumns = this.repo.metadata.columns
       .filter((prop) => prop.isPrimary)
       .map((prop) => prop.propertyName);
-    this.entityHasDeleteColumn =
-      this.repo.metadata.columns.filter((prop) => prop.isDeleteDate).length > 0;
+    this.entityHasDeleteColumn = this.repo.metadata.columns.filter((prop) => prop.isDeleteDate).length > 0;
   }
 
-  protected async getOneOrFail(
-    req: CrudRequest,
-    shallow = false,
-    withDeleted = false,
-  ): Promise<T> {
+  protected async getOneOrFail(req: CrudRequest, shallow = false, withDeleted = false): Promise<T> {
     const { parsed, options } = req;
     const builder = shallow
       ? this.repo.createQueryBuilder(this.alias)
@@ -415,9 +393,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
       this.setSearchCondition(builder, parsed.search);
     }
 
-    const found = withDeleted
-      ? await builder.withDeleted().getOne()
-      : await builder.getOne();
+    const found = withDeleted ? await builder.withDeleted().getOne() : await builder.getOne();
 
     if (!found) {
       this.throwNotFoundException(this.alias);
@@ -426,10 +402,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     return found;
   }
 
-  protected prepareEntityBeforeSave(
-    dto: DeepPartial<T>,
-    parsed: CrudRequest['parsed'],
-  ): T {
+  protected prepareEntityBeforeSave(dto: T | Partial<T>, parsed: CrudRequest['parsed']): T {
     /* istanbul ignore if */
     if (!isObject(dto)) {
       return undefined;
@@ -466,15 +439,10 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
         );
   }
 
-  protected getEntityColumns(
-    entityMetadata: EntityMetadata,
-  ): { columns: string[]; primaryColumns: string[] } {
-    const columns =
-      entityMetadata.columns.map((prop) => prop.propertyPath) ||
-      /* istanbul ignore next */ [];
+  protected getEntityColumns(entityMetadata: EntityMetadata): { columns: string[]; primaryColumns: string[] } {
+    const columns = entityMetadata.columns.map((prop) => prop.propertyPath) || /* istanbul ignore next */ [];
     const primaryColumns =
-      entityMetadata.primaryColumns.map((prop) => prop.propertyPath) ||
-      /* istanbul ignore next */ [];
+      entityMetadata.primaryColumns.map((prop) => prop.propertyPath) || /* istanbul ignore next */ [];
 
     return { columns, primaryColumns };
   }
@@ -494,9 +462,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
         let parentPath: string;
 
         if (fields.length === 1) {
-          const found = this.repo.metadata.relations.find(
-            (one) => one.propertyName === fields[0],
-          );
+          const found = this.repo.metadata.relations.find((one) => one.propertyName === fields[0]);
 
           if (found) {
             name = fields[0];
@@ -517,9 +483,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
               name = propertyName;
 
               if (i !== fields.length - 1) {
-                parentPath = !parentPath
-                  ? propertyName
-                  : /* istanbul ignore next */ `${parentPath}.${propertyName}`;
+                parentPath = !parentPath ? propertyName : /* istanbul ignore next */ `${parentPath}.${propertyName}`;
               }
 
               return {
@@ -544,9 +508,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
 
             /* istanbul ignore next */
             if (parentAllowedRelation) {
-              path = parentAllowedRelation.alias
-                ? `${parentAllowedRelation.alias}.${name}`
-                : field;
+              path = parentAllowedRelation.alias ? `${parentAllowedRelation.alias}.${name}` : field;
             }
           }
 
@@ -579,11 +541,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     }
   }
 
-  protected setJoin(
-    cond: QueryJoin,
-    joinOptions: JoinOptions,
-    builder: SelectQueryBuilder<T>,
-  ) {
+  protected setJoin(cond: QueryJoin, joinOptions: JoinOptions, builder: SelectQueryBuilder<T>) {
     const options = joinOptions[cond.field];
 
     if (!options) {
@@ -603,9 +561,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
 
     if (options.select !== false) {
       const columns = isArrayFull(cond.select)
-        ? cond.select.filter((column) =>
-            allowedRelation.allowedColumns.some((allowed) => allowed === column),
-          )
+        ? cond.select.filter((column) => allowedRelation.allowedColumns.some((allowed) => allowed === column))
         : allowedRelation.allowedColumns;
 
       const select = [
@@ -618,29 +574,17 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     }
   }
 
-  protected setAndWhere(
-    cond: QueryFilter,
-    i: any,
-    builder: SelectQueryBuilder<T> | WhereExpression,
-  ) {
+  protected setAndWhere(cond: QueryFilter, i: any, builder: SelectQueryBuilder<T>) {
     const { str, params } = this.mapOperatorsToQuery(cond, `andWhere${i}`);
     builder.andWhere(str, params);
   }
 
-  protected setOrWhere(
-    cond: QueryFilter,
-    i: any,
-    builder: SelectQueryBuilder<T> | WhereExpression,
-  ) {
+  protected setOrWhere(cond: QueryFilter, i: any, builder: SelectQueryBuilder<T>) {
     const { str, params } = this.mapOperatorsToQuery(cond, `orWhere${i}`);
     builder.orWhere(str, params);
   }
 
-  protected setSearchCondition(
-    builder: SelectQueryBuilder<T>,
-    search: SCondition,
-    condition: SConditionKey = '$and',
-  ) {
+  protected setSearchCondition(builder: SelectQueryBuilder<T>, search: SCondition, condition: SConditionKey = '$and') {
     /* istanbul ignore else */
     if (isObject(search)) {
       const keys = objKeys(search);
@@ -754,11 +698,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     }
   }
 
-  protected builderAddBrackets(
-    builder: SelectQueryBuilder<T>,
-    condition: SConditionKey,
-    brackets: Brackets,
-  ) {
+  protected builderAddBrackets(builder: SelectQueryBuilder<T>, condition: SConditionKey, brackets: Brackets) {
     if (condition === '$and') {
       builder.andWhere(brackets);
     } else {
@@ -775,11 +715,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
   ) {
     const time = process.hrtime();
     const index = `${field}${time[0]}${time[1]}`;
-    const args = [
-      { field, operator: isNull(value) ? '$isnull' : operator, value },
-      index,
-      builder,
-    ];
+    const args = [{ field, operator: isNull(value) ? '$isnull' : operator, value }, index, builder];
     const fn = condition === '$and' ? this.setAndWhere : this.setOrWhere;
     fn.apply(this, args);
   }
@@ -800,12 +736,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
 
         if (isObject(object.$or)) {
           const orKeys = objKeys(object.$or);
-          this.setSearchFieldObjectCondition(
-            builder,
-            orKeys.length === 1 ? condition : '$or',
-            field,
-            object.$or,
-          );
+          this.setSearchFieldObjectCondition(builder, orKeys.length === 1 ? condition : '$or', field, object.$or);
         } else {
           this.builderSetWhere(builder, condition, field, value, operator);
         }
@@ -869,7 +800,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
       : {};
   }
 
-  protected getFieldWithAlias(field: string, sort: boolean = false) {
+  protected getFieldWithAlias(field: string, sort = false) {
     /* istanbul ignore next */
     const i = this.dbName === 'mysql' ? '`' : '"';
     const cols = field.split('.');
@@ -880,8 +811,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
           return `${this.alias}.${field}`;
         }
 
-        const dbColName =
-          this.entityColumnsHash[field] !== field ? this.entityColumnsHash[field] : field;
+        const dbColName = this.entityColumnsHash[field] !== field ? this.entityColumnsHash[field] : field;
 
         return `${i}${this.alias}${i}.${i}${dbColName}${i}`;
       case 2:
@@ -903,13 +833,9 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     return params;
   }
 
-  protected mapOperatorsToQuery(
-    cond: QueryFilter,
-    param: any,
-  ): { str: string; params: ObjectLiteral } {
+  protected mapOperatorsToQuery(cond: QueryFilter, param: any): { str: string; params: ObjectLiteral } {
     const field = this.getFieldWithAlias(cond.field);
-    const likeOperator =
-      this.dbName === 'postgres' ? 'ILIKE' : /* istanbul ignore next */ 'LIKE';
+    const likeOperator = this.dbName === 'postgres' ? 'ILIKE' : /* istanbul ignore next */ 'LIKE';
     let str: string;
     let params: ObjectLiteral;
 
@@ -1045,11 +971,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
 
   private checkFilterIsArray(cond: QueryFilter, withLength?: boolean) {
     /* istanbul ignore if */
-    if (
-      !Array.isArray(cond.value) ||
-      !cond.value.length ||
-      (!isNil(withLength) ? withLength : false)
-    ) {
+    if (!Array.isArray(cond.value) || !cond.value.length || (!isNil(withLength) ? withLength : false)) {
       this.throwBadRequestException(`Invalid column '${cond.field}' value`);
     }
   }

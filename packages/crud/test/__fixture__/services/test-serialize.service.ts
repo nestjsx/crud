@@ -1,10 +1,6 @@
 import { Injectable, Type } from '@nestjs/common';
 
-import {
-  CreateManyDto,
-  CrudRequest,
-  GetManyDefaultResponse,
-} from '../../../src/interfaces';
+import { CreateManyDto, CrudRequest, GetManyDefaultResponse } from '../../../src/interfaces';
 import { CrudService } from '../../../src/services';
 import { TestSerializeModel } from '../models';
 
@@ -32,12 +28,17 @@ export class TestSerializeService<T = TestSerializeModel> extends CrudService<T>
       ? this.createPageInfo(this.store, total, limit || total, offset || 0)
       : this.store;
   }
+
   async getOne(req: CrudRequest): Promise<T> {
     return this.store[0];
   }
+
   async createOne(req: CrudRequest, dto: T): Promise<any> {}
+
   async createMany(req: CrudRequest, dto: CreateManyDto<T>): Promise<any> {}
+
   async updateOne(req: CrudRequest, dto: T): Promise<any> {}
+
   async replaceOne(req: CrudRequest, dto: T): Promise<any> {}
 
   async deleteOne(req: CrudRequest): Promise<any> {

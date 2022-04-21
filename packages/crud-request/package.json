@@ -48,6 +48,6 @@
   },
   "dependencies": {
     "@nestjsx/util": "^5.0.0-alpha.3",
-    "qs": "^6.8.0"
+    "qs": "^6.10.3"
   }
 }

@@ -102,23 +102,19 @@ describe('#crud', () => {
     });
 
     it('should use global config', (done) => {
-      return request(server)
+      request(server)
         .get('/test')
         .end((_, res) => {
           expect(res.status).toBe(200);
           expect(res.body.req.options.query).toMatchObject(conf.query);
           expect(res.body.req.options.params).toMatchObject(conf.params);
-          expect(res.body.req.options.routes.updateOneBase.allowParamsOverride).toBe(
-            true,
-          );
-          expect(res.body.req.options.routes.replaceOneBase.allowParamsOverride).toBe(
-            true,
-          );
+          expect(res.body.req.options.routes.updateOneBase.allowParamsOverride).toBe(true);
+          expect(res.body.req.options.routes.replaceOneBase.allowParamsOverride).toBe(true);
           done();
         });
     });
     it('should use merged config', (done) => {
-      return request(server)
+      request(server)
         .get('/test2')
         .end((_, res) => {
           expect(res.status).toBe(200);
@@ -132,18 +128,14 @@ describe('#crud', () => {
               primary: true,
             },
           });
-          expect(res.body.req.options.routes.updateOneBase.allowParamsOverride).toBe(
-            false,
-          );
-          expect(res.body.req.options.routes.replaceOneBase.allowParamsOverride).toBe(
-            false,
-          );
+          expect(res.body.req.options.routes.updateOneBase.allowParamsOverride).toBe(false);
+          expect(res.body.req.options.routes.replaceOneBase.allowParamsOverride).toBe(false);
           expect(res.body.req.options.routes.deleteOneBase.returnDeleted).toBe(true);
           done();
         });
     });
     it('should exclude route, 1', (done) => {
-      return request(server)
+      request(server)
         .post('/test/bulk')
         .send({})
         .end((_, res) => {
@@ -152,7 +144,7 @@ describe('#crud', () => {
         });
     });
     it('should exclude route, 1', (done) => {
-      return request(server)
+      request(server)
         .post('/test2/bulk')
         .send({})
         .end((_, res) => {

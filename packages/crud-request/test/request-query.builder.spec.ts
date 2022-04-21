@@ -59,14 +59,10 @@ describe('#request-query', () => {
         expect(qb.queryObject.filter).toBeUndefined();
       });
       it('should throw an error, 1', () => {
-        expect((qb.setFilter as any).bind(qb, { field: 1 })).toThrowError(
-          RequestQueryException,
-        );
+        expect((qb.setFilter as any).bind(qb, { field: 1 })).toThrowError(RequestQueryException);
       });
       it('should throw an error, 2', () => {
-        expect(
-          (qb.setFilter as any).bind(qb, { field: 'foo', operator: 'bar' }),
-        ).toThrowError(RequestQueryException);
+        expect((qb.setFilter as any).bind(qb, { field: 'foo', operator: 'bar' })).toThrowError(RequestQueryException);
       });
       it('should throw an error, 3', () => {
         expect((qb.setFilter as any).bind(qb, [{}])).toThrowError(RequestQueryException);
@@ -85,15 +81,15 @@ describe('#request-query', () => {
         expect(qb.queryObject.filter).toIncludeSameMembers(expected);
       });
       it('should set filter, 3', () => {
-        qb.setFilter([
-          ['foo', 'eq', 'bar'],
-          { field: 'baz', operator: 'ne', value: 'zoo' },
-        ]);
+        qb.setFilter([['foo', 'eq', 'bar'], { field: 'baz', operator: 'ne', value: 'zoo' }]);
         const expected = ['foo||eq||bar', 'baz||ne||zoo'];
         expect(qb.queryObject.filter).toIncludeSameMembers(expected);
       });
       it('should set filter, 4', () => {
-        qb.setFilter([['foo', 'eq', 'bar'], ['baz', 'ne', 'zoo']]);
+        qb.setFilter([
+          ['foo', 'eq', 'bar'],
+          ['baz', 'ne', 'zoo'],
+        ]);
         const expected = ['foo||eq||bar', 'baz||ne||zoo'];
         expect(qb.queryObject.filter).toIncludeSameMembers(expected);
       });
@@ -110,14 +106,10 @@ describe('#request-query', () => {
         expect(qb.queryObject.or).toBeUndefined();
       });
       it('should throw an error, 1', () => {
-        expect((qb.setOr as any).bind(qb, { field: 1 })).toThrowError(
-          RequestQueryException,
-        );
+        expect((qb.setOr as any).bind(qb, { field: 1 })).toThrowError(RequestQueryException);
       });
       it('should throw an error, 2', () => {
-        expect(
-          (qb.setOr as any).bind(qb, { field: 'foo', operator: 'bar' }),
-        ).toThrowError(RequestQueryException);
+        expect((qb.setOr as any).bind(qb, { field: 'foo', operator: 'bar' })).toThrowError(RequestQueryException);
       });
       it('should throw an error, 3', () => {
         expect((qb.setOr as any).bind(qb, [{}])).toThrowError(RequestQueryException);
@@ -143,14 +135,10 @@ describe('#request-query', () => {
         expect(qb.queryObject.join).toBeUndefined();
       });
       it('should throw an error, 1', () => {
-        expect((qb.setJoin as any).bind(qb, { field: 1 })).toThrowError(
-          RequestQueryException,
-        );
+        expect((qb.setJoin as any).bind(qb, { field: 1 })).toThrowError(RequestQueryException);
       });
       it('should throw an error, 2', () => {
-        expect((qb.setJoin as any).bind(qb, { field: 'foo', select: 1 })).toThrowError(
-          RequestQueryException,
-        );
+        expect((qb.setJoin as any).bind(qb, { field: 'foo', select: 1 })).toThrowError(RequestQueryException);
       });
       it('should throw an error, 3', () => {
         expect((qb.setJoin as any).bind(qb, [{}])).toThrowError(RequestQueryException);
@@ -188,14 +176,10 @@ describe('#request-query', () => {
         expect(qb.queryObject.sort).toBeUndefined();
       });
       it('should throw an error, 1', () => {
-        expect((qb.sortBy as any).bind(qb, { field: 1 })).toThrowError(
-          RequestQueryException,
-        );
+        expect((qb.sortBy as any).bind(qb, { field: 1 })).toThrowError(RequestQueryException);
       });
       it('should throw an error, 2', () => {
-        expect((qb.sortBy as any).bind(qb, { field: 'foo', order: 'bar' })).toThrowError(
-          RequestQueryException,
-        );
+        expect((qb.sortBy as any).bind(qb, { field: 'foo', order: 'bar' })).toThrowError(RequestQueryException);
       });
       it('should throw an error, 3', () => {
         expect((qb.sortBy as any).bind(qb, [{}])).toThrowError(RequestQueryException);
@@ -206,7 +190,10 @@ describe('#request-query', () => {
         expect(qb.queryObject.sort).toIncludeSameMembers(expected);
       });
       it('should set sort, 2', () => {
-        qb.sortBy([{ field: 'foo', order: 'ASC' }, { field: 'bar', order: 'DESC' }]);
+        qb.sortBy([
+          { field: 'foo', order: 'ASC' },
+          { field: 'bar', order: 'DESC' },
+        ]);
         const expected = ['foo,ASC', 'bar,DESC'];
         expect(qb.queryObject.sort).toIncludeSameMembers(expected);
       });
@@ -338,7 +325,7 @@ describe('#request-query', () => {
           .setIncludeDeleted(1)
           .query(false);
         const expected =
-          'fields=foo,bar&filter[0]=is||notnull&or[0]=ok||ne||false&join[0]=voo||h,data&limit=1&offset=2&page=3&sort[0]=foo,DESC&cache=0&include_deleted=1';
+          'fields=foo,bar&filter[0]=is||notnull&or[0]=ok||ne||false&join[0]=voo||h,data&limit=1&offset=2&page=3&sort[0]=foo,DESC&cache=0&include_deleted=1'; // eslint-disable-line
         expect(test).toBe(expected);
       });
     });
@@ -359,8 +346,7 @@ describe('#request-query', () => {
       });
       it('should set search string, 2', () => {
         const test = qb.search({ $or: [{ id: 1 }, { name: 'foo' }] }).query();
-        const expected =
-          's=%7B%22%24or%22%3A%5B%7B%22id%22%3A1%7D%2C%7B%22name%22%3A%22foo%22%7D%5D%7D';
+        const expected = 's=%7B%22%24or%22%3A%5B%7B%22id%22%3A1%7D%2C%7B%22name%22%3A%22foo%22%7D%5D%7D';
         expect(test).toBe(expected);
       });
     });

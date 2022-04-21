@@ -1,0 +1,33 @@
+{
+  "workspace": {
+    "name": "packages",
+    "scope": "nestjsx",
+    "registry": "npm",
+    "packages": [
+      {
+        "name": "util"
+      },
+      {
+        "name": "crud-request"
+      },
+      {
+        "name": "crud-typeorm"
+      },
+      {
+        "name": "crud"
+      }
+    ]
+  },
+  "packageGenerator": {
+    "subGenerators": [],
+    "defaultOptions": {
+      "access": "public",
+      "license": "MIT",
+      "authorName": "Michael Yali",
+      "authorEmail": "mihon4ik@gmail.com",
+      "updateTsconfig": true,
+      "subGenerators": [],
+      "dependencies": []
+    }
+  }
+}

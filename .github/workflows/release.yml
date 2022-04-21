@@ -1,0 +1,121 @@
+name: Release
+
+on:
+  pull_request:
+    types: [closed]
+
+jobs:
+  release:
+    if: github.event.pull_request.merged && startsWith(github.head_ref, 'release')
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: '0'
+
+      - name: Set NPM Token
+        uses: actions/setup-node@v2
+        with:
+          registry-url: https://registry.npmjs.org
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Install
+        run: yarn boot
+
+      - name: Build
+        run: yarn build
+
+      - name: Run Tests
+        run: yarn test
+
+      - name: Get Latest Tag
+        id: get_latest_tag
+        uses: actions-ecosystem/action-get-latest-tag@v1
+
+      - name: Parse Latest Git Tag
+        id: parse_latest_tag
+        run: |
+          TAG=$(echo ${{ steps.get_latest_tag.outputs.tag }} | cut -d 'v' -f 2)
+          echo "::set-output name=tag::${TAG}"
+
+      - name: Get Next Tag Semver
+        id: get_next_tag_semver
+        uses: WyriHaximus/github-action-next-semvers@v1
+        with:
+          version: ${{ steps.parse_latest_tag.outputs.tag }}
+
+      - name: Define Publishing Strategy
+        id: lerna_strategy
+        run: |
+          MREPO_LERNA_STRATEGY=$(cat lerna.json | npx jase version)
+          echo "MREPO_LERNA_STRATEGY=${MREPO_LERNA_STRATEGY}" >> $GITHUB_ENV
+
+      - name: Define Current Version
+        run: |
+          echo ${{ env.MREPO_LERNA_STRATEGY }}
+          if [ "${{ env.MREPO_LERNA_STRATEGY }}" = "independent" ]; then
+            CURRENT_VERSION=${{ steps.get_next_tag_semver.outputs.v_minor }}
+            DIST_TAG=$(cat lerna.json | npx jase distTag)
+          else
+            CURRENT_VERSION=$(cat lerna.json | npx jase version)
+            [[ $CURRENT_VERSION =~ "-" ]] && DIST_TAG=$(echo $CURRENT_VERSION | cut -d '-' -f 2 | cut -d '.' -f 1) || DIST_TAG="latest"
+            CURRENT_VERSION=v$CURRENT_VERSION
+          fi
+
+          echo $CURRENT_VERSION
+          echo $DIST_TAG
+
+          echo "CURRENT_VERSION=${CURRENT_VERSION}" >> $GITHUB_ENV
+          echo "DIST_TAG=${DIST_TAG}" >> $GITHUB_ENV
+
+      - name: Ensure Latest Git Tag
+        uses: mukunku/tag-exists-action@v1.0.0
+        id: checkTag
+        with:
+          tag: ${{ env.CURRENT_VERSION }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create Git Tag
+        if: steps.checkTag.outputs.exists == 'false'
+        uses: negz/create-tag@v1
+        with:
+          version: ${{ env.CURRENT_VERSION }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create Release
+        if: steps.checkTag.outputs.exists == 'false'
+        uses: actions/create-release@v1
+        with:
+          tag_name: ${{ env.CURRENT_VERSION }}
+          release_name: ${{ env.CURRENT_VERSION }}
+          body: |
+            ${{ github.event.pull_request.body }}
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish Packages to NPM Registry
+        if: steps.checkTag.outputs.exists == 'false'
+        run: |
+          lerna publish from-package --no-git-reset --no-verify-access --yes --registry https://registry.npmjs.org --dist-tag ${{ env.DIST_TAG }}
+          git update-index --assume-unchanged ./packages/**/package.json
+        env:
+          GH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Create a Comment
+        uses: actions/github-script@0.8.0
+        with:
+          github-token: ${{secrets.GITHUB_TOKEN}}
+          script: |
+            github.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: 'Packages with version [${{ env.CURRENT_VERSION }}](https://github.com/${{ github.repository }}/releases/tag/${{ env.CURRENT_VERSION }}) have been released 🎉'
+            })

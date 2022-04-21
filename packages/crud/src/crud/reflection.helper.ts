@@ -23,12 +23,7 @@ import {
 import { CrudActions } from '../enums';
 
 export class R {
-  static set(
-    metadataKey: any,
-    metadataValue: any,
-    target: Object,
-    propertyKey: string | symbol = undefined,
-  ) {
+  static set(metadataKey: any, metadataValue: any, target: unknown, propertyKey: string | symbol = undefined) {
     if (propertyKey) {
       Reflect.defineMetadata(metadataKey, metadataValue, target, propertyKey);
     } else {
@@ -36,11 +31,7 @@ export class R {
     }
   }
 
-  static get<T extends any>(
-    metadataKey: any,
-    target: Object,
-    propertyKey: string | symbol = undefined,
-  ): T {
+  static get<T extends any>(metadataKey: any, target: unknown, propertyKey: string | symbol = undefined): T {
     return propertyKey
       ? Reflect.getMetadata(metadataKey, target, propertyKey)
       : Reflect.getMetadata(metadataKey, target);
@@ -79,11 +70,7 @@ export class R {
     };
   }
 
-  static setDecorators(
-    decorators: (PropertyDecorator | MethodDecorator)[],
-    target: object,
-    name: string,
-  ) {
+  static setDecorators(decorators: (PropertyDecorator | MethodDecorator)[], target: any, name: string) {
     // this makes metadata decorator works
     const decoratedDescriptor = Reflect.decorate(
       decorators,
@@ -108,12 +95,12 @@ export class R {
     R.set(CRUD_OPTIONS_METADATA, options, target);
   }
 
-  static setRoute(route: BaseRoute, func: Function) {
+  static setRoute(route: BaseRoute, func: unknown) {
     R.set(PATH_METADATA, route.path, func);
     R.set(METHOD_METADATA, route.method, func);
   }
 
-  static setInterceptors(interceptors: any[], func: Function) {
+  static setInterceptors(interceptors: any[], func: unknown) {
     R.set(INTERCEPTORS_METADATA, interceptors, func);
   }
 
@@ -125,7 +112,7 @@ export class R {
     R.set(PARAMTYPES_METADATA, metadata, target, name);
   }
 
-  static setAction(action: CrudActions, func: Function) {
+  static setAction(action: CrudActions, func: unknown) {
     R.set(ACTION_NAME_METADATA, action, func);
   }
 
@@ -141,15 +128,15 @@ export class R {
     return R.get(CRUD_OPTIONS_METADATA, target);
   }
 
-  static getAction(func: Function): CrudActions {
+  static getAction(func: unknown): CrudActions {
     return R.get(ACTION_NAME_METADATA, func);
   }
 
-  static getOverrideRoute(func: Function): BaseRouteName {
+  static getOverrideRoute(func: unknown): BaseRouteName {
     return R.get(OVERRIDE_METHOD_METADATA, func);
   }
 
-  static getInterceptors(func: Function): any[] {
+  static getInterceptors(func: unknown): any[] {
     return R.get(INTERCEPTORS_METADATA, func) || [];
   }
 
@@ -161,13 +148,11 @@ export class R {
     return R.get(PARAMTYPES_METADATA, target, name) || /* istanbul ignore next */ [];
   }
 
-  static getParsedBody(func: Function): any {
+  static getParsedBody(func: unknown): any {
     return R.get(PARSED_BODY_METADATA, func);
   }
 
   static getContextRequest(ctx: ArgumentsHost): any {
-    return isFunction(ctx.switchToHttp)
-      ? ctx.switchToHttp().getRequest()
-      : /* istanbul ignore next */ ctx;
+    return isFunction(ctx.switchToHttp) ? ctx.switchToHttp().getRequest() : /* istanbul ignore next */ ctx;
   }
 }
