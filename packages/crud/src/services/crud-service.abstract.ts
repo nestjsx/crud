@@ -5,23 +5,7 @@ import { objKeys } from '@nestjsx/util';
 import { CreateManyDto, CrudRequest, CrudRequestOptions, GetManyDefaultResponse, QueryOptions } from '../interfaces';
 
 export abstract class CrudService<T> {
-  abstract getMany(req: CrudRequest): Promise<GetManyDefaultResponse<T> | T[]>;
-
-  abstract getOne(req: CrudRequest): Promise<T>;
-
-  abstract createOne(req: CrudRequest, dto: T | Partial<T>): Promise<T>;
-
-  abstract createMany(req: CrudRequest, dto: CreateManyDto): Promise<T[]>;
-
-  abstract updateOne(req: CrudRequest, dto: T | Partial<T>): Promise<T>;
-
-  abstract replaceOne(req: CrudRequest, dto: T | Partial<T>): Promise<T>;
-
-  abstract deleteOne(req: CrudRequest): Promise<void | T>;
-
-  abstract recoverOne(req: CrudRequest): Promise<void | T>;
-
-  throwBadRequestException(msg?: any): BadRequestException {
+  throwBadRequestException(msg?: unknown): BadRequestException {
     throw new BadRequestException(msg);
   }
 
@@ -96,4 +80,20 @@ export abstract class CrudService<T> {
 
     return params.map((p) => options.params[p].field);
   }
+
+  abstract getMany(req: CrudRequest): Promise<GetManyDefaultResponse<T> | T[]>;
+
+  abstract getOne(req: CrudRequest): Promise<T>;
+
+  abstract createOne(req: CrudRequest, dto: T | Partial<T>): Promise<T>;
+
+  abstract createMany(req: CrudRequest, dto: CreateManyDto): Promise<T[]>;
+
+  abstract updateOne(req: CrudRequest, dto: T | Partial<T>): Promise<T>;
+
+  abstract replaceOne(req: CrudRequest, dto: T | Partial<T>): Promise<T>;
+
+  abstract deleteOne(req: CrudRequest): Promise<void | T>;
+
+  abstract recoverOne(req: CrudRequest): Promise<void | T>;
 }

@@ -29,8 +29,10 @@
     "lint": "npx eslint \"packages/**/!(*.d).ts\" --fix",
     "commit": "npx git-cz",
     "postinstall": "npx opencollective",
-    "pub": "npx lerna publish --force-publish --no-verify-access",
-    "prepare": "npx husky install"
+    "prepare": "npx husky install",
+    "release": "mrepo release",
+    "release:alpha": "yarn release prerelease --preid alpha --dist-tag alpha",
+    "release:beta": "yarn release prerelease --preid beta --dist-tag beta"
   },
   "config": {
     "commitizen": {
@@ -70,9 +72,15 @@
     "@types/node": "17.0.23",
     "@types/qs": "6.9.7",
     "@types/supertest": "2.0.12",
+    "@typescript-eslint/eslint-plugin": "4.19.0",
+    "@typescript-eslint/parser": "4.19.0",
     "commitizen": "4.2.3",
     "conventional-changelog-cli": "2.1.1",
     "coveralls": "3.1.1",
+    "eslint": "7.22.0",
+    "eslint-config-airbnb-base": "14.2.1",
+    "eslint-config-prettier": "8.1.0",
+    "eslint-plugin-import": "2.22.1",
     "husky": "7.0.4",
     "jest": "27.5.1",
     "jest-extended": "2.0.0",

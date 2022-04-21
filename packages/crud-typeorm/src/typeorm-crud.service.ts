@@ -42,11 +42,17 @@ interface IAllowedRelation {
 
 export class TypeOrmCrudService<T> extends CrudService<T> {
   protected dbName: ConnectionOptions['type'];
+
   protected entityColumns: string[];
+
   protected entityPrimaryColumns: string[];
-  protected entityHasDeleteColumn: boolean = false;
+
+  protected entityHasDeleteColumn = false;
+
   protected entityColumnsHash: ObjectLiteral = {};
+
   protected entityRelationsHash: Map<string, IAllowedRelation> = new Map();
+
   protected sqlInjectionRegEx: RegExp[] = [
     /(%27)|(\')|(--)|(%23)|(#)/gi,
     /((%3D)|(=))[^\n]*((%27)|(\')|(--)|(%3B)|(;))/gi,
@@ -110,7 +116,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
 
     /* istanbul ignore if */
     if (!entity) {
-      this.throwBadRequestException(`Empty data. Nothing to save.`);
+      this.throwBadRequestException('Empty data. Nothing to save.');
     }
 
     const saved = await this.repo.save<any>(entity);
@@ -138,14 +144,14 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
   public async createMany(req: CrudRequest, dto: CreateManyDto<T | Partial<T>>): Promise<T[]> {
     /* istanbul ignore if */
     if (!isObject(dto) || !isArrayFull(dto.bulk)) {
-      this.throwBadRequestException(`Empty data. Nothing to save.`);
+      this.throwBadRequestException('Empty data. Nothing to save.');
     }
 
     const bulk = dto.bulk.map((one) => this.prepareEntityBeforeSave(one, req.parsed)).filter((d) => !isUndefined(d));
 
     /* istanbul ignore if */
     if (!hasLength(bulk)) {
-      this.throwBadRequestException(`Empty data. Nothing to save.`);
+      this.throwBadRequestException('Empty data. Nothing to save.');
     }
 
     return this.repo.save<any>(bulk, { chunk: 50 });
@@ -236,7 +242,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
   }
 
   public getParamFilters(parsed: CrudRequest['parsed']): ObjectLiteral {
-    let filters = {};
+    const filters = {};
 
     /* istanbul ignore else */
     if (hasLength(parsed.paramsFilter)) {
@@ -794,7 +800,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
       : {};
   }
 
-  protected getFieldWithAlias(field: string, sort: boolean = false) {
+  protected getFieldWithAlias(field: string, sort = false) {
     /* istanbul ignore next */
     const i = this.dbName === 'mysql' ? '`' : '"';
     const cols = field.split('.');

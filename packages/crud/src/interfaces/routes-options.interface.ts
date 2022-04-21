@@ -18,15 +18,15 @@ export interface BaseRouteOptions {
   decorators?: (PropertyDecorator | MethodDecorator)[];
 }
 
-export interface GetMayRouteOptions extends BaseRouteOptions {}
+export type GetMayRouteOptions = BaseRouteOptions;
 
-export interface GetOneRouteOptions extends BaseRouteOptions {}
+export type GetOneRouteOptions = BaseRouteOptions;
 
 export interface CreateOneRouteOptions extends BaseRouteOptions {
   returnShallow?: boolean;
 }
 
-export interface CreateManyRouteOptions extends BaseRouteOptions {}
+export type CreateManyRouteOptions = BaseRouteOptions;
 
 export interface ReplaceOneRouteOptions extends BaseRouteOptions {
   allowParamsOverride?: boolean;

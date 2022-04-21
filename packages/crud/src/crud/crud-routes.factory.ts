@@ -26,6 +26,7 @@ import { CrudConfigService } from '../module';
 
 export class CrudRoutesFactory {
   protected options: MergedCrudOptions;
+
   protected swaggerModels: any = {};
 
   constructor(protected target: any, options: CrudOptions) {
@@ -133,8 +134,7 @@ export class CrudRoutesFactory {
       ? false
       : this.options.serialize.replace || this.modelType;
     this.options.serialize.delete =
-      isFalse(this.options.serialize.delete) ||
-      !this.options.routes.deleteOneBase.returnDeleted
+      isFalse(this.options.serialize.delete) || !this.options.routes.deleteOneBase.returnDeleted
         ? false
         : this.options.serialize.delete || this.modelType;
 
@@ -282,24 +282,15 @@ export class CrudRoutesFactory {
     const modelType = isFunction(this.modelType)
       ? this.modelType
       : SerializeHelper.createGetOneResponseDto(this.modelName);
-    this.swaggerModels.get = isFunction(this.options.serialize.get)
-      ? this.options.serialize.get
-      : modelType;
+    this.swaggerModels.get = isFunction(this.options.serialize.get) ? this.options.serialize.get : modelType;
     this.swaggerModels.getMany =
-      this.options.serialize.getMany ||
-      SerializeHelper.createGetManyDto(this.swaggerModels.get, this.modelName);
-    this.swaggerModels.create = isFunction(this.options.serialize.create)
-      ? this.options.serialize.create
-      : modelType;
-    this.swaggerModels.update = isFunction(this.options.serialize.update)
-      ? this.options.serialize.update
-      : modelType;
+      this.options.serialize.getMany || SerializeHelper.createGetManyDto(this.swaggerModels.get, this.modelName);
+    this.swaggerModels.create = isFunction(this.options.serialize.create) ? this.options.serialize.create : modelType;
+    this.swaggerModels.update = isFunction(this.options.serialize.update) ? this.options.serialize.update : modelType;
     this.swaggerModels.replace = isFunction(this.options.serialize.replace)
       ? this.options.serialize.replace
       : modelType;
-    this.swaggerModels.delete = isFunction(this.options.serialize.delete)
-      ? this.options.serialize.delete
-      : modelType;
+    this.swaggerModels.delete = isFunction(this.options.serialize.delete) ? this.options.serialize.delete : modelType;
     this.swaggerModels.recover = isFunction(this.options.serialize.recover)
       ? this.options.serialize.recover
       : modelType;
@@ -307,9 +298,7 @@ export class CrudRoutesFactory {
   }
 
   protected createRoutes(routesSchema: BaseRoute[]) {
-    const primaryParams = this.getPrimaryParams().filter(
-      (param) => !this.options.params[param].disabled,
-    );
+    const primaryParams = this.getPrimaryParams().filter((param) => !this.options.params[param].disabled);
 
     routesSchema.forEach((route) => {
       if (this.canCreateRoute(route.name)) {
@@ -349,14 +338,8 @@ export class CrudRoutesFactory {
         R.setInterceptors([...baseInterceptors, ...interceptors], this.targetProto[name]);
         R.setAction(baseAction, this.targetProto[name]);
         Swagger.setOperation({ ...baseOperation, ...operation }, this.targetProto[name]);
-        Swagger.setParams(
-          [...baseSwaggerParams, ...swaggerParams],
-          this.targetProto[name],
-        );
-        Swagger.setResponseOk(
-          { ...baseResponseOk, ...responseOk },
-          this.targetProto[name],
-        );
+        Swagger.setParams([...baseSwaggerParams, ...swaggerParams], this.targetProto[name]);
+        Swagger.setResponseOk({ ...baseResponseOk, ...responseOk }, this.targetProto[name]);
         this.overrideParsedBodyDecorator(override, name);
         // enable route
         R.setRoute(route, this.targetProto[name]);
@@ -374,12 +357,7 @@ export class CrudRoutesFactory {
   }
 
   protected overrideParsedBodyDecorator(override: BaseRouteName, name: string) {
-    const allowed = [
-      'createManyBase',
-      'createOneBase',
-      'updateOneBase',
-      'replaceOneBase',
-    ] as BaseRouteName[];
+    const allowed = ['createManyBase', 'createOneBase', 'updateOneBase', 'replaceOneBase'] as BaseRouteName[];
     const withBody = isIn(override, allowed);
     const parsedBody = R.getParsedBody(this.targetProto[name]);
 
@@ -406,8 +384,7 @@ export class CrudRoutesFactory {
         const paramTypes = R.getRouteArgsTypes(this.targetProto, name);
         const metatype = paramTypes[parsedBody.index];
         const types = [String, Boolean, Number, Array, Object];
-        const toCopy =
-          isIn(metatype, types) || /* istanbul ignore next */ isNil(metatype);
+        const toCopy = isIn(metatype, types) || /* istanbul ignore next */ isNil(metatype);
 
         /* istanbul ignore else */
         if (toCopy) {
@@ -441,12 +418,7 @@ export class CrudRoutesFactory {
 
   protected setRouteArgs(name: BaseRouteName) {
     let rest = {};
-    const routes: BaseRouteName[] = [
-      'createManyBase',
-      'createOneBase',
-      'updateOneBase',
-      'replaceOneBase',
-    ];
+    const routes: BaseRouteName[] = ['createManyBase', 'createOneBase', 'updateOneBase', 'replaceOneBase'];
 
     if (isIn(name, routes)) {
       const action = this.routeNameAction(name);
@@ -488,11 +460,7 @@ export class CrudRoutesFactory {
 
   protected setDecorators(name: BaseRouteName) {
     const decorators = this.options.routes[name].decorators;
-    R.setDecorators(
-      isArrayFull(decorators) ? /* istanbul ignore next */ decorators : [],
-      this.targetProto,
-      name,
-    );
+    R.setDecorators(isArrayFull(decorators) ? /* istanbul ignore next */ decorators : [], this.targetProto, name);
   }
 
   protected setAction(name: BaseRouteName) {
@@ -507,11 +475,7 @@ export class CrudRoutesFactory {
 
   protected setSwaggerPathParams(name: BaseRouteName) {
     const metadata = Swagger.getParams(this.targetProto[name]);
-    const withoutPrimary: BaseRouteName[] = [
-      'createManyBase',
-      'createOneBase',
-      'getManyBase',
-    ];
+    const withoutPrimary: BaseRouteName[] = ['createManyBase', 'createOneBase', 'getManyBase'];
 
     const removePrimary = isIn(name, withoutPrimary);
     const params = objKeys(this.options.params)
@@ -532,14 +496,11 @@ export class CrudRoutesFactory {
   protected setSwaggerResponseOk(name: BaseRouteName) {
     const metadata = Swagger.getResponseOk(this.targetProto[name]);
     const metadataToAdd =
-      Swagger.createResponseMeta(name, this.options, this.swaggerModels) ||
-      /* istanbul ignore next */ {};
+      Swagger.createResponseMeta(name, this.options, this.swaggerModels) || /* istanbul ignore next */ {};
     Swagger.setResponseOk({ ...metadata, ...metadataToAdd }, this.targetProto[name]);
   }
 
   protected routeNameAction(name: BaseRouteName): string {
-    return (
-      name.split('OneBase')[0] || /* istanbul ignore next */ name.split('ManyBase')[0]
-    );
+    return name.split('OneBase')[0] || /* istanbul ignore next */ name.split('ManyBase')[0];
   }
 }

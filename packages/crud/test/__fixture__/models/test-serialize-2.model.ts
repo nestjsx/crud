@@ -4,7 +4,9 @@ import { TestSerializeModel } from './test-serialize.model';
 
 export class TestSerialize2Model extends TestSerializeModel {
   id: number;
+
   name: string;
+
   email: string;
 
   @Exclude()
