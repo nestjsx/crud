@@ -28,20 +28,11 @@
   <a href="https://www.npmjs.com/org/nestjsx">
     <img src="https://img.shields.io/npm/dm/@nestjsx/crud.svg" alt="npm downloads" />
   </a>
-  <a href="https://renovatebot.com/">
-    <img src="https://img.shields.io/badge/renovate-enabled-brightgreen.svg" alt="Renovate" />
-  </a>
   <a href="http://makeapullrequest.com">
     <img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square" alt="PRs welcome" />
   </a>
   <a href="https://github.com/marmelab/awesome-rest#nodejs">
     <img src="https://raw.githubusercontent.com/nestjsx/crud/master/img/awesome-rest.svg?sanitize=true" alt="Awesome REST" />
-  </a>
-  <a href="https://github.com/juliandavidmr/awesome-nestjs#components--libraries">
-    <img src="https://raw.githubusercontent.com/nestjsx/crud/master/img/awesome-nest.svg?sanitize=true" alt="Awesome Nest" />
-  </a>
-  <a href="https://github.com/nestjs/nest">
-    <img src="https://raw.githubusercontent.com/nestjsx/crud/master/img/nest-powered.svg?sanitize=true" alt="Nest Powered" />
   </a>
   <a href="#individuals" alt="Sponsors on Open Collective">
     <img src="https://opencollective.com/nestjsx/backers/badge.svg" />
