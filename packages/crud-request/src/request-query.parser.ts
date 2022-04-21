@@ -71,7 +71,7 @@ export class RequestQueryParser implements ParsedRequestParams {
   private _paramsOptions: ParamsOptions;
 
   private get _options(): RequestQueryBuilderOptions {
-    return RequestQueryBuilder._options;
+    return RequestQueryBuilder.getOptions();
   }
 
   static create(): RequestQueryParser {

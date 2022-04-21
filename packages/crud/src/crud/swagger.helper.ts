@@ -29,14 +29,14 @@ export class Swagger {
     };
   }
 
-  static setOperation(metadata: unknown, func: () => any): void {
+  static setOperation(metadata: unknown, func: any): void {
     /* istanbul ignore else */
     if (swaggerConst) {
       R.set(swaggerConst.DECORATORS.API_OPERATION, metadata, func);
     }
   }
 
-  static setParams(metadata: unknown, func: () => any): void {
+  static setParams(metadata: unknown, func: any): void {
     /* istanbul ignore else */
     if (swaggerConst) {
       R.set(swaggerConst.DECORATORS.API_PARAMETERS, metadata, func);
@@ -57,19 +57,19 @@ export class Swagger {
     }
   }
 
-  static setResponseOk(metadata: unknown, func: () => any): void {
+  static setResponseOk(metadata: unknown, func: any): void {
     /* istanbul ignore else */
     if (swaggerConst) {
       R.set(swaggerConst.DECORATORS.API_RESPONSE, metadata, func);
     }
   }
 
-  static getOperation(func: () => any): any {
+  static getOperation(func: any): any {
     /* istanbul ignore next */
     return swaggerConst ? R.get(swaggerConst.DECORATORS.API_OPERATION, func) || {} : {};
   }
 
-  static getParams(func: () => any): any[] {
+  static getParams(func: any): any[] {
     /* istanbul ignore next */
     return swaggerConst ? R.get(swaggerConst.DECORATORS.API_PARAMETERS, func) || [] : [];
   }
@@ -79,7 +79,7 @@ export class Swagger {
     return swaggerConst ? R.get(swaggerConst.API_EXTRA_MODELS, target) || [] : [];
   }
 
-  static getResponseOk(func: () => any): any {
+  static getResponseOk(func: any): any {
     /* istanbul ignore next */
     return swaggerConst ? R.get(swaggerConst.DECORATORS.API_RESPONSE, func) || {} : {};
   }
