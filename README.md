@@ -1,3 +1,5 @@
+[![Stand With Ukraine](https://raw.githubusercontent.com/vshymanskyy/StandWithUkraine/main/banner2-direct.svg)](https://vshymanskyy.github.io/StandWithUkraine/)
+
 <div align="center">
   <h1>CRUD</h1>
 </div>
@@ -8,6 +10,9 @@
 <br />
 
 <div align="center">
+  <a href="https://github.com/vshymanskyy/StandWithUkraine/blob/main/docs/README.md">
+    <img src="https://raw.githubusercontent.com/vshymanskyy/StandWithUkraine/main/badges/StandWithUkraine.svg" alt="StandWithUkraine" />
+  </a>
   <a href="https://travis-ci.org/nestjsx/crud">
     <img src="https://github.com/nestjsx/crud/workflows/Tests/badge.svg" alt="Build" />
   </a>
@@ -22,9 +27,6 @@
   </a>
   <a href="https://www.npmjs.com/org/nestjsx">
     <img src="https://img.shields.io/npm/dm/@nestjsx/crud.svg" alt="npm downloads" />
-  </a>
-  <a href="https://npm.packagequality.com/#?package=@nestjsx%2Fcrud">
-    <img src="https://npm.packagequality.com/shield/%40nestjsx%2Fcrud.svg" alt="Package Quality" />
   </a>
   <a href="https://renovatebot.com/">
     <img src="https://img.shields.io/badge/renovate-enabled-brightgreen.svg" alt="Renovate" />
