@@ -1,6 +1,11 @@
 [![Stand With Ukraine](https://raw.githubusercontent.com/vshymanskyy/StandWithUkraine/main/banner2-direct.svg)](https://vshymanskyy.github.io/StandWithUkraine/)
 
 <div align="center">
+  <h1>:point_right:<a href="https://github.com/nestjsx/crud/issues/784">You can help NestJs CRUD
+  </a></h1>
+</div>
+
+<div align="center">
   <h1>CRUD</h1>
 </div>
 <div align="center">
