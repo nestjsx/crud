@@ -321,14 +321,14 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
       const take = this.getTake(parsed, options.query);
       /* istanbul ignore else */
       if (isFinite(take)) {
-        builder.take(take);
+        builder.limit(take);
       }
 
       // set skip
       const skip = this.getSkip(parsed, take);
       /* istanbul ignore else */
       if (isFinite(skip)) {
-        builder.skip(skip);
+        builder.offset(skip);
       }
     }
 
