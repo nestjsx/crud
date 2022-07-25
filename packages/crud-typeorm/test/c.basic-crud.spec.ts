@@ -308,7 +308,7 @@ describe('#crud-typeorm', () => {
 
     describe('#findOne', () => {
       it('should return one entity', async () => {
-        const data = await service.findOne(1);
+        const data = await service.findOne({ where: { id: 1 } });
         expect(data.id).toBe(1);
       });
     });

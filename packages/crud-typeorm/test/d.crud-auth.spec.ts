@@ -1,10 +1,4 @@
-import {
-  Controller,
-  INestApplication,
-  Injectable,
-  CanActivate,
-  ExecutionContext,
-} from '@nestjs/common';
+import { Controller, INestApplication, Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
 import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { Test } from '@nestjs/testing';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -31,7 +25,7 @@ describe('#crud-typeorm', () => {
 
       async canActivate(ctx: ExecutionContext): Promise<boolean> {
         const req = ctx.switchToHttp().getRequest();
-        req[USER_REQUEST_KEY] = await this.usersService.findOne(1);
+        req[USER_REQUEST_KEY] = await this.usersService.findOne({ where: { id: 1 } });
 
         return true;
       }
