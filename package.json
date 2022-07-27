@@ -1,7 +1,7 @@
 {
   "name": "@nestjsx/crud",
-  "version": "4.0.0",
-  "description": "Nest CRUD for RESTful APIs",
+  "version": "6.0.0",
+  "description": "Nest CRUD for RESTful APIs Fork",
   "license": "MIT",
   "workspaces": [
     "packages/*"
