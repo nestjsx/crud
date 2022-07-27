@@ -1,5 +1,5 @@
 {
-  "name": "@nestjsx/crud",
+  "name": "@vianneybr/nestjsx-crud",
   "version": "6.0.0",
   "description": "Nest CRUD for RESTful APIs Fork",
   "license": "MIT",
