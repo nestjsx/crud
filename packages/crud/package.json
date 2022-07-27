@@ -1,7 +1,7 @@
 {
   "name": "@vianneybr/nestjsx-crud",
   "description": "NestJs CRUD for RESTful APIs",
-  "version": "5.2.2",
+  "version": "5.2.3",
   "license": "MIT",
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
@@ -39,8 +39,8 @@
     "build": "npx tsc -b"
   },
   "dependencies": {
-    "@vianneybr/nestjsx-util": "^5.2.2",
-    "@vianneybr/nestjsx-crud-request": "^5.2.2",
+    "@vianneybr/nestjsx-crud-request": "^5.2.3",
+    "@vianneybr/nestjsx-util": "^5.2.3",
     "deepmerge": "^3.2.0",
     "pluralize": "^8.0.0"
   },
