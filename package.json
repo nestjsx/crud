@@ -28,7 +28,6 @@
     "format": "npx pretty-quick --pattern \"packages/**/!(*.d).ts\"",
     "lint": "npx eslint \"packages/**/!(*.d).ts\" --fix",
     "commit": "npx git-cz",
-    "postinstall": "npx opencollective",
     "prepare": "npx husky install",
     "release": "mrepo release",
     "release:alpha": "yarn release prerelease --preid alpha --dist-tag alpha",
@@ -37,13 +36,6 @@
   "config": {
     "commitizen": {
       "path": "node_modules/cz-conventional-changelog"
-    }
-  },
-  "collective": {
-    "type": "opencollective",
-    "url": "https://opencollective.com/nestjsx",
-    "donation": {
-      "text": "Become a partner:"
     }
   },
   "dependencies": {
@@ -67,7 +59,6 @@
     "typeorm": "0.3.7"
   },
   "devDependencies": {
-    "@nuxtjs/opencollective": "0.2.2",
     "@types/jest": "27.4.1",
     "@types/node": "17.0.23",
     "@types/qs": "6.9.7",
