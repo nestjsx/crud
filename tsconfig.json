@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "strict": false,
     "module": "commonjs",
     "declaration": true,
     "noImplicitAny": false,
@@ -11,7 +12,7 @@
     "target": "es2018",
     "sourceMap": true,
     "allowJs": false,
-    "skipLibCheck": false,
+    "skipLibCheck": true,
     "composite": true,
     "baseUrl": "./packages",
     "paths": {

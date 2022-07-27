@@ -5,24 +5,22 @@ import { Project } from './project.entity';
 
 @Entity('user_projects')
 export class UserProject {
-  @PrimaryColumn()
+  @PrimaryColumn('int')
   public projectId!: number;
 
-  @PrimaryColumn()
+  @PrimaryColumn('int')
   public userId!: number;
 
   @Column({ nullable: true })
   public review!: string;
 
   @ManyToOne((type) => Project, (el) => el.userProjects, {
-    primary: true,
     persistence: false,
     onDelete: 'CASCADE',
   })
   public project: Project;
 
   @ManyToOne((type) => User, (el) => el.userProjects, {
-    primary: true,
     persistence: false,
   })
   public user: User;
