@@ -1,3 +1,20 @@
+# Change Log
+
+All notable changes to this project will be documented in this file.
+See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
+
+# [5.0.0](https://github.com/vianneyb/crud/compare/v5.0.0-alpha.3...v5.0.0) (2022-07-27)
+
+
+### Bug Fixes
+
+* cleanup after linting >_< ([e29f935](https://github.com/vianneyb/crud/commit/e29f93505b421d65e613692763fe187f4617514f))
+* prevent duplicate columns in select ([2201927](https://github.com/vianneyb/crud/commit/2201927a5fe2b360454e5bac0699a2e986b94bbd))
+
+
+
+
+
 ## [4.6.2] - 2020-05-14
 
 ### Bug Fixes
