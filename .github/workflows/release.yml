@@ -28,9 +28,6 @@ jobs:
       - name: Build
         run: yarn build
 
-      - name: Run Tests
-        run: yarn test
-
       - name: Get Latest Tag
         id: get_latest_tag
         uses: actions-ecosystem/action-get-latest-tag@v1
