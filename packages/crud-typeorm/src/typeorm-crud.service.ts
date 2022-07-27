@@ -783,11 +783,11 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
         ? query.fields.filter((field) => allowed.some((col) => field === col))
         : allowed;
 
-    const select = [
+    const select = [...new Set([
       ...(options.persist && options.persist.length ? options.persist : []),
       ...columns,
       ...this.entityPrimaryColumns,
-    ].map((col) => `${this.alias}.${col}`);
+    ])].map((col) => `${this.alias}.${col}`);
 
     return select;
   }
