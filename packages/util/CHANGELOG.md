@@ -5,4 +5,4 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 # [5.2.0](https://github.com/nestjsx/crud/compare/v5.0.0-alpha.3...v5.2.0) (2022-07-27)
 
-**Note:** Version bump only for package @nestjsx/util
+**Note:** Version bump only for package @vianneybr/nestjsx-util

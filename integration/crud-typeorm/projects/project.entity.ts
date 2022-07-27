@@ -1,13 +1,6 @@
 import { Entity, Column, ManyToOne, ManyToMany, JoinTable, OneToMany } from 'typeorm';
-import {
-  IsOptional,
-  IsString,
-  IsNumber,
-  MaxLength,
-  IsDefined,
-  IsBoolean,
-} from 'class-validator';
-import { CrudValidationGroups } from '@nestjsx/crud';
+import { IsOptional, IsString, IsNumber, MaxLength, IsDefined, IsBoolean } from 'class-validator';
+import { CrudValidationGroups } from '@vianneybr/nestjsx-crud';
 
 import { BaseEntity } from '../base-entity';
 import { Company } from '../companies/company.entity';

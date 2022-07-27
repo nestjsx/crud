@@ -3,7 +3,7 @@ import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { Test } from '@nestjs/testing';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-import { Crud, CrudAuth } from '@nestjsx/crud';
+import { Crud, CrudAuth } from '@vianneybr/nestjsx-crud';
 import * as request from 'supertest';
 import { withCache } from '../../../integration/crud-typeorm/orm.config';
 import { User } from '../../../integration/crud-typeorm/users';

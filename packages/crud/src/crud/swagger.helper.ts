@@ -1,6 +1,6 @@
 import { HttpStatus } from '@nestjs/common';
-import { RequestQueryBuilder } from '@nestjsx/crud-request';
-import { isString, objKeys } from '@nestjsx/util';
+import { RequestQueryBuilder } from '@vianneybr/nestjsx-crud-request';
+import { isString, objKeys } from '@vianneybr/nestjsx-util';
 import { MergedCrudOptions, ParamsOptions } from '../interfaces';
 import { BaseRouteName } from '../types';
 import { safeRequire } from '../util';

@@ -10,7 +10,7 @@ import {
   objKeys,
   isNil,
   ObjectLiteral,
-} from '@nestjsx/util';
+} from '@vianneybr/nestjsx-util';
 
 import { RequestQueryException } from './exceptions';
 import { ParamsOptions, ParsedRequestParams, RequestQueryBuilderOptions } from './interfaces';

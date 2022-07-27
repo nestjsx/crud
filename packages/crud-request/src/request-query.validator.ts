@@ -1,4 +1,13 @@
-import { isUndefined, isArrayStrings, isStringFull, isObject, isEqual, isNumber, isNil, objKeys } from '@nestjsx/util';
+import {
+  isUndefined,
+  isArrayStrings,
+  isStringFull,
+  isObject,
+  isEqual,
+  isNumber,
+  isNil,
+  objKeys,
+} from '@vianneybr/nestjsx-util';
 
 import { RequestQueryException } from './exceptions';
 import { ParamsOptions, ParamOption } from './interfaces';

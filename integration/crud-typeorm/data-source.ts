@@ -1,5 +1,5 @@
 import { join } from 'path';
-import { isNil } from '@nestjsx/util';
+import { isNil } from '@vianneybr/nestjsx-util';
 import { DataSource } from 'typeorm';
 
 const type = (process.env.TYPEORM_CONNECTION as any) || 'postgres';

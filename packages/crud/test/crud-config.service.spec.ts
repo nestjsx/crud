@@ -1,4 +1,4 @@
-import { RequestQueryBuilder } from '@nestjsx/crud-request';
+import { RequestQueryBuilder } from '@vianneybr/nestjsx-crud-request';
 import { CrudGlobalConfig } from '../src/interfaces';
 import { CrudConfigService } from '../src/module/crud-config.service';
 
@@ -31,9 +31,7 @@ describe('#crud', () => {
       const expected = { ...CrudConfigService.config };
       CrudConfigService.load(conf);
       expect(CrudConfigService.config).toEqual(expect.objectContaining(expected));
-      expect(RequestQueryBuilder.getOptions()).toEqual(
-        expect.objectContaining({ ...requestOptions, delim: '__' }),
-      );
+      expect(RequestQueryBuilder.getOptions()).toEqual(expect.objectContaining({ ...requestOptions, delim: '__' }));
     });
     it('should set query, routes, params', () => {
       const conf: CrudGlobalConfig = {
@@ -102,15 +100,9 @@ describe('#crud', () => {
         },
       };
       CrudConfigService.load(conf);
-      expect(CrudConfigService.config.params).toEqual(
-        expect.objectContaining(expected.params),
-      );
-      expect(CrudConfigService.config.query).toEqual(
-        expect.objectContaining(expected.query),
-      );
-      expect(JSON.stringify(CrudConfigService.config.routes)).toEqual(
-        JSON.stringify(expected.routes),
-      );
+      expect(CrudConfigService.config.params).toEqual(expect.objectContaining(expected.params));
+      expect(CrudConfigService.config.query).toEqual(expect.objectContaining(expected.query));
+      expect(JSON.stringify(CrudConfigService.config.routes)).toEqual(JSON.stringify(expected.routes));
     });
   });
 });

@@ -39,7 +39,7 @@
     "build": "npx tsc -b"
   },
   "dependencies": {
-    "@nestjsx/util": "^5.0.0",
+    "@vianneybr/nestjsx-util": "^5.2.2",
     "@vianneybr/nestjsx-crud-request": "^5.2.2",
     "deepmerge": "^3.2.0",
     "pluralize": "^8.0.0"

@@ -47,7 +47,7 @@
     "build": "npx tsc -b"
   },
   "dependencies": {
-    "@nestjsx/util": "^5.0.0",
+    "@vianneybr/nestjsx-util": "^5.2.2",
     "qs": "^6.10.3"
   }
 }

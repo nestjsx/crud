@@ -1,20 +1,20 @@
 {
   "workspace": {
     "name": "packages",
-    "scope": "nestjsx",
+    "scope": "vianneybr",
     "registry": "npm",
     "packages": [
       {
-        "name": "util"
+        "name": "nestjsx-util"
       },
       {
-        "name": "crud-request"
+        "name": "nestjsx-crud-request"
       },
       {
-        "name": "crud-typeorm"
+        "name": "nestjsx-crud-typeorm"
       },
       {
-        "name": "crud"
+        "name": "nestjsx-crud"
       }
     ]
   },

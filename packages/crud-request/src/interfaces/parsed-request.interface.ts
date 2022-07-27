@@ -1,4 +1,4 @@
-import { ObjectLiteral } from '@nestjsx/util';
+import { ObjectLiteral } from '@vianneybr/nestjsx-util';
 import { QueryFields, QueryFilter, QueryJoin, QuerySort, SCondition } from '../types';
 
 export interface ParsedRequestParams {

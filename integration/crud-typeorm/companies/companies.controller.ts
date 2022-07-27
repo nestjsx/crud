@@ -1,6 +1,6 @@
 import { Controller } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { Crud } from '@nestjsx/crud';
+import { Crud } from '@vianneybr/nestjsx-crud';
 
 import { Company } from './company.entity';
 import { CompaniesService } from './companies.service';
@@ -8,7 +8,7 @@ import { serialize } from './responses';
 
 @Crud({
   model: {
-    type: Company
+    type: Company,
   },
   serialize,
   routes: {

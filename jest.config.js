@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 
 const tsconfig = require('tsconfig-extends');
-const { pathsToModuleNameMapper } = require('ts-jest/utils');
+const { pathsToModuleNameMapper } = require('ts-jest');
 const compilerOptions = tsconfig.load_file_sync('./tsconfig.jest.json', __dirname);
 
 module.exports = {

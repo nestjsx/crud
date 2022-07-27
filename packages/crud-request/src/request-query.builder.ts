@@ -1,4 +1,4 @@
-import { hasValue, isObject, isString, isArrayFull, isNil, isUndefined } from '@nestjsx/util';
+import { hasValue, isObject, isString, isArrayFull, isNil, isUndefined } from '@vianneybr/nestjsx-util';
 import { stringify } from 'qs';
 
 import { RequestQueryBuilderOptions, CreateQueryParams } from './interfaces';

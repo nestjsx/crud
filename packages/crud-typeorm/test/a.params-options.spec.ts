@@ -89,6 +89,21 @@ describe('#crud-typeorm', () => {
 
       await app.init();
       server = app.getHttpServer();
+      const router = server._events.request._router;
+
+      const availableRoutes: [] = router.stack
+        .map((layer) => {
+          if (layer.route) {
+            return {
+              route: {
+                path: layer.route?.path,
+                method: layer.route?.stack[0].method,
+              },
+            };
+          }
+        })
+        .filter((item) => item !== undefined);
+      console.log(availableRoutes);
     });
 
     afterAll(async () => {
@@ -98,34 +113,22 @@ describe('#crud-typeorm', () => {
     describe('#updateOneBase', () => {
       it('should override params', async () => {
         const dto = { isActive: false, companyId: 2 };
-        const res = await request(server)
-          .patch('/companiesA/1/users/2')
-          .send(dto)
-          .expect(200);
+        const res = await request(server).patch('/companiesA/1/users/2').send(dto).expect(200);
         expect(res.body.companyId).toBe(2);
       });
       it('should not override params', async () => {
         const dto = { isActive: false, companyId: 2 };
-        const res = await request(server)
-          .patch('/companiesB/1/users/3')
-          .send(dto)
-          .expect(200);
+        const res = await request(server).patch('/companiesB/1/users/3').send(dto).expect(200);
         expect(res.body.companyId).toBe(1);
       });
       it('should return full entity', async () => {
         const dto = { isActive: false };
-        const res = await request(server)
-          .patch('/companiesB/2/users/2')
-          .send(dto)
-          .expect(200);
+        const res = await request(server).patch('/companiesB/2/users/2').send(dto).expect(200);
         expect(res.body.company.id).toBe(2);
       });
       it('should return shallow entity', async () => {
         const dto = { isActive: false };
-        const res = await request(server)
-          .patch('/companiesA/2/users/2')
-          .send(dto)
-          .expect(200);
+        const res = await request(server).patch('/companiesA/2/users/2').send(dto).expect(200);
         expect(res.body.company).toBeUndefined();
       });
     });
@@ -133,34 +136,22 @@ describe('#crud-typeorm', () => {
     describe('#replaceOneBase', () => {
       it('should override params', async () => {
         const dto = { isActive: false, companyId: 2, email: '4@email.com' };
-        const res = await request(server)
-          .put('/companiesA/1/users/4')
-          .send(dto)
-          .expect(200);
+        const res = await request(server).put('/companiesA/1/users/4').send(dto).expect(200);
         expect(res.body.companyId).toBe(2);
       });
       it('should not override params', async () => {
         const dto = { isActive: false, companyId: 1 };
-        const res = await request(server)
-          .put('/companiesB/2/users/4')
-          .send(dto)
-          .expect(200);
+        const res = await request(server).put('/companiesB/2/users/4').send(dto).expect(200);
         expect(res.body.companyId).toBe(2);
       });
       it('should return full entity', async () => {
         const dto = { isActive: false };
-        const res = await request(server)
-          .put('/companiesB/2/users/4')
-          .send(dto)
-          .expect(200);
+        const res = await request(server).put('/companiesB/2/users/4').send(dto).expect(200);
         expect(res.body.company.id).toBe(2);
       });
       it('should return shallow entity', async () => {
         const dto = { isActive: false };
-        const res = await request(server)
-          .put('/companiesA/2/users/4')
-          .send(dto)
-          .expect(200);
+        const res = await request(server).put('/companiesA/2/users/4').send(dto).expect(200);
         expect(res.body.company).toBeUndefined();
       });
     });

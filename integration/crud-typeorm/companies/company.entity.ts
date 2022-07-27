@@ -1,13 +1,6 @@
-import { CrudValidationGroups } from '@nestjsx/crud';
+import { CrudValidationGroups } from '@vianneybr/nestjsx-crud';
 import { Entity, Column, OneToMany, PrimaryGeneratedColumn, DeleteDateColumn } from 'typeorm';
-import {
-  IsOptional,
-  IsString,
-  MaxLength,
-  IsNotEmpty,
-  IsNumber,
-  IsEmpty,
-} from 'class-validator';
+import { IsOptional, IsString, MaxLength, IsNotEmpty, IsNumber, IsEmpty } from 'class-validator';
 import { Type } from 'class-transformer';
 
 import { BaseEntity } from '../base-entity';
