@@ -1,7 +1,7 @@
 {
   "name": "@vianneybr/nestjsx-crud-typeorm",
   "description": "NestJs CRUD for RESTful APIs - TypeORM",
-  "version": "5.2.0",
+  "version": "5.2.1",
   "license": "MIT",
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
