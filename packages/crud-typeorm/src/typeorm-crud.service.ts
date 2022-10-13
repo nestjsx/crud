@@ -568,7 +568,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
         ...allowedRelation.primaryColumns,
         ...(isArrayFull(options.persist) ? options.persist : []),
         ...columns,
-      ].map((col) => `${alias}.${col}`);
+      ].filter((n, i, self) => self.indexOf(n) === i).map((col) => `${alias}.${col}`);
 
       builder.addSelect(select);
     }
@@ -787,7 +787,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
       ...(options.persist && options.persist.length ? options.persist : []),
       ...columns,
       ...this.entityPrimaryColumns,
-    ].map((col) => `${this.alias}.${col}`);
+    ].filter((n, i, self) => self.indexOf(n) === i).map((col) => `${this.alias}.${col}`);
 
     return select;
   }
