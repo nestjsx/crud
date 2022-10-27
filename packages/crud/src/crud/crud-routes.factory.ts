@@ -83,6 +83,9 @@ export class CrudRoutesFactory {
     if (isUndefined(this.options.auth.groups)) {
       this.options.auth.groups = CrudConfigService.config.auth.groups;
     }
+    if (isUndefined(this.options.auth.classTransformOptions)) {
+      this.options.auth.classTransformOptions = CrudConfigService.config.auth.classTransformOptions;
+    }
 
     // merge query config
     const query = isObjectFull(this.options.query) ? this.options.query : {};
