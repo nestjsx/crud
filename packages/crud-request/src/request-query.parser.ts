@@ -11,6 +11,7 @@ import {
   isNil,
   ObjectLiteral,
 } from '@nestjsx/util';
+import { ClassTransformOptions } from 'class-transformer';
 
 import { RequestQueryException } from './exceptions';
 import { ParamsOptions, ParsedRequestParams, RequestQueryBuilderOptions } from './interfaces';
@@ -41,6 +42,8 @@ export class RequestQueryParser implements ParsedRequestParams {
   public paramsFilter: QueryFilter[] = [];
 
   public authPersist: ObjectLiteral = undefined;
+
+  public classTransformOptions: ClassTransformOptions = undefined;
 
   public search: SCondition;
 
@@ -83,6 +86,7 @@ export class RequestQueryParser implements ParsedRequestParams {
       fields: this.fields,
       paramsFilter: this.paramsFilter,
       authPersist: this.authPersist,
+      classTransformOptions: this.classTransformOptions,
       search: this.search,
       filter: this.filter,
       or: this.or,
@@ -142,6 +146,10 @@ export class RequestQueryParser implements ParsedRequestParams {
 
   setAuthPersist(persist: ObjectLiteral = {}) {
     this.authPersist = persist || /* istanbul ignore next */ {};
+  }
+
+  setClassTransformOptions(options: ClassTransformOptions = {}) {
+    this.classTransformOptions = options || /* istanbul ignore next */ {};
   }
 
   convertFilterToSearch(filter: QueryFilter): SFields | SConditionAND {
