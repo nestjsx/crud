@@ -1,6 +1,7 @@
 import { BadRequestException, CallHandler, ExecutionContext, Injectable, NestInterceptor } from '@nestjs/common';
 import { RequestQueryException, RequestQueryParser, SCondition, QueryFilter } from '@nestjsx/crud-request';
 import { isNil, isFunction, isArrayFull, hasLength } from '@nestjsx/util';
+import { ClassTransformOptions } from 'class-transformer';
 
 import { PARSED_CRUD_REQUEST_KEY } from '../constants';
 import { CrudActions } from '../enums';
@@ -142,6 +143,16 @@ export class CrudRequestInterceptor extends CrudBaseInterceptor implements NestI
       if (isFunction(crudOptions.auth.persist)) {
         parser.setAuthPersist(crudOptions.auth.persist(userOrRequest));
       }
+
+      const options: ClassTransformOptions = {};
+      if (isFunction(crudOptions.auth.classTransformOptions)) {
+        Object.assign(options, crudOptions.auth.classTransformOptions(userOrRequest));
+      }
+
+      if (isFunction(crudOptions.auth.groups)) {
+        options.groups = crudOptions.auth.groups(userOrRequest);
+      }
+      parser.setClassTransformOptions(options);
     }
 
     return auth;

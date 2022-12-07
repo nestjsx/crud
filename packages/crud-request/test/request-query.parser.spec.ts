@@ -457,6 +457,19 @@ describe('#request-query', () => {
       });
     });
 
+    describe('#setClassTransformOptions', () => {
+      it('it should set classTransformOptions, 1', () => {
+        qp.setClassTransformOptions();
+        expect(qp.classTransformOptions).toMatchObject({});
+      });
+      it('it should set classTransformOptions, 2', () => {
+        const testOptions = { groups: ['TEST'] };
+        qp.setClassTransformOptions(testOptions);
+        const parsed = qp.getParsed();
+        expect(parsed.classTransformOptions).toMatchObject(testOptions);
+      });
+    });
+
     describe('#getParsed', () => {
       it('should return parsed params', () => {
         const expected: ParsedRequestParams = {
@@ -464,6 +477,7 @@ describe('#request-query', () => {
           paramsFilter: [],
           search: undefined,
           authPersist: undefined,
+          classTransformOptions: undefined,
           filter: [],
           or: [],
           join: [],
