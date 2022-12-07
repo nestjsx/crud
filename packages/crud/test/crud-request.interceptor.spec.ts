@@ -1,11 +1,4 @@
-import {
-  Controller,
-  Get,
-  Param,
-  ParseIntPipe,
-  Query,
-  UseInterceptors,
-} from '@nestjs/common';
+import { Controller, Get, Param, ParseIntPipe, Query, UseInterceptors } from '@nestjs/common';
 import { NestApplication } from '@nestjs/core';
 import { Test } from '@nestjs/testing';
 import { RequestQueryBuilder } from '@nestjsx/crud-request';
@@ -61,10 +54,7 @@ describe('#crud', () => {
 
     @UseInterceptors(CrudRequestInterceptor)
     @Get('other2/:id/twoParams/:someParam')
-    async twoParams(
-      @ParsedRequest() req: CrudRequest,
-      @Param('someParam', ParseIntPipe) p: number,
-    ) {
+    async twoParams(@ParsedRequest() req: CrudRequest, @Param('someParam', ParseIntPipe) p: number) {
       return { filter: req.parsed.paramsFilter };
     }
   }
@@ -123,6 +113,23 @@ describe('#crud', () => {
     constructor(public service: TestService<TestModel>) {}
   }
 
+  @Crud({
+    model: { type: TestModel },
+  })
+  @CrudAuth({
+    groups: () => ['TEST_2'],
+    classTransformOptions: () => ({ groups: ['TEST_1'] }),
+  })
+  @Controller('test6')
+  class Test6Controller {
+    constructor(public service: TestService<TestModel>) {}
+
+    @Override('getManyBase')
+    get(@ParsedRequest() req: CrudRequest) {
+      return req;
+    }
+  }
+
   let $: supertest.SuperTest<supertest.Test>;
   let app: NestApplication;
 
@@ -135,6 +142,7 @@ describe('#crud', () => {
         Test3Controller,
         Test4Controller,
         Test5Controller,
+        Test6Controller,
       ],
     }).compile();
     app = module.createNestApplication();
@@ -158,8 +166,15 @@ describe('#crud', () => {
       const page = 2;
       const limit = 10;
       const fields = ['a', 'b', 'c'];
-      const sorts: any[][] = [['a', 'ASC'], ['b', 'DESC']];
-      const filters: any[][] = [['a', 'eq', 1], ['c', 'in', [1, 2, 3]], ['d', 'notnull']];
+      const sorts: any[][] = [
+        ['a', 'ASC'],
+        ['b', 'DESC'],
+      ];
+      const filters: any[][] = [
+        ['a', 'eq', 1],
+        ['c', 'in', [1, 2, 3]],
+        ['d', 'notnull'],
+      ];
 
       qb.setPage(page).setLimit(limit);
       qb.select(fields);
@@ -170,9 +185,7 @@ describe('#crud', () => {
         qb.setFilter({ field: f[0], operator: f[1], value: f[2] });
       }
 
-      const res = await $.get('/test/query')
-        .query(qb.query())
-        .expect(200);
+      const res = await $.get('/test/query').query(qb.query()).expect(200);
       expect(res.body.parsed).toHaveProperty('page', page);
       expect(res.body.parsed).toHaveProperty('limit', limit);
       expect(res.body.parsed).toHaveProperty('fields', fields);
@@ -190,9 +203,7 @@ describe('#crud', () => {
     });
 
     it('should others working', async () => {
-      const res = await $.get('/test/other')
-        .query({ page: 2, per_page: 11 })
-        .expect(200);
+      const res = await $.get('/test/other').query({ page: 2, per_page: 11 }).expect(200);
       expect(res.body.page).toBe(2);
     });
 
@@ -225,9 +236,7 @@ describe('#crud', () => {
     });
 
     it('should handle authorized request, 1', async () => {
-      const res = await $.post('/test3')
-        .send({})
-        .expect(201);
+      const res = await $.post('/test3').send({}).expect(201);
       const authPersist = { bar: false };
       const { parsed } = res.body;
       expect(parsed.authPersist).toMatchObject(authPersist);
@@ -241,19 +250,21 @@ describe('#crud', () => {
 
     it('should handle authorized request, 3', async () => {
       const query = qb.search({ name: 'test' }).query();
-      const res = await $.get('/test4')
-        .query(query)
-        .expect(200);
+      const res = await $.get('/test4').query(query).expect(200);
       const search = { $or: [{ id: 1 }, { $and: [{}, { name: 'test' }] }] };
       expect(res.body.parsed.search).toMatchObject(search);
     });
     it('should handle authorized request, 4', async () => {
       const query = qb.search({ name: 'test' }).query();
-      const res = await $.get('/test3')
-        .query(query)
-        .expect(200);
+      const res = await $.get('/test3').query(query).expect(200);
       const search = { $and: [{ user: 'test', buz: 1 }, { name: 'persist' }] };
       expect(res.body.parsed.search).toMatchObject(search);
+    });
+
+    it('should handle classTransformOptions, 1', async () => {
+      const res = await $.get('/test6').expect(200);
+      const groups = ['TEST_2'];
+      expect(res.body.parsed.classTransformOptions.groups).toMatchObject(groups);
     });
   });
 });
