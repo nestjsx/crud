@@ -12,12 +12,14 @@ import { Project } from '../../../integration/crud-typeorm/projects';
 import { User } from '../../../integration/crud-typeorm/users';
 import { UserProfile } from '../../../integration/crud-typeorm/users-profiles';
 import { Note } from '../../../integration/crud-typeorm/notes';
+import { UserLicense } from '../../../integration/crud-typeorm/users-licenses';
 import { HttpExceptionFilter } from '../../../integration/shared/https-exception.filter';
 import { Crud } from '../../crud/src/decorators';
 import { CompaniesService } from './__fixture__/companies.service';
 import { ProjectsService } from './__fixture__/projects.service';
 import { UsersService, UsersService2 } from './__fixture__/users.service';
 import { NotesService } from './__fixture__/notes.service';
+import { UserLicenseService } from './__fixture__/user.license.service';
 
 // tslint:disable:max-classes-per-file
 describe('#crud-typeorm', () => {
@@ -163,11 +165,25 @@ describe('#crud-typeorm', () => {
       constructor(public service: NotesService) {}
     }
 
+    @Crud({
+      model: { type: UserLicense },
+      query: {
+        loadRelationIds: {
+          relations: ['license'],
+          disableMixedMap: true,
+        },
+      },
+    })
+    @Controller('user.licenses')
+    class UserLicenseController {
+      constructor(public service: UserLicenseService) {}
+    }
+
     beforeAll(async () => {
       const fixture = await Test.createTestingModule({
         imports: [
           TypeOrmModule.forRoot({ ...withCache, logging: false }),
-          TypeOrmModule.forFeature([Company, Project, User, UserProfile, Note]),
+          TypeOrmModule.forFeature([Company, Project, User, UserProfile, Note, UserLicense]),
         ],
         controllers: [
           CompaniesController,
@@ -179,6 +195,7 @@ describe('#crud-typeorm', () => {
           UsersController2,
           UsersController3,
           NotesController,
+          UserLicenseController,
         ],
         providers: [
           { provide: APP_FILTER, useClass: HttpExceptionFilter },
@@ -187,6 +204,7 @@ describe('#crud-typeorm', () => {
           UsersService2,
           ProjectsService,
           NotesService,
+          UserLicenseService,
         ],
       }).compile();
 
@@ -371,6 +389,19 @@ describe('#crud-typeorm', () => {
             expect(res.status).toBe(200);
             expect(res.body.length).toBe(10);
             expect(res.body[0].company).toBeUndefined();
+            done();
+          });
+      });
+    });
+
+    describe('#query loadRelationIds', () => {
+      it('should return relation objects with only ids', (done) => {
+        request(server)
+          .get('/user.licenses')
+          .end((_, res) => {
+            expect(res.status).toBe(200);
+            expect(res.body[0].license.name).toBeUndefined();
+            expect(res.body[0].license.id).toBeDefined();
             done();
           });
       });

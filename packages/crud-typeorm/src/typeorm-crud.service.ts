@@ -282,6 +282,11 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
     // search
     this.setSearchCondition(builder, parsed.search);
 
+    // set loadRelationIds
+    if (options.query.loadRelationIds) {
+      builder.loadAllRelationIds(options.query.loadRelationIds);
+    }
+
     // set joins
     const joinOptions = options.query.join || {};
     const allowedJoins = objKeys(joinOptions);
@@ -810,7 +815,7 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
 
   protected getFieldWithAlias(field: string, sort = false) {
     /* istanbul ignore next */
-    const i = ['mysql','mariadb'].includes(this.dbName) ? '`' : '"';
+    const i = ['mysql', 'mariadb'].includes(this.dbName) ? '`' : '"';
     const cols = field.split('.');
 
     switch (cols.length) {

@@ -1,7 +1,4 @@
-import {
-  QueryFields,
-  QuerySort,
-} from '@nestjsx/crud-request/lib/types/request-query.types';
+import { QueryFields, QuerySort } from '@nestjsx/crud-request/lib/types/request-query.types';
 
 import { QueryFilterOption } from '../types';
 
@@ -11,6 +8,7 @@ export interface QueryOptions {
   persist?: QueryFields;
   filter?: QueryFilterOption;
   join?: JoinOptions;
+  loadRelationIds?: LoadRelationIdsOptions;
   sort?: QuerySort[];
   limit?: number;
   maxLimit?: number;
@@ -31,4 +29,9 @@ export interface JoinOption {
   persist?: QueryFields;
   select?: false;
   required?: boolean;
+}
+
+export interface LoadRelationIdsOptions {
+  relations?: string[];
+  disableMixedMap?: boolean;
 }
