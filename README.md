@@ -70,13 +70,13 @@ We believe that everyone who's working with NestJs and building some RESTful ser
 
 - :octopus: DB and service agnostic extendable CRUD controllers
 
-- :mag_right: Reach query parsing with filtering, pagination, sorting, relations, nested relations, cache, etc.
+- :mag_right: Rich query parsing with filtering, pagination, sorting, relations, nested relations, cache, etc.
 
 - :telescope: Framework agnostic package with query builder for a frontend usage
 
 - :space_invader: Query, path params and DTOs validation included
 
-- :clapper: Overriding controller methods with ease
+- :clapper: Override controller methods with ease
 
 - :wrench: Tiny config (including globally)
 
