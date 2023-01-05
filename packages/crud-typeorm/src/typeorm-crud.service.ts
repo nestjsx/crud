@@ -327,14 +327,14 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
       const take = this.getTake(parsed, options.query);
       /* istanbul ignore else */
       if (isFinite(take)) {
-        builder.take(take);
+        builder.limit(take);
       }
 
       // set skip
       const skip = this.getSkip(parsed, take);
       /* istanbul ignore else */
       if (isFinite(skip)) {
-        builder.skip(skip);
+        builder.offset(skip);
       }
     }
 
@@ -364,8 +364,8 @@ export class TypeOrmCrudService<T> extends CrudService<T> {
   ): Promise<GetManyDefaultResponse<T> | T[]> {
     if (this.decidePagination(query, options)) {
       const [data, total] = await builder.getManyAndCount();
-      const limit = builder.expressionMap.take;
-      const offset = builder.expressionMap.skip;
+      const limit = builder.expressionMap.limit;
+      const offset = builder.expressionMap.offset;
 
       return this.createPageInfo(data, total, limit || total, offset || 0);
     }
