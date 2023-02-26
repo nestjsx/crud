@@ -24,12 +24,6 @@
   <a href="https://www.npmjs.com/package/@nestjsx/crud">
     <img src="https://img.shields.io/npm/v/@nestjsx/crud.svg" alt="npm version" />
   </a>
-  <a href="https://www.npmjs.com/org/nestjsx">
-    <img src="https://img.shields.io/npm/dm/@nestjsx/crud.svg" alt="npm downloads" />
-  </a>
-  <a href="http://makeapullrequest.com">
-    <img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square" alt="PRs welcome" />
-  </a>
 </div>
 
 
