@@ -6,7 +6,7 @@ networks:
 services:
   postgres:
     # TypeORM fails with Postgres v.12
-    image: postgres:11.5
+    image: postgres:15.2
     ports:
       - 5455:5432
     environment:
