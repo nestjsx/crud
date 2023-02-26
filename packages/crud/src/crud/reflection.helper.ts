@@ -31,7 +31,7 @@ export class R {
     }
   }
 
-  static get<T extends any>(metadataKey: any, target: unknown, propertyKey: string | symbol = undefined): T {
+  static get<T>(metadataKey: any, target: unknown, propertyKey: string | symbol = undefined): T {
     return propertyKey
       ? Reflect.getMetadata(metadataKey, target, propertyKey)
       : Reflect.getMetadata(metadataKey, target);

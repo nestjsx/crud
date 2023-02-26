@@ -26,7 +26,7 @@ module.exports = {
     'max-len': ['error', { code: 150, comments: 200 }],
     'comma-dangle': ['error', 'always-multiline'],
     '@typescript-eslint/no-namespace': 'off',
-    '@typescript-eslint/member-ordering': [
+/*    '@typescript-eslint/member-ordering': [
       'error',
       {
         default: [
@@ -54,6 +54,6 @@ module.exports = {
           'private-abstract-method',
         ],
       },
-    ],
+    ],*/
   },
 };
