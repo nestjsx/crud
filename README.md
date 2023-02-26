@@ -1,10 +1,3 @@
-[![Stand With Ukraine](https://raw.githubusercontent.com/vshymanskyy/StandWithUkraine/main/banner2-direct.svg)](https://vshymanskyy.github.io/StandWithUkraine/)
-
-<div align="center">
-  <h1>:point_right:<a href="https://github.com/nestjsx/crud/issues/784">You can help NestJs CRUD
-  </a></h1>
-</div>
-
 <div align="center">
   <h1>CRUD</h1>
 </div>
@@ -12,12 +5,13 @@
   <strong>for RESTful APIs built with NestJs</strong>
 </div>
 
+<div>
+   This fork of the excellent nestjsx/crud, is currently aimed at upgrading dependencies and fixing bugs.
+ </div>
+
 <br />
 
 <div align="center">
-  <a href="https://github.com/vshymanskyy/StandWithUkraine/blob/main/docs/README.md">
-    <img src="https://raw.githubusercontent.com/vshymanskyy/StandWithUkraine/main/badges/StandWithUkraine.svg" alt="StandWithUkraine" />
-  </a>
   <a href="https://travis-ci.org/nestjsx/crud">
     <img src="https://github.com/nestjsx/crud/workflows/Tests/badge.svg" alt="Build" />
   </a>
@@ -36,15 +30,6 @@
   <a href="http://makeapullrequest.com">
     <img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square" alt="PRs welcome" />
   </a>
-  <a href="https://github.com/marmelab/awesome-rest#nodejs">
-    <img src="https://raw.githubusercontent.com/nestjsx/crud/master/img/awesome-rest.svg?sanitize=true" alt="Awesome REST" />
-  </a>
-  <a href="#individuals" alt="Sponsors on Open Collective">
-    <img src="https://opencollective.com/nestjsx/backers/badge.svg" />
-  </a>
-  <a href="#organizations" alt="Sponsors on Open Collective">
-    <img src="https://opencollective.com/nestjsx/sponsors/badge.svg" />
-  </a> 
 </div>
 
 <div align="center">
