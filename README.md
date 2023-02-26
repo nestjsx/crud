@@ -5,7 +5,8 @@
   <strong>for RESTful APIs built with NestJs</strong>
 </div>
 
-<div>
+<br/>
+<div align="center">
    This fork of the excellent nestjsx/crud, is currently aimed at upgrading dependencies and fixing bugs.
  </div>
 
