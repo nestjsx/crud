@@ -32,16 +32,6 @@
   </a>
 </div>
 
-<div align="center">
-  <sub>Built with :purple_heart: by
-  <a href="https://twitter.com/MichaelYali">@MichaelYali</a> and
-  <a href="https://github.com/nestjsx/crud/graphs/contributors">
-    Contributors
-  </a>
-  <div align="center">
-    :star2: :eyes: :zap: :boom:
-  </div>
-</div>
 
 <br />
 
