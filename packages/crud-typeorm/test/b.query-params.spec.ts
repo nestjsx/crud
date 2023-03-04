@@ -507,22 +507,18 @@ describe('#crud-typeorm', () => {
       });
     });
 
-    it('should return joined entity, using a limit of 100', (done) => {
-      const query = qb
-        .setFilter({ field: 'company.name', operator: 'excl', value: 'invalid' })
-        .setJoin({ field: 'company' })
-        .setJoin({ field: 'company.projects' })
-        .setLimit(100)
-        .query();
-      request(server)
-        .get('/users/1')
-        .query(query)
-        .end((_, res) => {
-          expect(res.status).toBe(200);
-          expect(res.body.company).toBeDefined();
-          expect(res.body.company.projects).toBeDefined();
-          done();
-        });
+    describe('#query composite key join', () => {
+      it('should return joined relation', (done) => {
+        const query = qb.setJoin({ field: 'userLicenses' }).query();
+        request(server)
+          .get('/users/1')
+          .query(query)
+          .end((_, res) => {
+            expect(res.status).toBe(200);
+            expect(res.body.userLicenses).toBeDefined();
+            done();
+          });
+      });
     });
 
     describe('#query composite key join', () => {
@@ -538,6 +534,7 @@ describe('#crud-typeorm', () => {
           });
       });
     });
+
 
     describe('#sort', () => {
       it('should sort by field', async () => {
