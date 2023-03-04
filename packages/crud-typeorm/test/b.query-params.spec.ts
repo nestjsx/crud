@@ -535,7 +535,6 @@ describe('#crud-typeorm', () => {
       });
     });
 
-
     describe('#sort', () => {
       it('should sort by field', async () => {
         const query = qb.sortBy({ field: 'id', order: 'DESC' }).query();
