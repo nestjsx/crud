@@ -1,12 +1,14 @@
 import { RouteParamtypes } from '@nestjs/common/enums/route-paramtypes.enum';
 import {
-  CUSTOM_ROUTE_AGRS_METADATA,
   INTERCEPTORS_METADATA,
   METHOD_METADATA,
   PARAMTYPES_METADATA,
   PATH_METADATA,
   ROUTE_ARGS_METADATA,
 } from '@nestjs/common/constants';
+
+const CUSTOM_ROUTE_AGRS_METADATA = '__routeArguments__';
+
 import { ArgumentsHost } from '@nestjs/common';
 import { isFunction } from '@nestjsx/util';
 
