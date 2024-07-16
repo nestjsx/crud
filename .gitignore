@@ -22,3 +22,6 @@ lerna-debug.log
 packages/**/lib
 packages/**/tsconfig.tsbuildinfo
 .mrepo
+
+#environment variables
+.env
