@@ -62,7 +62,7 @@
 
 We believe that everyone who's working with NestJs and building some RESTful services and especially some CRUD functionality will find `@nestjsx/crud` microframework very useful.
 
-## Features
+## Features  [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/nestjsx/crud)
 
 <img align="right" src="img/crud-usage2.png" alt="CRUD usage" />
 
