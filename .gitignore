@@ -22,3 +22,6 @@ lerna-debug.log
 packages/**/lib
 packages/**/tsconfig.tsbuildinfo
 .mrepo
+branch_structure.json
+temp_auto_push.bat
+temp_interactive_push.bat
