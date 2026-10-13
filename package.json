@@ -55,7 +55,7 @@
     "@nestjs/typeorm": "^9.0.0",
     "@zmotivat0r/mrepo": "0.8.1",
     "class-transformer": "0.3.2",
-    "class-validator": "0.13.2",
+    "class-validator": "0.14.0",
     "mysql": "2.18.1",
     "pg": "8.7.3",
     "pluralize": "8.0.0",
